@@ -1,0 +1,21 @@
+name: ci
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
+      - run: uv run pytest
+      - name: No private paths tracked
+        run: |
+          if git ls-files data/raw data/build docs/private | grep -q .; then
+            echo "private paths are tracked" >&2
+            exit 1
+          fi
