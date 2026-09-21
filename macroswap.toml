@@ -1,0 +1,17 @@
+# macroswap tunables. Nothing here is repeated as a literal in src/.
+
+[diary]
+# Rows whose name matches this (case-insensitive) are quick adds.
+quick_add_pattern = "^quick add"
+# A day is untracked when quick-add calories reach this share of the day.
+untracked_calorie_share = 0.5
+# Grams implying more energy than this per gram are a wrong unit, not grams.
+max_kcal_per_gram = 9.5
+
+[stats]
+# Head/tail shape: how many distinct names cover these shares of rows.
+coverage_shares = [0.5, 0.8, 0.95]
+
+[paths]
+# The built database; data/build/ is gitignored, so diary data stays out of git.
+db = "data/build/macroswap.sqlite"
