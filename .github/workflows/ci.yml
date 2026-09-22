@@ -13,6 +13,10 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run mypy
       - run: uv run pytest
+      - name: Config ships inside the wheel
+        run: |
+          uv build --wheel --out-dir dist
+          uv run python -c "import glob, sys, zipfile; wheel = glob.glob('dist/*.whl')[0]; sys.exit(0 if 'macroswap/macroswap.toml' in zipfile.ZipFile(wheel).namelist() else f'macroswap.toml is missing from {wheel}')"
       - name: No private paths tracked
         run: |
           if git ls-files data/raw data/build docs/private | grep -q .; then

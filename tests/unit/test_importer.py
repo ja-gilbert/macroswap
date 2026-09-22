@@ -5,11 +5,11 @@ from pathlib import Path
 
 import pytest
 
-from macroswap.config import DiaryConfig
+from macroswap.config import load_config
 from macroswap.diary.importer import DiaryImportError, import_directory, import_file
 from macroswap.store import connect
 
-CONFIG = DiaryConfig()
+CONFIG = load_config().diary
 
 
 @pytest.fixture

@@ -6,12 +6,10 @@ import pytest
 
 from macroswap.config import ConfigError, load_config
 
-REPO_CONFIG = Path(__file__).resolve().parents[2] / "macroswap.toml"
 
-
-def test_repo_config_loads_with_expected_values() -> None:
+def test_packaged_config_loads_with_expected_values() -> None:
     """The shipped macroswap.toml must load with exactly its documented values."""
-    config = load_config(REPO_CONFIG)
+    config = load_config()
     assert config.diary.quick_add_pattern == "^quick add"
     assert config.diary.untracked_calorie_share == 0.5
     assert config.diary.max_kcal_per_gram == 9.5
@@ -22,15 +20,15 @@ def test_repo_config_loads_with_expected_values() -> None:
 @pytest.mark.parametrize(
     ("text", "message"),
     [
-        pytest.param(
-            '[diary]\nquick_add_patern = "^quick add"\n', "quick_add_patern", id="key"
-        ),
-        pytest.param("[diarry]\nx = 1\n", "diarry", id="section"),
-        pytest.param("diary = 5\n", "must be a table", id="not-a-table"),
+        ('[diary]\nquick_add_patern = "^quick add"\n', "quick_add_patern"),
+        ("[diarry]\n", "diarry"),
+        ("diary = 5\n", "must be a table"),
+        ('[diary]\nquick_add_pattern = "^quick add"\n', "max_kcal_per_gram"),
     ],
+    ids=["unknown-key", "unknown-section", "not-a-table", "missing-key"],
 )
 def test_malformed_config_is_rejected(tmp_path: Path, text: str, message: str) -> None:
-    """A bad file must fail, naming the offender, not fall back to defaults."""
+    """A bad file must fail, naming the offender, not fall back to a default."""
     path = tmp_path / "macroswap.toml"
     path.write_text(text, encoding="utf-8")
     with pytest.raises(ConfigError, match=message):
