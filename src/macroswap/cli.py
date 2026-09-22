@@ -17,9 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="macroswap", description="Macro-equivalent food swaps."
     )
-    parser.add_argument(
-        "--config", default="macroswap.toml", help="path to macroswap.toml"
-    )
+    parser.add_argument("--config", help="path to a macroswap.toml (default: packaged)")
     parser.add_argument("--db", help="SQLite path (default: paths.db from the config)")
     commands = parser.add_subparsers(dest="command", required=True)
     diary = commands.add_parser("diary", help="import and inspect the diary")
@@ -34,7 +32,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
-        config = load_config(Path(args.config))
+        config = load_config(Path(args.config) if args.config else None)
         db = Path(args.db or config.paths.db)
         if not args.directory.is_dir():
             raise DiaryImportError(f"not a directory: {args.directory}")
