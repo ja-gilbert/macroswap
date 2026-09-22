@@ -7,9 +7,10 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from macroswap.config import ConfigError, load_config
+from macroswap.config import Config, ConfigError, load_config
 from macroswap.diary.importer import DiaryImportError, import_directory
 from macroswap.diary.parse import ParseError
+from macroswap.diary.stats import compute_stats, format_stats
 from macroswap.store import connect
 
 
@@ -26,6 +27,7 @@ def build_parser() -> argparse.ArgumentParser:
         "import", help="import mfp_<from>_<to>.html files from a directory"
     )
     diary_import.add_argument("directory", type=Path)
+    diary_commands.add_parser("stats", help="coverage, untracked days, name shape")
     return parser
 
 
@@ -34,13 +36,19 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         config = load_config(Path(args.config) if args.config else None)
         db = Path(args.db or config.paths.db)
-        if not args.directory.is_dir():
-            raise DiaryImportError(f"not a directory: {args.directory}")
-        with connect(db) as conn:
-            reports = import_directory(conn, args.directory, config.diary)
+        if args.diary_command == "import":
+            return _diary_import(config, db, args.directory)
+        return _diary_stats(config, db)
     except (ConfigError, DiaryImportError, ParseError, OSError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
+
+
+def _diary_import(config: Config, db: Path, directory: Path) -> int:
+    if not directory.is_dir():
+        raise DiaryImportError(f"not a directory: {directory}")
+    with connect(db) as conn:
+        reports = import_directory(conn, directory, config.diary)
     for report in reports:
         print(
             f"{report.file}: {report.days} days, {report.rows} rows, "
@@ -48,4 +56,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"{report.reconciled_days} of {report.days} reconciled, "
             f"{report.total_mismatches} total mismatches"
         )
+    return 0
+
+
+def _diary_stats(config: Config, db: Path) -> int:
+    if not db.exists():
+        raise DiaryImportError(f"no database at {db}; run `diary import` first")
+    with connect(db) as conn:
+        print(format_stats(compute_stats(conn, config.stats.coverage_shares)))
     return 0

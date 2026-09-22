@@ -51,3 +51,22 @@ def test_bad_config_is_exit_two(
     args = ["--config", str(config), "--db", str(tmp_path / "db.sqlite")]
     assert main([*args, "diary", "import", str(fixtures_dir)]) == 2
     assert "diarry" in capsys.readouterr().err
+
+
+def test_diary_stats_after_import(
+    tmp_path: Path, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db = tmp_path / "macroswap.sqlite"
+    assert main(["--db", str(db), "diary", "import", str(fixtures_dir)]) == 0
+    capsys.readouterr()
+    assert main(["--db", str(db), "diary", "stats"]) == 0
+    out = capsys.readouterr().out
+    assert "files: 3, covering 2026-08-01 .. 2026-08-06" in out
+    assert "empty covered days: 1 (2026-08-06)" in out
+
+
+def test_diary_stats_without_database_is_exit_two(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert main(["--db", str(tmp_path / "missing.sqlite"), "diary", "stats"]) == 2
+    assert "diary import" in capsys.readouterr().err
