@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from macroswap.cli import main
@@ -7,7 +9,9 @@ from macroswap.cli import main
 
 def test_no_command_is_a_usage_error(capsys: pytest.CaptureFixture[str]) -> None:
     """Running with no command exits 2 and prints usage, not a traceback."""
-    assert main([]) == 2
+    with pytest.raises(SystemExit) as exc:
+        main([])
+    assert exc.value.code == 2
     assert "usage" in capsys.readouterr().err.lower()
 
 
@@ -15,3 +19,35 @@ def test_help_exits_zero() -> None:
     with pytest.raises(SystemExit) as exc:
         main(["--help"])
     assert exc.value.code == 0
+
+
+def test_diary_import_reports_each_file(
+    tmp_path: Path, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db = tmp_path / "build" / "macroswap.sqlite"
+    assert main(["--db", str(db), "diary", "import", str(fixtures_dir)]) == 0
+    out = capsys.readouterr().out
+    assert "08-02.html: 2 days, 8 rows, 1 untracked, 2 of 2 reconciled" in out
+    assert "08-06.html: 1 days, 3 rows, 0 untracked, 1 of 1 reconciled" in out
+    assert "1 total mismatches" in out
+    assert db.exists()
+
+
+@pytest.mark.parametrize("subdir", ["missing", "empty"])
+def test_unusable_directory_is_exit_two(
+    tmp_path: Path, subdir: str, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db = tmp_path / "db.sqlite"
+    (tmp_path / "empty").mkdir()
+    assert main(["--db", str(db), "diary", "import", str(tmp_path / subdir)]) == 2
+    assert subdir in capsys.readouterr().err
+
+
+def test_bad_config_is_exit_two(
+    tmp_path: Path, fixtures_dir: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    config = tmp_path / "macroswap.toml"
+    config.write_text("[diarry]\n", encoding="utf-8")
+    args = ["--config", str(config), "--db", str(tmp_path / "db.sqlite")]
+    assert main([*args, "diary", "import", str(fixtures_dir)]) == 2
+    assert "diarry" in capsys.readouterr().err

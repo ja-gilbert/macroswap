@@ -48,14 +48,14 @@ def test_columns_follow_the_header_and_exercise_tables_are_ignored(
     fixtures_dir: Path,
 ) -> None:
     """A reordered header maps cells by name; an EXERCISES table adds no rows."""
-    text = (fixtures_dir / "mfp_2026-08-05_2026-08-05.html").read_text()
+    text = (fixtures_dir / "mfp_2026-08-05_2026-08-06.html").read_text()
     (day,) = parse_diary_html(text)
     oats = day.rows[0]
     assert (oats.protein, oats.carbs, oats.fat, oats.fiber) == (5.0, 27.0, 3.0, 4.0)
     assert (oats.sugar, oats.sodium, oats.cholesterol) == (1.0, 0.0, 0.0)
     assert day.rows[1].sodium == 1300.0
-    assert [r.meal for r in day.rows] == ["Breakfast", "Lunch"]
-    assert day.reported_total_calories == 855.0
+    assert [r.meal for r in day.rows] == ["Breakfast", "Lunch", "Snacks"]
+    assert day.reported_total_calories == 1155.0
 
 
 @pytest.mark.parametrize(
