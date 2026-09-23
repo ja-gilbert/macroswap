@@ -30,9 +30,9 @@ reports what they hold. On my own diary, 2026-09-22:
 | Food Rows | 18,743 |
 | Days Whose Calories Match the Page's TOTALS Row, to Within 1 kcal | 1,314 of 1,314 |
 | Days No Export Covers | 0 |
-| Distinct Foods in Counted Rows, by Brand and Food Text | 1,798 |
+| Days an Export Covers with Nothing Logged | 14 |
 | Untracked Days, where quick adds are half the day's calories or more | 288 |
-| Distinct Foods, by Brand and Food Text | 1,798 |
+| Distinct Foods in Counted Rows, by Brand and Food Text | 1,798 |
 | Foods Covering 50%, 80% and 95% of counted rows | 60, 314, 1,019 |
 
 Counted rows are the rows on tracked days that are not quick adds.
