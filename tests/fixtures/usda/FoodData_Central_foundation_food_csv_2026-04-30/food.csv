@@ -1,0 +1,17 @@
+fdc_id,data_type,description,food_category_id,publication_date
+321360,foundation_food,"Tomatoes, grape, raw",11,2019-04-01
+321900,foundation_food,"Broccoli, raw",11,2019-04-01
+322559,foundation_food,"Milk, nonfat, fluid, with added vitamin A and vitamin D (fat free or skim)",1,2019-04-01
+334194,foundation_food,"Fish, tuna, light, canned in water, drained solids",15,2019-04-01
+335433,foundation_food,"Beans, Dry, Carioca (0% moisture)",16,2019-04-01
+748608,foundation_food,"Oil, olive, extra virgin",4,2019-12-16
+790774,foundation_food,"Bananas, overripe, raw",9,2020-04-01
+790991,foundation_food,"Bananas, ripe and slightly ripe, raw",9,2020-04-01
+2346397,foundation_food,"Oats, whole grain, steel cut",20,2022-10-28
+2346404,foundation_food,"Sweet potatoes, orange flesh, without skin, raw",11,2022-10-28
+2514743,foundation_food,"Beef, ground, 90% lean meat / 10% fat, raw",13,2023-04-20
+2644282,foundation_food,"Chickpeas, (garbanzo beans, bengal gram), dry",16,2023-10-26
+2644283,foundation_food,"Lentils, dry",16,2023-10-26
+2727567,foundation_food,"Chicken, thigh, meat and skin, raw",5,2025-04-24
+2747654,foundation_food,"Cod, Pacific or Alaskan, frozen, wild caught",15,2025-12-18
+2747673,foundation_food,"Tuna, ahi or yellowfin, frozen, wild caught",15,2025-12-18

@@ -1,0 +1,92 @@
+fdc_id,data_type,description,food_category_id,publication_date
+167535,sr_legacy_food,"Tortillas, ready-to-bake or -fry, flour, shelf stable",18,2019-04-01
+167536,sr_legacy_food,"Snacks, beef jerky, chopped and formed",23,2019-04-01
+167793,sr_legacy_food,"Apples, raw, fuji, with skin (Includes foods for USDA's Food Distribution Program)",9,2019-04-01
+168204,sr_legacy_food,"Apples, raw, gala, with skin (Includes foods for USDA's Food Distribution Program)",9,2019-04-01
+168249,sr_legacy_food,"Pork, fresh, loin, tenderloin, separable lean only, raw",10,2019-04-01
+168263,sr_legacy_food,"Pork, fresh, loin, center loin (chops), boneless, separable lean only, raw",10,2019-04-01
+168372,sr_legacy_food,"Pork, ground, 84% lean / 16% fat, raw",10,2019-04-01
+168482,sr_legacy_food,"Sweet potato, raw, unprepared (Includes foods for USDA's Food Distribution Program)",11,2019-04-01
+168483,sr_legacy_food,"Sweet potato, cooked, baked in skin, flesh, without salt",11,2019-04-01
+168652,sr_legacy_food,"Beef, ground, 70% lean meat / 30% fat, raw",13,2019-04-01
+168877,sr_legacy_food,"Rice, white, long-grain, regular, raw, enriched",20,2019-04-01
+169112,sr_legacy_food,"Peaches, canned, heavy syrup pack, solids and liquids",9,2019-04-01
+169190,sr_legacy_food,"Pork, ground, 96% lean / 4% fat, raw",10,2019-04-01
+169251,sr_legacy_food,"Mushrooms, white, raw",11,2019-04-01
+169376,sr_legacy_food,"Mushroom, white, exposed to ultraviolet light, raw",11,2019-04-01
+169599,sr_legacy_food,"Gelatins, dry powder, unsweetened",19,2019-04-01
+169640,sr_legacy_food,Honey,19,2019-04-01
+169736,sr_legacy_food,"Pasta, dry, enriched",20,2019-04-01
+169753,sr_legacy_food,"Rice, white, long-grain, regular, cooked, enriched, with salt",20,2019-04-01
+169928,sr_legacy_food,"Peaches, yellow, raw",9,2019-04-01
+169934,sr_legacy_food,"Peaches, dried, sulfured, uncooked",9,2019-04-01
+170000,sr_legacy_food,"Onions, raw",11,2019-04-01
+170004,sr_legacy_food,"Onions, yellow, sauteed",11,2019-04-01
+170026,sr_legacy_food,"Potatoes, flesh and skin, raw",11,2019-04-01
+170027,sr_legacy_food,"Potatoes, russet, flesh and skin, raw (Includes foods for USDA's Food Distribution Program)",11,2019-04-01
+170028,sr_legacy_food,"Potatoes, white, flesh and skin, raw",11,2019-04-01
+170029,sr_legacy_food,"Potatoes, red, flesh and skin, raw",11,2019-04-01
+170032,sr_legacy_food,"Potatoes, raw, skin",11,2019-04-01
+170158,sr_legacy_food,"Nuts, almonds, dry roasted, without salt added",12,2019-04-01
+170379,sr_legacy_food,"Broccoli, raw",11,2019-04-01
+170567,sr_legacy_food,"Nuts, almonds",12,2019-04-01
+170894,sr_legacy_food,"Yogurt, Greek, plain, nonfat (Includes foods for USDA's Food Distribution Program)",1,2019-04-01
+170901,sr_legacy_food,"Yogurt, Greek, strawberry, nonfat",1,2019-04-01
+171077,sr_legacy_food,"Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw",5,2019-04-01
+171116,sr_legacy_food,"Chicken, ground, raw",5,2019-04-01
+171265,sr_legacy_food,"Milk, whole, 3.25% milkfat, with added vitamin D",1,2019-04-01
+171269,sr_legacy_food,"Milk, nonfat, fluid, with added vitamin A and vitamin D (fat free or skim)",1,2019-04-01
+171287,sr_legacy_food,"Egg, whole, raw, fresh",1,2019-04-01
+171445,sr_legacy_food,"Chicken, broiler, rotisserie, BBQ, breast, meat only",5,2019-04-01
+171474,sr_legacy_food,"Chicken, broilers or fryers, breast, meat and skin, raw",5,2019-04-01
+171477,sr_legacy_food,"Chicken, broilers or fryers, breast, meat only, cooked, roasted",5,2019-04-01
+171519,sr_legacy_food,"Chicken, broilers or fryers, drumstick, rotisserie, original seasoning, meat only, cooked",5,2019-04-01
+171711,sr_legacy_food,"Blueberries, raw",9,2019-04-01
+171790,sr_legacy_food,"Beef, ground, 95% lean meat / 5% fat, raw",13,2019-04-01
+171796,sr_legacy_food,"Beef, ground, 85% lean meat / 15% fat, raw (Includes foods for USDA's Food Distribution Program)",13,2019-04-01
+171804,sr_legacy_food,"Beef, top sirloin, steak, separable lean only, trimmed to 1/8"" fat, select, raw",13,2019-04-01
+171955,sr_legacy_food,"Fish, cod, Atlantic, raw",15,2019-04-01
+171964,sr_legacy_food,"Fish, haddock, raw",15,2019-04-01
+172182,sr_legacy_food,"Cheese, cottage, lowfat, 2% milkfat",1,2019-04-01
+172183,sr_legacy_food,"Egg, white, raw, fresh",1,2019-04-01
+172385,sr_legacy_food,"Chicken, broilers or fryers, thigh, meat and skin, raw",5,2019-04-01
+172420,sr_legacy_food,"Lentils, raw",16,2019-04-01
+172470,sr_legacy_food,"Peanut butter, smooth style, without salt",16,2019-04-01
+172688,sr_legacy_food,"Bread, whole-wheat, commercially prepared",18,2019-04-01
+172715,sr_legacy_food,"Cookies, chocolate chip, commercially prepared, regular, lower fat",18,2019-04-01
+172762,sr_legacy_food,"Muffins, English, whole-wheat",18,2019-04-01
+172765,sr_legacy_food,"Muffins, blueberry, commercially prepared (Includes mini-muffins)",18,2019-04-01
+172847,sr_legacy_food,"Turkey, ground, fat free, raw",5,2019-04-01
+172850,sr_legacy_food,"Turkey, ground, 93% lean, 7% fat, raw",5,2019-04-01
+172941,sr_legacy_food,"Turkey breast, sliced, prepackaged",7,2019-04-01
+173110,sr_legacy_food,"Beef, ground, 93% lean meat / 7% fat, raw",13,2019-04-01
+173111,sr_legacy_food,"Beef, ground, 97% lean meat / 3% fat, raw",13,2019-04-01
+173177,sr_legacy_food,"Beverages, Whey protein powder isolate",14,2019-04-01
+173180,sr_legacy_food,"Beverages, Protein powder whey based",14,2019-04-01
+173430,sr_legacy_food,"Butter, without salt",1,2019-04-01
+173647,sr_legacy_food,"Beverages, water, tap, drinking",14,2019-04-01
+173709,sr_legacy_food,"Fish, tuna, light, canned in water, drained solids (Includes foods for USDA's Food Distribution Program)",15,2019-04-01
+173723,sr_legacy_food,"Salmon, sockeye, canned, drained solids, without skin and bones",15,2019-04-01
+173734,sr_legacy_food,"Beans, black, mature seeds, raw",16,2019-04-01
+173756,sr_legacy_food,"Chickpeas (garbanzo beans, bengal gram), mature seeds, raw",16,2019-04-01
+173874,sr_legacy_food,"Chicken breast, deli, rotisserie seasoned, sliced, prepackaged",7,2019-04-01
+173904,sr_legacy_food,"Cereals, oats, regular and quick, not fortified, dry",8,2019-04-01
+173905,sr_legacy_food,"Cereals, oats, regular and quick, unenriched, cooked with water (includes boiling and microwaving), without salt",8,2019-04-01
+173944,sr_legacy_food,"Bananas, raw",9,2019-04-01
+174030,sr_legacy_food,"Beef, ground, 90% lean meat / 10% fat, raw",13,2019-04-01
+174036,sr_legacy_food,"Beef, ground, 80% lean meat / 20% fat, raw",13,2019-04-01
+174037,sr_legacy_food,"Beef, ground, 75% lean meat / 25% fat, raw",13,2019-04-01
+174421,sr_legacy_food,"Game meat , bison, ground, raw",17,2019-04-01
+174493,sr_legacy_food,"Turkey, ground, 85% lean, 15% fat, raw",5,2019-04-01
+174612,sr_legacy_food,"Turkey, breast, smoked, lemon pepper flavor, 97% fat-free",7,2019-04-01
+174763,sr_legacy_food,"Beef, top sirloin, steak, separable lean only, trimmed to 1/8"" fat, choice, raw",13,2019-04-01
+174899,sr_legacy_food,"Bagels, plain, enriched, with calcium propionate (includes onion, poppy, sesame)",18,2019-04-01
+174908,sr_legacy_food,"Bread, cornbread, dry mix, enriched (includes corn muffin mix)",18,2019-04-01
+175036,sr_legacy_food,"Tortillas, ready-to-bake or -fry, corn",18,2019-04-01
+175040,sr_legacy_food,"Leavening agents, baking soda",18,2019-04-01
+175063,sr_legacy_food,"English muffins, plain, enriched, without calcium propionate(includes sourdough)",18,2019-04-01
+175084,sr_legacy_food,"Nabisco, Nabisco Oreo Crunchies, Cookie Crumb Topping",18,2019-04-01
+175139,sr_legacy_food,"Fish, sardine, Atlantic, canned in oil, drained solids with bone",15,2019-04-01
+175159,sr_legacy_food,"Fish, tuna, fresh, yellowfin, raw",15,2019-04-01
+175167,sr_legacy_food,"Fish, salmon, Atlantic, farmed, raw",15,2019-04-01
+175238,sr_legacy_food,"Beans, black, mature seeds, canned, low sodium",16,2019-04-01
