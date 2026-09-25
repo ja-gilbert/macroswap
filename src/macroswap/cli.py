@@ -3,15 +3,19 @@
 from __future__ import annotations
 
 import argparse
+import sqlite3
 import sys
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from pathlib import Path
 
 from macroswap.config import Config, ConfigError, load_config
 from macroswap.diary.importer import DiaryImportError, import_directory
 from macroswap.diary.parse import ParseError
 from macroswap.diary.stats import compute_stats, format_stats
+from macroswap.pull import PullError, pull
 from macroswap.store import connect
+
+Handler = Callable[[Config, Path, argparse.Namespace], int]
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -27,24 +31,37 @@ def build_parser() -> argparse.ArgumentParser:
         "import", help="import mfp_<from>_<to>.html files from a directory"
     )
     diary_import.add_argument("directory", type=Path)
-    diary_commands.add_parser("stats", help="coverage, untracked days, name shape")
+    diary_import.set_defaults(run=_diary_import)
+    diary_commands.add_parser(
+        "stats", help="coverage, untracked days, name shape"
+    ).set_defaults(run=_diary_stats)
+    data = commands.add_parser("data", help="fetch and build the USDA food table")
+    data_commands = data.add_subparsers(dest="data_command", required=True)
+    data_commands.add_parser(
+        "pull", help="download the pinned USDA releases, verifying checksums"
+    ).set_defaults(run=_data_pull)
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    run: Handler = args.run
     try:
         config = load_config(Path(args.config) if args.config else None)
-        db = Path(args.db or config.paths.db)
-        if args.diary_command == "import":
-            return _diary_import(config, db, args.directory)
-        return _diary_stats(config, db)
-    except (ConfigError, DiaryImportError, ParseError, OSError) as exc:
+        return run(config, Path(args.db or config.paths.db), args)
+    except (
+        ConfigError,
+        DiaryImportError,
+        ParseError,
+        PullError,
+        OSError,
+    ) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
 
-def _diary_import(config: Config, db: Path, directory: Path) -> int:
+def _diary_import(config: Config, db: Path, args: argparse.Namespace) -> int:
+    directory: Path = args.directory
     if not directory.is_dir():
         raise DiaryImportError(f"not a directory: {directory}")
     with connect(db) as conn:
@@ -59,9 +76,21 @@ def _diary_import(config: Config, db: Path, directory: Path) -> int:
     return 0
 
 
-def _diary_stats(config: Config, db: Path) -> int:
-    if not db.exists():
-        raise DiaryImportError(f"no database at {db}; run `diary import` first")
-    with connect(db) as conn:
+def _diary_stats(config: Config, db: Path, args: argparse.Namespace) -> int:
+    with _existing(db, "diary import") as conn:
         print(format_stats(compute_stats(conn, config.stats.coverage_shares)))
     return 0
+
+
+def _data_pull(config: Config, db: Path, args: argparse.Namespace) -> int:
+    for line in pull(Path(config.paths.manifest), Path(config.paths.raw)):
+        print(line)
+    return 0
+
+
+def _existing(db: Path, hint: str) -> sqlite3.Connection:
+    # connect() creates the file it is pointed at, so a typo in --db would
+    # otherwise report an empty database instead of a missing one.
+    if not db.exists():
+        raise FileNotFoundError(f"no database at {db}; run `{hint}` first")
+    return connect(db)
