@@ -43,6 +43,49 @@ CREATE TABLE IF NOT EXISTS diary_rows (
 """
 
 
+_USDA_COLUMNS = (
+    "id",
+    "source",
+    "ndb",
+    "description",
+    "category",
+    "family",
+    "variant",
+    "lean_pct",
+    "provenance",
+    "as_bought",
+    "protein",
+    "carbs",
+    "fat",
+    "fiber",
+    "kcal",
+    "roles",
+    "exclusion_reason",
+)
+_USDA_SCHEMA = """
+DROP TABLE IF EXISTS usda_foods;
+CREATE TABLE usda_foods (
+    id               TEXT PRIMARY KEY,
+    source           TEXT NOT NULL CHECK (source IN ('sr', 'foundation', 'derived')),
+    ndb              TEXT,
+    description      TEXT NOT NULL,
+    category         TEXT NOT NULL,
+    family           TEXT NOT NULL,
+    variant          TEXT NOT NULL,
+    lean_pct         INTEGER,
+    provenance       TEXT NOT NULL,
+    as_bought        TEXT NOT NULL,
+    protein          REAL,
+    carbs            REAL,
+    fat              REAL,
+    fiber            REAL,
+    kcal             REAL,
+    roles            TEXT NOT NULL,
+    exclusion_reason TEXT
+);
+"""
+
+
 def connect(path: Path) -> sqlite3.Connection:
     """Open the build database, creating directories and tables as needed."""
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -51,3 +94,13 @@ def connect(path: Path) -> sqlite3.Connection:
     conn.execute("PRAGMA foreign_keys = ON")
     conn.executescript(_SCHEMA)
     return conn
+
+
+def write_usda(conn: sqlite3.Connection, rows: list[tuple[object, ...]]) -> None:
+    """Replace the USDA table whole, schema included, so a rebuild never
+    inherits columns or rows from an older build."""
+    columns = ", ".join(_USDA_COLUMNS)
+    marks = ", ".join("?" * len(_USDA_COLUMNS))
+    conn.executescript(_USDA_SCHEMA)
+    with conn:
+        conn.executemany(f"INSERT INTO usda_foods({columns}) VALUES ({marks})", rows)

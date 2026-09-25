@@ -1,4 +1,4 @@
-"""Family and variant keys, built from USDA description's comma fields
+"""Family and variant keys, built from a USDA description's comma fields.
 
 A description is fields in order: "Beef, ground, 93% lean meat / 7% fat, raw".
 Boilerplate, state, cosmetic and cooking fields are dropped; the family is the
