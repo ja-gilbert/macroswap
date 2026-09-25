@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import tomllib
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, fields, replace
 from importlib.resources import files
 from pathlib import Path
 from typing import Any
@@ -30,6 +30,41 @@ class StatsConfig:
 @dataclass(frozen=True)
 class PathsConfig:
     db: str
+    raw: str
+    manifest: str
+
+
+@dataclass(frozen=True)
+class SwapConfig:
+    rank_weights: tuple[float, ...]
+
+
+@dataclass(frozen=True)
+class Leanness:
+    family: str
+    nominal: bool
+    anchors: dict[str, str]
+    retail: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class UsdaConfig:
+    note_pattern: str
+    boilerplate_fields: tuple[str, ...]
+    state_fields: tuple[str, ...]
+    cooking_words: tuple[str, ...]
+    cosmetic_patterns: tuple[str, ...]
+    dry_basis_marker: str
+    excluded_categories: tuple[str, ...]
+    depth_one_families: tuple[str, ...]
+    product_fields: tuple[str, ...]
+    role_share_threshold: float
+    varietal_threshold: float
+    as_bought: dict[str, list[str]]
+    allow_words: dict[str, list[str]]
+    deny_words: dict[str, list[str]]
+    family_aliases: dict[str, str]
+    leanness: tuple[Leanness, ...]
 
 
 @dataclass(frozen=True)
@@ -37,6 +72,8 @@ class Config:
     diary: DiaryConfig
     stats: StatsConfig
     paths: PathsConfig
+    swap: SwapConfig
+    usda: UsdaConfig
 
 
 def load_config(path: Path | None = None) -> Config:
@@ -54,24 +91,28 @@ def load_config(path: Path | None = None) -> Config:
         raw = tomllib.loads(text)
     except tomllib.TOMLDecodeError as exc:
         raise ConfigError(f"{source}: {exc}") from exc
-    unknown = sorted(set(raw) - {f.name for f in fields(Config)})
-    if unknown:
+    if unknown := sorted(set(raw) - {f.name for f in fields(Config)}):
         raise ConfigError(f"{source}: unknown sections: {unknown}")
-    return Config(
-        diary=_section(DiaryConfig, raw, "diary", source),
-        stats=_section(StatsConfig, raw, "stats", source),
-        paths=_section(PathsConfig, raw, "paths", source),
+    # Sections are read in file order, so the first offender is the one named.
+    diary = _section(DiaryConfig, raw, "diary", source)
+    stats = _section(StatsConfig, raw, "stats", source)
+    paths = _section(PathsConfig, raw, "paths", source)
+    swap = _section(SwapConfig, raw, "swap", source)
+    usda = _section(UsdaConfig, raw, "usda", source)
+    leanness = tuple(
+        _section(Leanness, {"leanness": table}, "leanness", source)
+        for table in usda.leanness
     )
+    return Config(diary, stats, paths, swap, replace(usda, leanness=leanness))
 
 
-def _section[S: (DiaryConfig, StatsConfig, PathsConfig)](
-    cls: type[S], raw: dict[str, Any], name: str, source: str
-) -> S:
+def _section[
+    S: (DiaryConfig, StatsConfig, PathsConfig, SwapConfig, UsdaConfig, Leanness)
+](cls: type[S], raw: dict[str, Any], name: str, source: str) -> S:
     table = raw.get(name, {})
     if not isinstance(table, dict):
         raise ConfigError(f"{source}: [{name}] must be a table")
-    unknown = sorted(set(table) - {f.name for f in fields(cls)})
-    if unknown:
+    if unknown := sorted(set(table) - {f.name for f in fields(cls)}):
         raise ConfigError(f"{source}: [{name}] has unknown keys {unknown}")
     # TOML arrays arrive as lists; dataclasses are frozen, so store as tuples
     values: dict[str, Any] = {

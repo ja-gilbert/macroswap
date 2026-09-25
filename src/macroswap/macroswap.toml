@@ -15,3 +15,131 @@ coverage_shares = [0.5, 0.8, 0.95]
 [paths]
 # The built database; data/build/ is gitignored, so diary data stays out of git.
 db = "data/build/macroswap.sqlite"
+# Downloads land under raw/usda/; the manifest pins what they must hash to.
+raw = "data/raw"
+manifest = "data/manifest.toml"
+
+[swap]
+# Squared gram deltas of protein, carbs, fat, weighted to kcal space with
+# protein counted three times: 3*(4P)^2 + (4C)^2 + (9F)^2. Spec 4.5.
+rank_weights = [48.0, 16.0, 81.0]
+
+[usda]
+# A USDA description is comma-separated fields, split outside parentheses and
+# compared lower-cased. Each list below classifies a whole field. Spec 4.2.
+# A program note, not food; removed before splitting. Every other
+# parenthetical stays in the variant key.
+note_pattern = '\(includes foods for usda.s food distribution program\)'
+# Dropped from both keys: they name USDA's sampling or the origin, not the food.
+boilerplate_fields = ["broilers or fryers", "broiler or fryers", "broiler", "mature seeds", "mixed species", "usda commodity", "imported", "new zealand", "australian"]
+# Dropped from both keys and never a reason on its own; a state field is
+# classified before the cooking words, so "commercially prepared" is not cooking.
+state_fields = ["raw", "fresh", "frozen", "unprepared", "commercially prepared", "not reconstituted", "not prepared"]
+# A field holding one of these whole words is cooking. A cooked-state row whose
+# first field some row in another state shares records cooked-with-raw-sibling
+# and drops its cooking fields from both keys; any other cooked-state row keys
+# as its first field plus the field that cooked it, so no family mixes cooked
+# and raw rows.
+cooking_words = ["cooked", "roasted", "boiled", "braised", "broiled", "grilled", "fried", "baked", "stewed", "steamed", "microwaved", "simmered", "heated", "prepared", "reconstituted", "toasted", "pan-broiled", "sauteed", "restaurant"]
+# Dropped before keying: they do not change per-gram macros. Full-field regexes.
+cosmetic_patterns = [
+    '(with|without)( added)? salt( added)?',
+    'no salt added|salted|unsalted|(low|reduced) sodium|sodium added',
+    'salt (not )?added in processing',
+    '(un)?enriched|(not |dry )?fortified( with vitamins? [a-z ,]+)?',
+    '(with|without) added vitamins? [a-z ,]+|vitamins a and d',
+    'choice|select|prime|all grades|grade a',
+    'trimmed to [0-9/]+" fat',
+    'boneless|bone-in|skinless',
+    'prepared with (calcium sulfate|nigari)( and magnesium chloride)?',
+]
+# Foundation restates some foods on a dry-matter basis nobody weighs.
+dry_basis_marker = "(0% moisture)"
+# Categories whose rows are never candidates, spelled exactly as SR spells them.
+excluded_categories = [
+    "Baby Foods", "Spices and Herbs", "Soups, Sauces, and Gravies", "Fast Foods",
+    "Restaurant Foods", "Meals, Entrees, and Side Dishes",
+    "American Indian/Alaska Native Foods", "Sweets", "Snacks",
+    "Sausages and Luncheon Meats", "Beverages",
+]
+# Families whose field two names a variety of one food, not a different food:
+# keyed on field one alone. `data report` lists the measured candidates.
+depth_one_families = [
+    "potatoes", "apples", "onions", "lettuce", "grapes", "tomatoes", "arugula",
+    "asparagus", "avocados", "blueberries", "broccoli", "cabbage", "carrots",
+    "cauliflower", "collards", "corn flour", "corn grain", "cornmeal", "cowpeas",
+    "cucumber", "currants", "dates", "grapefruit", "grapefruit juice", "kiwifruit",
+    "lentils", "lima beans", "mango", "mushroom", "mushrooms", "orange juice",
+    "oranges", "passion-fruit juice", "peanut butter", "peanuts", "pears",
+    "pineapple", "plantains", "radishes", "raisins", "raspberries", "rhubarb",
+    "rye flour", "spinach", "strawberries", "watermelon", "wheat", "wheat flour",
+]
+# Depth one covers a family's raw rows only, and not a row with a field naming
+# a product form. Full-field regexes.
+product_fields = ["skin", "hash brown.*", "mashed.*", "o'brien", "french fried.*", "kimchi"]
+# A family joins every macro pool whose calorie share any candidate reaches.
+role_share_threshold = 0.25
+# `data report` flags field-one groups whose raw families sit closer than this,
+# in rank-score units per 100 g, as varietal override candidates.
+varietal_threshold = 15.0
+
+# The state a food is bought and weighed in, from whole fields: canned or dry
+# when a field matches and no cooking field follows it, since a cooking field
+# after the bought state is cooking after purchase ("dried, stewed"); else
+# "cooked" for a cooking field or a field of the class named cooked; else
+# "raw". A cooking field before canned or dry is processing before purchase
+# ("baked, canned"). The cooked class marks a food sold cooked: its field
+# stays in the keys and exempts the row from the sibling rule.
+[usda.as_bought]
+canned = ['canned.*']
+dry = ['dry( mix| form| powder.*| packet mix)?', '(sun-|air-|freeze-)?dried(-frozen)?', 'dehydrated.*']
+cooked = ['rotisserie.*']
+
+# Whole words or phrases, per category, that clear an excluded category.
+[usda.allow_words]
+"Beverages" = ["whey protein", "protein powder"]
+"Sausages and Luncheon Meats" = ["turkey breast", "turkey, breast", "chicken breast"]
+"Snacks" = ["jerky"]
+"Baked Products" = ["english muffins", "muffins, english"]
+
+# Whole words or phrases, per category, matched anywhere in the description
+# with parentheticals removed; an allow entry wins.
+[usda.deny_words]
+"Baked Products" = ["cookies", "cookie", "cake", "pie", "muffins", "muffin", "doughnuts", "pastry", "pastries", "croissants", "sweet rolls", "cream puff", "cinnamon buns", "pan dulce"]
+
+# Family -> family, for a parallel spelling of one food, confirmed from
+# `macroswap data report`. Applied after the keys are derived and before the
+# duplicate check; `data build` refuses an entry whose source or target no
+# longer exists.
+[usda.family_aliases]
+"cod, pacific or alaskan" = "fish, cod"
+"tuna, ahi or yellowfin" = "fish, tuna"
+"lentils, dry" = "lentils"
+"bananas, overripe" = "bananas"
+"bananas, ripe and slightly ripe" = "bananas"
+"oats, whole grain" = "cereals, oats"
+"salmon, sockeye" = "fish, salmon"
+"mushroom" = "mushrooms"
+"beverages, whey protein powder isolate" = "beverages, protein powder whey based"
+
+# Ground-meat leanness families. Anchors are SR NDB numbers with their label
+# level; retail levels between anchors become derived rows.
+[[usda.leanness]]
+family = "beef, ground"
+# SR's ground beef is label-nominal: fat is exactly 100 minus lean.
+nominal = true
+anchors = { "13498" = "70/30", "23577" = "75/25", "23572" = "80/20", "23567" = "85/15", "23562" = "90/10", "23472" = "93/7", "23557" = "95/5", "23477" = "97/3" }
+retail = ["73/27", "88/12", "92/8", "94/6", "96/4"]
+
+[[usda.leanness]]
+family = "turkey, ground"
+nominal = false
+# 5662 is "fat free", measured at 1.95 g fat per 100 g; it enters as 99/1.
+anchors = { "5668" = "85/15", "5665" = "93/7", "5662" = "99/1" }
+retail = []
+
+[[usda.leanness]]
+family = "pork, ground"
+nominal = false
+anchors = { "10972" = "84/16", "10973" = "96/4" }
+retail = []

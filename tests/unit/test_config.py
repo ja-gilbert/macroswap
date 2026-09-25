@@ -15,6 +15,7 @@ def test_packaged_config_loads_with_expected_values() -> None:
     assert config.diary.max_kcal_per_gram == 9.5
     assert config.stats.coverage_shares == (0.5, 0.8, 0.95)
     assert config.paths.db == "data/build/macroswap.sqlite"
+    assert config.swap.rank_weights == (48.0, 16.0, 81.0)
 
 
 @pytest.mark.parametrize(
