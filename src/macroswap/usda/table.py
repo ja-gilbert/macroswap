@@ -1,0 +1,290 @@
+"""The USDA food table: every row with its keys, roles and exclusion reason.
+
+The matcher indexes every row; `exclusion_reason` says which rows a swap may
+offer. The first applicable reason in REASONS wins. Spec 4.2.
+"""
+
+from __future__ import annotations
+
+import re
+from collections import defaultdict
+from dataclasses import dataclass, replace
+from itertools import pairwise
+
+from macroswap.config import Leanness, UsdaConfig
+from macroswap.diary.normalize import parse_leanness
+from macroswap.usda.keys import (
+    FieldRules,
+    Fields,
+    cooked_family,
+    family_key,
+    plain,
+    variant_key,
+)
+from macroswap.usda.load import Food
+
+REASONS = (
+    "analytical-duplicate",
+    "cooked-with-raw-sibling",
+    "excluded-category",
+    "zero-macro",
+    "incomplete-macros",
+)
+_POOLS = ("protein", "carbs", "fat")
+
+
+class BuildError(ValueError):
+    """The configuration no longer fits the data it keys."""
+
+
+@dataclass(frozen=True)
+class Row:
+    id: str
+    source: str
+    ndb: str | None
+    description: str
+    category: str
+    family: str
+    variant: str
+    lean_pct: int | None
+    provenance: str
+    as_bought: str
+    protein: float | None
+    carbs: float | None
+    fat: float | None
+    fiber: float | None
+    kcal: float | None
+    roles: str
+    exclusion_reason: str | None
+
+
+@dataclass(frozen=True)
+class _Keyed:
+    food: Food
+    fields: Fields
+    unaliased: str
+    family: str
+    variant: str
+    level: str | None
+    cooked_sibling: bool
+
+
+def build_table(foods: list[Food], usda: UsdaConfig) -> list[Row]:
+    rules = FieldRules(usda)
+    leanness = {lean.family: lean for lean in usda.leanness}
+    fielded = [(f, rules.fields(f.description)) for f in foods]
+    # A cooked row whose first field some row in another state shares is that
+    # food cooked, not a food sold cooked.
+    other_state = {family_key(fl, 1) for _, fl in fielded if fl.as_bought != "cooked"}
+    keyed = [
+        _key(f, fl, rules, leanness, usda.family_aliases, other_state)
+        for f, fl in fielded
+    ]
+    _check_aliases(keyed, usda.family_aliases)
+    _check_anchors(keyed, leanness)
+    sr_variants = {k.variant for k in keyed if k.food.source == "sr"}
+    rows = [
+        _row(k, _reason(k, usda, sr_variants), leanness.get(k.family)) for k in keyed
+    ]
+    rows += [d for lean in usda.leanness for d in _derived(lean, rows)]
+    return _with_roles(rows, usda.role_share_threshold)
+
+
+def _key(
+    food: Food,
+    fields: Fields,
+    rules: FieldRules,
+    leanness: dict[str, Leanness],
+    aliases: dict[str, str],
+    other_state: set[str],
+) -> _Keyed:
+    cooked_sibling = (
+        fields.as_bought == "cooked"
+        and not fields.sold_cooked
+        and family_key(fields, 1) in other_state
+    )
+    if fields.as_bought == "cooked" and not cooked_sibling:
+        fields, depth = cooked_family(fields), 2
+    else:
+        depth = rules.depth(fields)
+    unaliased = family_key(fields, depth)
+    family = aliases.get(unaliased, unaliased)
+    level = _level(food, leanness.get(family))
+    variant = variant_key(family, fields, depth, level)
+    return _Keyed(food, fields, unaliased, family, variant, level, cooked_sibling)
+
+
+def _level(food: Food, lean: Leanness | None) -> str | None:
+    """A leanness family's level: an SR anchor's label, else the description's."""
+    if lean is None:
+        return None
+    if food.source == "sr" and food.ndb in lean.anchors:
+        return lean.anchors[food.ndb]
+    pct = parse_leanness(food.description)
+    return None if pct is None else f"{pct}/{100 - pct}"
+
+
+def _reason(k: _Keyed, usda: UsdaConfig, sr_variants: set[str]) -> str | None:
+    """The first applicable reason in REASONS; the two key-based ones lead."""
+    f = k.food
+    if f.source == "foundation" and k.variant in sr_variants:
+        return "analytical-duplicate"
+    if k.cooked_sibling:
+        return "cooked-with-raw-sibling"
+    if _category_excluded(f, usda):
+        return "excluded-category"
+    macros = (f.protein, f.carbs, f.fat)
+    if macros == (0.0, 0.0, 0.0):
+        return "zero-macro"
+    if None in macros:
+        return "incomplete-macros"
+    return None
+
+
+def _category_excluded(food: Food, usda: UsdaConfig) -> bool:
+    text = plain(food.description.lower())
+    if any(_has(w, text) for w in usda.allow_words.get(food.category, [])):
+        return False
+    return food.category in usda.excluded_categories or any(
+        _has(w, text) for w in usda.deny_words.get(food.category, [])
+    )
+
+
+def _has(phrase: str, text: str) -> bool:
+    return re.search(rf"\b{re.escape(phrase)}\b", text) is not None
+
+
+def _row(k: _Keyed, reason: str | None, lean: Leanness | None) -> Row:
+    f = k.food
+    if f.source == "foundation":
+        provenance = "foundation"
+    elif lean is not None and lean.nominal:
+        provenance = "sr-formula"
+    else:
+        provenance = "sr-analytical"
+    return Row(
+        id=f.id,
+        source=f.source,
+        ndb=f.ndb,
+        description=f.description,
+        category=f.category,
+        family=k.family,
+        variant=k.variant,
+        lean_pct=_pct(k.level),
+        provenance=provenance,
+        as_bought=k.fields.as_bought,
+        protein=f.protein,
+        carbs=f.carbs,
+        fat=f.fat,
+        fiber=f.fiber,
+        kcal=f.kcal,
+        roles="",
+        exclusion_reason=reason,
+    )
+
+
+def _derived(lean: Leanness, rows: list[Row]) -> list[Row]:
+    """Retail levels between anchors, by linear interpolation of each nutrient."""
+    anchors = sorted(
+        (r for r in rows if r.source == "sr" and r.ndb in lean.anchors),
+        key=lambda r: r.lean_pct or 0,
+    )
+    spans = [(a.lean_pct or 0, b.lean_pct or 0, a, b) for a, b in pairwise(anchors)]
+    out = []
+    for level in lean.retail:
+        pct = _pct(level) or 0
+        span = next((s for s in spans if s[0] < pct < s[1]), None)
+        if span is None:
+            raise BuildError(
+                f"retail level {level} of {lean.family} is not between two anchors"
+            )
+        lo, hi, a, b = span
+        t = (pct - lo) / (hi - lo)
+        anchor_levels = ", ".join(r.variant.rsplit(", ", 1)[-1] for r in (a, b))
+        out.append(
+            Row(
+                id=f"derived:{lean.family}:{level}",
+                source="derived",
+                ndb=None,
+                description=f"{lean.family.capitalize()}, {level}",
+                category=a.category,
+                family=lean.family,
+                variant=f"{lean.family}, {level}",
+                lean_pct=pct,
+                provenance=f"derived({anchor_levels})",
+                as_bought="raw",
+                protein=_lerp(a.protein, b.protein, t),
+                carbs=_lerp(a.carbs, b.carbs, t),
+                fat=_lerp(a.fat, b.fat, t),
+                fiber=_lerp(a.fiber, b.fiber, t),
+                kcal=_lerp(a.kcal, b.kcal, t),
+                roles="",
+                exclusion_reason=None,
+            )
+        )
+    return out
+
+
+def _with_roles(rows: list[Row], threshold: float) -> list[Row]:
+    """A family joins every pool any of its candidates reaches, and every row
+    of the family with usable macros carries the family's roles.
+
+    Rows without all three macros, or with all three at zero, get no roles
+    whatever reason they record.
+    """
+    pools: dict[str, set[str]] = defaultdict(set)
+    for r in rows:
+        if r.exclusion_reason is None and _macros_usable(r):
+            pools[r.family] |= _pools_of(r, threshold)
+    return [
+        replace(r, roles=",".join(p for p in _POOLS if p in pools[r.family]))
+        if _macros_usable(r)
+        else r
+        for r in rows
+    ]
+
+
+def _macros_usable(r: Row) -> bool:
+    macros = (r.protein, r.carbs, r.fat)
+    return None not in macros and macros != (0.0, 0.0, 0.0)
+
+
+def _pools_of(r: Row, threshold: float) -> set[str]:
+    kcal = {
+        "protein": 4 * (r.protein or 0.0),
+        "carbs": 4 * (r.carbs or 0.0),
+        "fat": 9 * (r.fat or 0.0),
+    }
+    total = sum(kcal.values())
+    dominant = max(kcal, key=lambda p: kcal[p])
+    return {dominant} | {p for p, v in kcal.items() if v / total >= threshold}
+
+
+def _check_aliases(keyed: list[_Keyed], aliases: dict[str, str]) -> None:
+    families = {k.unaliased for k in keyed}
+    stale = [
+        f"{src} -> {dst}"
+        for src, dst in aliases.items()
+        if src == dst or src not in families or dst not in families
+    ]
+    if stale:
+        raise BuildError(f"family_aliases no longer fit the data: {stale}")
+
+
+def _check_anchors(keyed: list[_Keyed], leanness: dict[str, Leanness]) -> None:
+    for lean in leanness.values():
+        for ndb in lean.anchors:
+            hits = [k for k in keyed if k.food.source == "sr" and k.food.ndb == ndb]
+            if len(hits) != 1 or hits[0].family != lean.family:
+                raise BuildError(
+                    f"{lean.family} anchor NDB {ndb} matches {len(hits)} SR rows "
+                    f"in families {sorted({k.family for k in hits})}"
+                )
+
+
+def _pct(level: str | None) -> int | None:
+    return None if level is None else int(level.split("/")[0])
+
+
+def _lerp(a: float | None, b: float | None, t: float) -> float | None:
+    return None if a is None or b is None else a + (b - a) * t
