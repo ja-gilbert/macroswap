@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 import pytest
@@ -70,3 +71,47 @@ def test_diary_stats_without_database_is_exit_two(
 ) -> None:
     assert main(["--db", str(tmp_path / "missing.sqlite"), "diary", "stats"]) == 2
     assert "diary import" in capsys.readouterr().err
+
+
+def _repo_layout(tmp_path: Path, usda_dir: Path, pulled: bool) -> None:
+    """The packaged config's relative paths, rooted at tmp_path."""
+    data = tmp_path / "data"
+    (data / "raw").mkdir(parents=True)
+    shutil.copy(Path(__file__).resolve().parents[2] / "data" / "manifest.toml", data)
+    if pulled:
+        (data / "raw" / "usda").symlink_to(usda_dir, target_is_directory=True)
+
+
+def test_data_build_then_report(
+    tmp_path: Path,
+    usda_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    _repo_layout(tmp_path, usda_dir, pulled=True)
+    monkeypatch.chdir(tmp_path)
+    assert main(["--db", "db.sqlite", "data", "build"]) == 0
+    assert "usda_foods: 109 rows" in capsys.readouterr().out
+    assert main(["--db", "db.sqlite", "data", "report"]) == 0
+    assert "families:" in capsys.readouterr().out
+
+
+def test_data_report_before_build_is_exit_two(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db = tmp_path / "db.sqlite"
+    db.touch()  # exists, holds no USDA table
+    assert main(["--db", str(db), "data", "report"]) == 2
+    assert "run `data build` first" in capsys.readouterr().err
+
+
+def test_data_build_before_pull_is_exit_two(
+    tmp_path: Path,
+    usda_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    _repo_layout(tmp_path, usda_dir, pulled=False)
+    monkeypatch.chdir(tmp_path)
+    assert main(["--db", "db.sqlite", "data", "build"]) == 2
+    assert "data pull" in capsys.readouterr().err

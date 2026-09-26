@@ -12,7 +12,14 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy
+      - uses: actions/cache@v4
+        with:
+          path: data/raw/usda
+          key: usda-${{ hashFiles('data/manifest.toml') }}
+      - run: uv run macroswap data pull
       - run: uv run pytest
+        env:
+          MACROSWAP_REQUIRE_DATA: "1"
       - name: Config ships inside the wheel
         run: |
           uv build --wheel --out-dir dist

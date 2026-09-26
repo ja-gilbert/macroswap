@@ -6,14 +6,18 @@ import argparse
 import sqlite3
 import sys
 from collections.abc import Callable, Sequence
+from dataclasses import astuple
 from pathlib import Path
 
 from macroswap.config import Config, ConfigError, load_config
 from macroswap.diary.importer import DiaryImportError, import_directory
 from macroswap.diary.parse import ParseError
 from macroswap.diary.stats import compute_stats, format_stats
-from macroswap.pull import PullError, pull
-from macroswap.store import connect
+from macroswap.pull import PullError, pull, release_dirs
+from macroswap.store import connect, write_usda
+from macroswap.usda.load import load_release, merge
+from macroswap.usda.report import family_report
+from macroswap.usda.table import BuildError, build_table
 
 Handler = Callable[[Config, Path, argparse.Namespace], int]
 
@@ -40,6 +44,12 @@ def build_parser() -> argparse.ArgumentParser:
     data_commands.add_parser(
         "pull", help="download the pinned USDA releases, verifying checksums"
     ).set_defaults(run=_data_pull)
+    data_commands.add_parser(
+        "build", help="build the USDA food table from the pulled releases"
+    ).set_defaults(run=_data_build)
+    data_commands.add_parser(
+        "report", help="families, exclusion reasons, and override candidates"
+    ).set_defaults(run=_data_report)
     return parser
 
 
@@ -54,6 +64,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         DiaryImportError,
         ParseError,
         PullError,
+        BuildError,
         OSError,
     ) as exc:
         print(f"error: {exc}", file=sys.stderr)
@@ -85,6 +96,47 @@ def _diary_stats(config: Config, db: Path, args: argparse.Namespace) -> int:
 def _data_pull(config: Config, db: Path, args: argparse.Namespace) -> int:
     for line in pull(Path(config.paths.manifest), Path(config.paths.raw)):
         print(line)
+    return 0
+
+
+def _data_build(config: Config, db: Path, args: argparse.Namespace) -> int:
+    dirs = release_dirs(Path(config.paths.manifest), Path(config.paths.raw))
+    for folder in dirs.values():
+        if not folder.is_dir():
+            raise PullError(f"no USDA release at {folder}; run `data pull` first")
+    loaded = merge(
+        load_release(dirs["sr_legacy"], "sr"),
+        load_release(dirs["foundation"], "foundation"),
+        config.usda.dry_basis_marker,
+    )
+    rows = build_table(loaded.foods, config.usda)
+    with connect(db) as conn:
+        write_usda(conn, [astuple(r) for r in rows])
+    candidates = sum(r.exclusion_reason is None for r in rows)
+    print(f"usda_foods: {len(rows)} rows, {candidates} candidates")
+    dropped = loaded.dry_basis_dropped
+    distinct = sorted(set(dropped))
+    print(
+        f"foundation: {loaded.ndb_overlap} dropped for an SR NDB; "
+        f"dry-basis rows dropped: {len(dropped)} ({len(distinct)} distinct)"
+    )
+    for description in distinct:
+        print(f"  {description}")
+    return 0
+
+
+def _data_report(config: Config, db: Path, args: argparse.Namespace) -> int:
+    with _existing(db, "data build") as conn:
+        # diary import creates the database without the USDA table.
+        if not conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE name = 'usda_foods'"
+        ).fetchone():
+            raise FileNotFoundError(f"no USDA table in {db}; run `data build` first")
+        print(
+            family_report(
+                conn, config.swap.rank_weights, config.usda.varietal_threshold
+            )
+        )
     return 0
 
 
