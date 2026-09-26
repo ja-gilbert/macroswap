@@ -37,3 +37,32 @@ reports what they hold. On my own diary, 2026-09-22:
 
 Counted rows are the rows on tracked days that are not quick adds.
 
+## The USDA Table
+
+`macroswap data pull` fetches the two pinned USDA releases, SR Legacy and
+Foundation Foods, and refuses either if its checksum differs;
+`macroswap data build` turns them into one SQLite table of foods with
+family and variant keys, macro roles and a single exclusion reason per
+row; `macroswap data report` measures it. On the pinned releases,
+2026-09-26:
+
+    uv run macroswap data pull
+    uv run macroswap data build
+    uv run macroswap data report
+
+| Measure | Count |
+| --- | --- |
+| Foundation Rows Dropped for Sharing an SR Number | 211 |
+| Dry-Basis Rows Dropped at Load | 34 |
+| Families | 2,961 |
+| Single-Row Families | 1,828 |
+| Rows in the Matcher Index | 8,022 |
+| Swap Candidates | 3,271 |
+| Rows Cooked beside a Raw Sibling | 2,399 |
+| Rows in an Excluded Category | 2,269 |
+| Foundation Rows Repeating an SR Row | 60 |
+| Rows with Incomplete or All-Zero Macros | 23 |
+
+A candidate is a row a swap may offer; every other row stays in the
+index so a diary name can still be matched to it. The last five rows
+partition the index: 3,271 + 2,399 + 2,269 + 60 + 23 = 8,022.
