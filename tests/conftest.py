@@ -8,6 +8,7 @@ import pytest
 from macroswap.config import load_config
 from macroswap.pull import release_dirs
 from macroswap.usda.load import Food, load_release, merge
+from macroswap.usda.table import Row, build_table
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests" / "fixtures"
@@ -33,6 +34,12 @@ def foods(usda_dir: Path) -> list[Food]:
         ),
         load_config().usda.dry_basis_marker,
     ).foods
+
+
+@pytest.fixture
+def usda_rows(foods: list[Food]) -> list[Row]:
+    """The fixture's USDA table, derived leanness rows included."""
+    return build_table(foods, load_config().usda)
 
 
 @pytest.fixture(scope="session")

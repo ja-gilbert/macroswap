@@ -32,6 +32,8 @@ class PathsConfig:
     db: str
     raw: str
     manifest: str
+    labels: str
+    eval_expected: str
 
 
 @dataclass(frozen=True)
@@ -68,12 +70,43 @@ class UsdaConfig:
 
 
 @dataclass(frozen=True)
+class MatchConfig:
+    abbreviations: dict[str, str]
+    top_k: int
+    model: str
+    revision: str
+    default_method: str
+    rrf_k: int
+    no_match: dict[str, float]
+
+
+@dataclass(frozen=True)
+class LabelsConfig:
+    head_share: float
+    tail_size: int
+    dev_share: float
+    seed: int
+    search_limit: int
+
+
+@dataclass(frozen=True)
+class EvalConfig:
+    bootstrap_resamples: int
+    bootstrap_seed: int
+    interval: float
+    tolerated_flips: dict[str, int]
+
+
+@dataclass(frozen=True)
 class Config:
     diary: DiaryConfig
     stats: StatsConfig
     paths: PathsConfig
     swap: SwapConfig
     usda: UsdaConfig
+    match: MatchConfig
+    labels: LabelsConfig
+    eval: EvalConfig
 
 
 def load_config(path: Path | None = None) -> Config:
@@ -103,11 +136,30 @@ def load_config(path: Path | None = None) -> Config:
         _section(Leanness, {"leanness": table}, "leanness", source)
         for table in usda.leanness
     )
-    return Config(diary, stats, paths, swap, replace(usda, leanness=leanness))
+    return Config(
+        diary,
+        stats,
+        paths,
+        swap,
+        replace(usda, leanness=leanness),
+        _section(MatchConfig, raw, "match", source),
+        _section(LabelsConfig, raw, "labels", source),
+        _section(EvalConfig, raw, "eval", source),
+    )
 
 
 def _section[
-    S: (DiaryConfig, StatsConfig, PathsConfig, SwapConfig, UsdaConfig, Leanness)
+    S: (
+        DiaryConfig,
+        StatsConfig,
+        PathsConfig,
+        SwapConfig,
+        UsdaConfig,
+        Leanness,
+        MatchConfig,
+        LabelsConfig,
+        EvalConfig,
+    )
 ](cls: type[S], raw: dict[str, Any], name: str, source: str) -> S:
     table = raw.get(name, {})
     if not isinstance(table, dict):

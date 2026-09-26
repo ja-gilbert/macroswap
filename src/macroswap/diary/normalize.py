@@ -1,17 +1,22 @@
-"""Split MyFitnessPal food names into brand, food text, quantity and leanness."""
+"""Split MyFitnessPal food names into brand, food text, quantity and leanness,
+and reduce any name or description to the words the matcher compares."""
 
 from __future__ import annotations
 
 import re
+import unicodedata
+from collections.abc import Mapping
 from dataclasses import dataclass
 from fractions import Fraction
 
 # MyFitnessPal writes "Brand - Food, <amount> <unit>": the brand ends at the
 # first " - " and the quantity follows the last comma when it starts with a
-# number, e.g. "6 oz (112g)", "1 container (7 oz)", "0.38 cup", "1.5 servings".
-
+# number and names a unit, e.g. "6 oz (112g)", "1 container (7 oz)", "0.38 cup",
+# "1.5 servings". A percent is never a unit, so "Milk, 2%" and "Ground Beef,
+# 93% lean" keep their figures.
 _QUANTITY_RE = re.compile(
-    r"^(?P<amount>\d+/\d+|\d*\.?\d+)(?P<unit>[^(]*?)(?:\((?P<paren>[^)]*)\))?$"
+    r"^(?=.*[A-Za-z])(?P<amount>\d+/\d+|\d*\.?\d+)(?P<unit>[^(%]*?)"
+    r"(?:\((?P<paren>[^)]*)\))?$"
 )
 
 _GRAMS_PER_UNIT = {
@@ -28,6 +33,8 @@ _GRAMS_PER_UNIT = {
 }
 _LEAN_SLASH_RE = re.compile(r"\b(\d{2})\s*/\s*(\d{1,2})\b")
 _LEAN_WORD_RE = re.compile(r"\b(\d{2})(?:\s*%\s*|\s+)lean\b", re.IGNORECASE)
+# Letters and digits; every other character separates words.
+_WORD_RE = re.compile(r"[^\W_]+")
 
 
 @dataclass(frozen=True)
@@ -51,9 +58,18 @@ def split_name(raw: str) -> NameParts:
         brand, text = text.split(" - ", 1)
     food, _, quantity = text.rpartition(",")
     food, quantity = food.strip(), quantity.strip()
-    if food and _QUANTITY_RE.match(quantity):
+    if food and _QUANTITY_RE.match(quantity) and parse_leanness(quantity) is None:
         return NameParts(brand, food, quantity)
     return NameParts(brand, text, None)
+
+
+def name_key(raw: str) -> str:
+    """Brand and food text, lower-cased, the shape of the counted-name key: what
+    the matcher reads for typed text. The counted names come from the stats SQL."""
+    parts = split_name(raw)
+    if parts.brand is None:
+        return parts.food_text.lower()
+    return f"{parts.brand} - {parts.food_text}".lower()
 
 
 def parse_quantity(text: str) -> Quantity | None:
@@ -82,6 +98,37 @@ def parse_leanness(text: str) -> int | None:
     if (match := _LEAN_WORD_RE.search(text)) is not None:
         return int(match[1])
     return None
+
+
+def strip_leanness(text: str) -> str:
+    """The text without what parse_leanness reads, since the matcher applies a
+    level through the family, not by text."""
+    text = _LEAN_SLASH_RE.sub(
+        lambda m: "" if int(m[1]) + int(m[2]) == 100 else m[0], text
+    )
+    return " ".join(_LEAN_WORD_RE.sub("", text).split())
+
+
+def tokens(text: str, abbreviations: Mapping[str, str]) -> list[str]:
+    """Lower-cased words with accents dropped, abbreviations expanded where they
+    stand as whole words, plurals folded."""
+    plain = unicodedata.normalize("NFKD", text.lower())
+    plain = "".join(c for c in plain if not unicodedata.combining(c))
+    words = (abbreviations.get(w, w) for w in re.split(r"[\s,()]+", plain))
+    return [singular(w) for w in _WORD_RE.findall(" ".join(words))]
+
+
+def singular(word: str) -> str:
+    """Folds the plurals food names use: berries, tomatoes, peaches, cookies."""
+    if len(word) <= 3 or word.endswith("ss"):
+        return word
+    if word.endswith("ies") and len(word) > 4:
+        return word[:-3] + "y"
+    if word.endswith("ie") and len(word) > 4:
+        return word[:-2] + "y"
+    if word.endswith(("oes", "ches", "shes", "xes")):
+        return word[:-2]
+    return word.removesuffix("s")
 
 
 def plausible_grams(

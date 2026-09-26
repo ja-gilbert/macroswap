@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from pathlib import Path
 
 import pytest
@@ -16,6 +17,8 @@ def test_packaged_config_loads_with_expected_values() -> None:
     assert config.stats.coverage_shares == (0.5, 0.8, 0.95)
     assert config.paths.db == "data/build/macroswap.sqlite"
     assert config.swap.rank_weights == (48.0, 16.0, 81.0)
+    assert config.match.no_match == {"lexical": -math.inf, "embed": -math.inf}
+    assert config.eval.tolerated_flips == {"lexical": 0, "embed": 1, "hybrid": 1}
 
 
 @pytest.mark.parametrize(

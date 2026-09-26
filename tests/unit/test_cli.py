@@ -1,11 +1,44 @@
 from __future__ import annotations
 
 import shutil
+from dataclasses import astuple
 from pathlib import Path
 
 import pytest
 
 from macroswap.cli import main
+from macroswap.store import connect, write_usda
+from macroswap.usda.table import Row
+
+# The exit-code table, one row per case from this milestone on; the pull
+# checksum row is in test_pull.py.
+EXIT_CODES = {
+    "match-where-every-method-abstains": (["match", "zzzz"], True, 1, "NO_MATCH"),
+    "match-before-data-build": (
+        ["match", "egg whites"],
+        False,
+        2,
+        "run `data build` first",
+    ),
+}
+
+
+@pytest.mark.parametrize(
+    ("args", "built", "code", "says"), EXIT_CODES.values(), ids=EXIT_CODES.keys()
+)
+def test_exit_code(
+    tmp_path: Path,
+    usda_rows: list[Row],
+    capsys: pytest.CaptureFixture[str],
+    args: list[str],
+    built: bool,
+    code: int,
+    says: str,
+) -> None:
+    db = _database(tmp_path, usda_rows if built else [])
+    assert main(["--db", str(db), *args]) == code
+    captured = capsys.readouterr()
+    assert says in captured.out + captured.err
 
 
 def test_no_command_is_a_usage_error(capsys: pytest.CaptureFixture[str]) -> None:
@@ -115,3 +148,29 @@ def test_data_build_before_pull_is_exit_two(
     monkeypatch.chdir(tmp_path)
     assert main(["--db", "db.sqlite", "data", "build"]) == 2
     assert "data pull" in capsys.readouterr().err
+
+
+def test_match_prints_the_method_then_one_line_per_hit(
+    tmp_path: Path, usda_rows: list[Row], capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A typed name sheds its quantity before matching."""
+    db = _database(tmp_path, usda_rows)
+    assert main(["--db", str(db), "match", "Egg", "Whites,", "5", "large"]) == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert lines[0] == "method: lexical"
+    score, row_id, description, key = lines[1].split("  ")
+    assert float(score) > 0
+    assert (row_id, description, key) == (
+        "sr:172183",
+        "Egg, white, raw, fresh",
+        "[egg, white / raw]",
+    )
+
+
+def _database(tmp_path: Path, rows: list[Row]) -> Path:
+    """A database with the diary tables and, when given, these USDA rows."""
+    db = tmp_path / "db.sqlite"
+    with connect(db) as conn:
+        if rows:
+            write_usda(conn, [astuple(r) for r in rows])
+    return db

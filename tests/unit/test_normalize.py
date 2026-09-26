@@ -2,13 +2,17 @@ from __future__ import annotations
 
 import pytest
 
+from macroswap.config import load_config
 from macroswap.diary.normalize import (
     NameParts,
     Quantity,
+    name_key,
     parse_leanness,
     parse_quantity,
     plausible_grams,
     split_name,
+    strip_leanness,
+    tokens,
 )
 
 
@@ -35,10 +39,48 @@ from macroswap.diary.normalize import (
             NameParts("Trader Joe's", "Chicken - Grilled Strips", "85 g"),
             id="only-the-first-dash-is-the-brand",
         ),
+        pytest.param(
+            "Milk, 2%", NameParts(None, "Milk, 2%", None), id="bare-percent-stays"
+        ),
+        pytest.param(
+            "Milk, 2% reduced fat",
+            NameParts(None, "Milk, 2% reduced fat", None),
+            id="percent-is-never-a-unit",
+        ),
+        pytest.param(
+            "Egg Whites, 3",
+            NameParts(None, "Egg Whites, 3", None),
+            id="a-number-without-a-unit-stays",
+        ),
+        pytest.param(
+            "Ground Beef, 93% lean",
+            NameParts(None, "Ground Beef, 93% lean", None),
+            id="leanness-after-the-comma-stays",
+        ),
+        pytest.param(
+            "Ground Beef, 93 lean",
+            NameParts(None, "Ground Beef, 93 lean", None),
+            id="leanness-without-a-percent-after-the-comma-stays",
+        ),
     ],
 )
 def test_split_name(raw: str, expected: NameParts) -> None:
     assert split_name(raw) == expected
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        pytest.param(
+            "Kirkland - Chicken Breast, 6 oz (112g)",
+            "kirkland - chicken breast",
+            id="brand-kept-quantity-dropped",
+        ),
+        pytest.param("Egg Whites, 5 large", "egg whites", id="no-brand"),
+    ],
+)
+def test_name_key_is_the_counted_name(raw: str, expected: str) -> None:
+    assert name_key(raw) == expected
 
 
 @pytest.mark.parametrize(
@@ -87,6 +129,51 @@ def test_parse_quantity(text: str, expected: Quantity) -> None:
 )
 def test_parse_leanness(text: str, expected: int | None) -> None:
     assert parse_leanness(text) == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        pytest.param(
+            "Laura's Lean 93/7 - Ground Beef",
+            "Laura's Lean - Ground Beef",
+            id="slash-level-in-the-brand",
+        ),
+        pytest.param("96% Lean Ground Turkey", "Ground Turkey", id="percent-lean"),
+        pytest.param(
+            "Whole Wheat Bread 12/24",
+            "Whole Wheat Bread 12/24",
+            id="slash-that-is-not-a-level-stays",
+        ),
+    ],
+)
+def test_strip_leanness_removes_what_parses(text: str, expected: str) -> None:
+    assert strip_leanness(text) == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        pytest.param(
+            "Chicken w/ Rice & Beans w/o Salt",
+            ["chicken", "with", "rice", "and", "bean", "without", "salt"],
+            id="abbreviations-are-whole-words",
+        ),
+        pytest.param(
+            "Chicken, Bnls, (w/ Rice)",
+            ["chicken", "boneless", "with", "rice"],
+            id="abbreviations-next-to-punctuation",
+        ),
+        pytest.param(
+            "Strawberries, Tomatoes, Peaches, Pies, Brownie, Egg Whites, Swiss",
+            ["strawberry", "tomato", "peach", "pie", "browny", "egg", "white", "swiss"],
+            id="plurals-fold",
+        ),
+        pytest.param("Jalapeño", ["jalapeno"], id="accents-drop"),
+    ],
+)
+def test_tokens(text: str, expected: list[str]) -> None:
+    assert tokens(text, load_config().match.abbreviations) == expected
 
 
 @pytest.mark.parametrize(
