@@ -91,7 +91,7 @@ def test_data_build_then_report(
     _repo_layout(tmp_path, usda_dir, pulled=True)
     monkeypatch.chdir(tmp_path)
     assert main(["--db", "db.sqlite", "data", "build"]) == 0
-    assert "usda_foods: 109 rows" in capsys.readouterr().out
+    assert "usda_foods: 208 rows" in capsys.readouterr().out
     assert main(["--db", "db.sqlite", "data", "report"]) == 0
     assert "families:" in capsys.readouterr().out
 
