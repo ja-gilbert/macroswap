@@ -14,19 +14,28 @@ def test_report_counts_and_measured_candidates(
     foods: list[Food], tmp_path: Path
 ) -> None:
     """The report sizes the table and lists override and alias candidates from
-    the data: cod and haddock sit within the threshold while canned sardines
-    have no raw row to compare, and orange-flesh sweet potatoes' nearest SR
-    families with candidates are ranked by shared words, plurals folded, then
-    distance."""
+    the data: three lean fish link within the threshold while canned sardines
+    and anchovies have no raw row to compare, every alias in the packaged
+    config targets an SR family and applies, and orange-flesh sweet potatoes'
+    nearest SR families with candidates are ranked by shared words, plurals
+    folded, then distance."""
     config = load_config()
+    rows = build_table(foods, config.usda)
+    assert set(config.usda.family_aliases.values()) <= {
+        r.family for r in rows if r.source == "sr"
+    }
     with connect(tmp_path / "db.sqlite") as conn:
-        write_usda(conn, [astuple(r) for r in build_table(foods, config.usda)])
+        write_usda(conn, [astuple(r) for r in rows])
         text = family_report(
             conn, config.swap.rank_weights, config.usda.varietal_threshold
         )
-    assert "rows in the matcher index: 109" in text
-    assert "varietal override candidates (raw families within 15): 1" in text
-    assert "  fish: 2 of 4 raw families: fish, cod; fish, haddock" in text
+    assert "rows in the matcher index: 208" in text
+    assert "varietal override candidates (raw families within 15): 2" in text
+    assert (
+        "  fish: 3 of 8 raw families: fish, halibut; fish, mahimahi; fish, snapper"
+        in text
+    )
+    assert "foundation-only families: 2" in text
     assert (
         "  sweet potatoes, orange flesh -> sweet potato (shared words 2, "
         "distance 12); potatoes (shared words 1, distance 4)"
