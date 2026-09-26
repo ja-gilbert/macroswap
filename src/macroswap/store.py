@@ -5,6 +5,8 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
+from macroswap.usda.table import Row
+
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS diary_files (
     file      TEXT PRIMARY KEY,
@@ -104,3 +106,9 @@ def write_usda(conn: sqlite3.Connection, rows: list[tuple[object, ...]]) -> None
     conn.executescript(_USDA_SCHEMA)
     with conn:
         conn.executemany(f"INSERT INTO usda_foods({columns}) VALUES ({marks})", rows)
+
+
+def read_usda(conn: sqlite3.Connection) -> list[Row]:
+    """Every row of the USDA table, as build_table made it."""
+    columns = ", ".join(_USDA_COLUMNS)
+    return [Row(*r) for r in conn.execute(f"SELECT {columns} FROM usda_foods")]

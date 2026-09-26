@@ -41,16 +41,24 @@ class FieldRules:
         self._depth_one = set(usda.depth_one_families)
         self._product = _full_field(usda.product_fields)
 
-    def fields(self, description: str) -> Fields:
+    def food_fields(self, description: str) -> list[str]:
+        """The lower-cased fields that describe the food: the note and the
+        boilerplate, state and cosmetic fields removed, cooking fields kept."""
         text = self._note.sub("", description).lower()
+        return [
+            field
+            for field in split_fields(text)
+            if plain(field) not in self._dropped
+            and not self._cosmetic.fullmatch(plain(field))
+        ]
+
+    def fields(self, description: str) -> Fields:
         kept: list[str] = []
         cooking: str | None = None
         states: dict[str, str] = {}
         cooked_after = False
-        for field in split_fields(text):
+        for field in self.food_fields(description):
             bare = plain(field)
-            if bare in self._dropped or self._cosmetic.fullmatch(bare):
-                continue
             if self._cooking.search(bare):
                 cooking = cooking or bare
                 cooked_after = cooked_after or bool(states)
@@ -115,11 +123,11 @@ def variant_key(family: str, fields: Fields, depth: int, level: str | None) -> s
     and replaces every leanness field, so every spelling reads NN/MM."""
     rest = fields.kept[depth:]
     if level is not None:
-        rest = (level, *(f for f in rest if not _is_leanness_field(f)))
+        rest = (level, *(f for f in rest if not is_leanness_field(f)))
     return ", ".join((family, *rest))
 
 
-def _is_leanness_field(field: str) -> bool:
+def is_leanness_field(field: str) -> bool:
     return parse_leanness(field) is not None or "% fat" in field or field == "fat free"
 
 

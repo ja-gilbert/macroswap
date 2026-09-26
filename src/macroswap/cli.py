@@ -1,4 +1,5 @@
-"""Command-line entry point. Exit codes: 0 success, 2 usage or data errors."""
+"""Command-line entry point. Exit codes: 0 success, 1 no match, 2 usage or
+missing data."""
 
 from __future__ import annotations
 
@@ -11,10 +12,13 @@ from pathlib import Path
 
 from macroswap.config import Config, ConfigError, load_config
 from macroswap.diary.importer import DiaryImportError, import_directory
+from macroswap.diary.normalize import name_key
 from macroswap.diary.parse import ParseError
 from macroswap.diary.stats import compute_stats, format_stats
+from macroswap.match.matcher import Matcher
 from macroswap.pull import PullError, pull, release_dirs
-from macroswap.store import connect, write_usda
+from macroswap.store import connect, read_usda, write_usda
+from macroswap.usda.keys import FieldRules
 from macroswap.usda.load import load_release, merge
 from macroswap.usda.report import family_report
 from macroswap.usda.table import BuildError, build_table
@@ -50,6 +54,9 @@ def build_parser() -> argparse.ArgumentParser:
     data_commands.add_parser(
         "report", help="families, exclusion reasons, and override candidates"
     ).set_defaults(run=_data_report)
+    match = commands.add_parser("match", help="the top USDA rows for a food name")
+    match.add_argument("text", nargs="+", help='e.g. "greek yogurt w/ berries"')
+    match.set_defaults(run=_match)
     return parser
 
 
@@ -126,12 +133,7 @@ def _data_build(config: Config, db: Path, args: argparse.Namespace) -> int:
 
 
 def _data_report(config: Config, db: Path, args: argparse.Namespace) -> int:
-    with _existing(db, "data build") as conn:
-        # diary import creates the database without the USDA table.
-        if not conn.execute(
-            "SELECT 1 FROM sqlite_master WHERE name = 'usda_foods'"
-        ).fetchone():
-            raise FileNotFoundError(f"no USDA table in {db}; run `data build` first")
+    with _built(db) as conn:
         print(
             family_report(
                 conn, config.swap.rank_weights, config.usda.varietal_threshold
@@ -140,9 +142,34 @@ def _data_report(config: Config, db: Path, args: argparse.Namespace) -> int:
     return 0
 
 
+def _match(config: Config, db: Path, args: argparse.Namespace) -> int:
+    with _built(db) as conn:
+        rows = read_usda(conn)
+    matcher = Matcher(rows, config.match, FieldRules(config.usda))
+    text = name_key(" ".join(args.text))
+    results = {method: matcher.run(text, method) for method in matcher.methods}
+    for method, hits in results.items():
+        print(f"method: {method}")
+        if hits is None:
+            print("NO_MATCH")
+        for hit in hits or []:
+            print(f"{hit.score:.3f}  {hit.row.id}  {hit.row.description}  [{hit.key}]")
+    return 1 if all(hits is None for hits in results.values()) else 0
+
+
 def _existing(db: Path, hint: str) -> sqlite3.Connection:
     # connect() creates the file it is pointed at, so a typo in --db would
     # otherwise report an empty database instead of a missing one.
     if not db.exists():
         raise FileNotFoundError(f"no database at {db}; run `{hint}` first")
     return connect(db)
+
+
+def _built(db: Path) -> sqlite3.Connection:
+    conn = _existing(db, "data build")
+    # diary import creates the database without the USDA table.
+    if not conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE name = 'usda_foods'"
+    ).fetchone():
+        raise FileNotFoundError(f"no USDA table in {db}; run `data build` first")
+    return conn

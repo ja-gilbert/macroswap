@@ -18,6 +18,9 @@ db = "data/build/macroswap.sqlite"
 # Downloads land under raw/usda/; the manifest pins what they must hash to.
 raw = "data/raw"
 manifest = "data/manifest.toml"
+# The labeled sample and the eval's expected table, both committed.
+labels = "data/labels/labels.csv"
+eval_expected = "data/labels/eval_expected.csv"
 
 [swap]
 # Squared gram deltas of protein, carbs, fat, weighted to kcal space with
@@ -196,3 +199,44 @@ family = "pork, ground"
 nominal = false
 anchors = { "10972" = "84/16", "10973" = "96/4" }
 retail = []
+
+[match]
+# Expanded wherever they stand as whole words, in names and descriptions alike.
+abbreviations = { "w/" = "with", "w/o" = "without", "bnls" = "boneless", "&" = "and" }
+# Up to this many hits per method, each a distinct key.
+top_k = 5
+# The frozen embedder behind the embed extra, pinned to one revision.
+model = "sentence-transformers/all-MiniLM-L6-v2"
+revision = "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
+# What `diary match` runs: the dev winner, a tie going to the simpler method.
+default_method = "lexical"
+# Reciprocal rank fusion: each method adds 1 / (rrf_k + rank) to a hit.
+rrf_k = 60
+
+# A method abstains (NO_MATCH) when its top score is below its threshold. Each
+# is tuned on the dev split for end-to-end top-1 per name, an abstention counted
+# wrong unless the label is NO_MATCH; hybrid abstains only below both. -inf
+# never abstains on a score.
+[match.no_match]
+lexical = -inf
+embed = -inf
+
+[labels]
+# The head is the fewest names covering this share of counted rows; the tail
+# is a seeded sample of tail_size names from the rest.
+head_share = 0.8
+tail_size = 150
+# Within each bucket the first dev_share of a seeded shuffle is dev, the rest test.
+dev_share = 0.3
+seed = 20260926
+# Rows a /text search in the labeler lists.
+search_limit = 25
+
+[eval]
+# Each cell's interval: a seeded bootstrap over names.
+bootstrap_resamples = 2000
+bootstrap_seed = 20260926
+interval = 0.95
+# CI compares the eval with the committed expected table: exactly for lexical,
+# within this many flipped names per cell otherwise (CPU and GPU float noise).
+tolerated_flips = { lexical = 0, embed = 1, hybrid = 1 }
