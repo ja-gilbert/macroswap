@@ -75,6 +75,7 @@ class MatchConfig:
     top_k: int
     model: str
     revision: str
+    index_seconds: float
     default_method: str
     rrf_k: int
     no_match: dict[str, float]

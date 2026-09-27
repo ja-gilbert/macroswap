@@ -6,11 +6,17 @@ gives me the same macros?"
 
 ## Development
 
-    uv sync
+    uv sync --extra embed
     uv run ruff check .
     uv run ruff format --check .
     uv run mypy
     uv run pytest
+
+The `embed` extra adds sentence-transformers and a CPU-only torch for
+`macroswap match --method embed`; without it, a plain `macroswap match` runs
+lexical alone and `--method embed` exits 2 naming the install command.
+The first embed run downloads the pinned model, about 88 MB, into
+`~/.cache/huggingface`.
 
 My personal data never enters the repository: the diary HTML lives under
 `data/raw/` and the built database under `data/build`, both are ignored.

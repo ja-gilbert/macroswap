@@ -8,7 +8,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
-      - run: uv sync --frozen
+      - run: uv sync --frozen --extra embed
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy
@@ -17,6 +17,12 @@ jobs:
           path: data/raw/usda
           key: usda-${{ hashFiles('data/manifest.toml') }}
       - run: uv run macroswap data pull
+      - id: model
+        run: echo "revision=$(uv run python -c 'from macroswap.config import load_config; print(load_config().match.revision)')" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: model-${{ steps.model.outputs.revision }}
       - run: uv run pytest
         env:
           MACROSWAP_REQUIRE_DATA: "1"
@@ -24,6 +30,11 @@ jobs:
         run: |
           uv build --wheel --out-dir dist
           uv run python -c "import glob, sys, zipfile; wheel = glob.glob('dist/*.whl')[0]; sys.exit(0 if 'macroswap/macroswap.toml' in zipfile.ZipFile(wheel).namelist() else f'macroswap.toml is missing from {wheel}')"
+      - name: The wheel runs without the embed extra
+        run: |
+          uv venv /tmp/bare
+          uv pip install --python /tmp/bare dist/*.whl
+          /tmp/bare/bin/macroswap --help
       - name: No private paths tracked
         run: |
           if git ls-files data/raw data/build docs/private | grep -q .; then

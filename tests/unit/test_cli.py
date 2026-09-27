@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from macroswap.cli import main
+from macroswap.match.matcher import Encoder
 from macroswap.store import connect, write_usda
 from macroswap.usda.table import Row
 
@@ -20,9 +21,22 @@ EXIT_CODES = {
         2,
         "run `data build` first",
     ),
+    "match-embed-by-name-without-the-extra": (
+        ["match", "egg whites", "--method", "embed"],
+        True,
+        2,
+        "embed extra not installed (uv sync --extra embed)",
+    ),
+    "match-by-default-without-the-extra-runs-lexical": (
+        ["match", "egg whites"],
+        True,
+        0,
+        "method: lexical; embed extra not installed (uv sync --extra embed)",
+    ),
 }
 
 
+@pytest.mark.usefixtures("pinned_config")
 @pytest.mark.parametrize(
     ("args", "built", "code", "says"), EXIT_CODES.values(), ids=EXIT_CODES.keys()
 )
@@ -150,14 +164,35 @@ def test_data_build_before_pull_is_exit_two(
     assert "data pull" in capsys.readouterr().err
 
 
+@pytest.mark.usefixtures("pinned_config")
+@pytest.mark.parametrize(
+    ("flags", "methods"),
+    [
+        pytest.param(["--method", "lexical"], ["lexical"], id="lexical"),
+        pytest.param(["--method", "embed"], ["embed"], id="embed"),
+        pytest.param([], ["lexical", "embed"], id="default"),
+    ],
+)
 def test_match_prints_the_method_then_one_line_per_hit(
-    tmp_path: Path, usda_rows: list[Row], capsys: pytest.CaptureFixture[str]
+    tmp_path: Path,
+    usda_rows: list[Row],
+    fake_embedder: Encoder,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    flags: list[str],
+    methods: list[str],
 ) -> None:
-    """A typed name sheds its quantity before matching."""
+    """A typed name sheds its quantity before matching; a method asked for by
+    name runs alone, lexical without the extra, and by default every method
+    runs."""
+    if "embed" in methods:
+        monkeypatch.setattr("macroswap.cli.Embedder", lambda *args: fake_embedder)
     db = _database(tmp_path, usda_rows)
-    assert main(["--db", str(db), "match", "Egg", "Whites,", "5", "large"]) == 0
+    assert main(["--db", str(db), "match", "Egg", "Whites,", "5", "large", *flags]) == 0
     lines = capsys.readouterr().out.splitlines()
-    assert lines[0] == "method: lexical"
+    headers = [line for line in lines if line.startswith("method:")]
+    assert headers == [f"method: {method}" for method in methods]
+    assert lines[0] == headers[0]
     score, row_id, description, key = lines[1].split("  ")
     assert float(score) > 0
     assert (row_id, description, key) == (
