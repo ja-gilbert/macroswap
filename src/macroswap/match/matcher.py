@@ -6,8 +6,9 @@ no USDA food is right, never that the right one was filtered out.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from typing import Protocol
 
 import numpy as np
 from numpy.typing import NDArray
@@ -17,6 +18,14 @@ from macroswap.config import MatchConfig
 from macroswap.diary.normalize import parse_leanness, strip_leanness, tokens
 from macroswap.usda.keys import FieldRules, is_leanness_field
 from macroswap.usda.table import Row
+
+
+class Encoder(Protocol):
+    """Unit vectors for texts: the pinned model, or a stand-in in tests."""
+
+    def encode(self, texts: Sequence[str]) -> NDArray[np.float32]: ...
+
+    def index_vectors(self, texts: Sequence[str]) -> NDArray[np.float32]: ...
 
 
 @dataclass(frozen=True)
@@ -41,7 +50,13 @@ def index_text(description: str, rules: FieldRules, leanness: bool = False) -> s
 class Matcher:
     """Ranks the index for a text by each method it can run."""
 
-    def __init__(self, rows: list[Row], config: MatchConfig, rules: FieldRules) -> None:
+    def __init__(
+        self,
+        rows: list[Row],
+        config: MatchConfig,
+        rules: FieldRules,
+        embedder: Encoder | None = None,
+    ) -> None:
         self._config = config
         # On an equal score a candidate leads an excluded row, an analytical
         # duplicate comes last, then the lower id: an SR row beats the Foundation
@@ -64,23 +79,42 @@ class Matcher:
             ):
                 self._at_level.setdefault((r.family, r.lean_pct), r)
         self._leanness = {family for family, _ in self._at_level}
-        self._bm25 = BM25Okapi(
-            [
-                tokens(
-                    index_text(r.description, rules, r.family in self._leanness),
-                    config.abbreviations,
-                )
-                for r in self._index
-            ]
-        )
+        documents = [
+            tokens(
+                index_text(r.description, rules, r.family in self._leanness),
+                config.abbreviations,
+            )
+            for r in self._index
+        ]
+        self._bm25 = BM25Okapi(documents)
         self._rankers: dict[str, Callable[[str], list[Hit]]] = {"lexical": self.lexical}
+        if embedder is not None:
+            self._embedder = embedder
+            # Each distinct text is encoded once, so rows sharing a text share a
+            # vector and tie exactly, and the index order decides as in BM25.
+            texts = [" ".join(d) for d in documents]
+            distinct, inverse = np.unique(texts, return_inverse=True)
+            self._vectors = embedder.index_vectors(distinct.tolist())[inverse]
+            self._rankers["embed"] = self.embed
         self.methods = tuple(self._rankers)
 
     def lexical(self, text: str) -> list[Hit]:
-        """BM25 over the index text for a name key (a counted diary name, or typed
-        text through name_key); a row scoring zero is never a hit."""
-        query = tokens(strip_leanness(text), self._config.abbreviations)
-        return self._hits(self._bm25.get_scores(query), parse_leanness(text))
+        """BM25 over the index text; a row scoring zero is never a hit."""
+        words, level = self._query(text)
+        return self._hits(self._bm25.get_scores(words), level)
+
+    def embed(self, text: str) -> list[Hit]:
+        """Cosine similarity between the text and each row's index text, both
+        normalized the same way; a text with no words scores nothing."""
+        words, level = self._query(text)
+        if not words:
+            return []
+        query = self._embedder.encode([" ".join(words)])[0]
+        # einsum, not @: BLAS spins its whole thread pool for one row of dot
+        # products and starves the encoder, 120 ms against 12 ms per ranking on
+        # 32 cores. The top five match @ on the real table except where @ breaks
+        # a tie between rows sharing a vector.
+        return self._hits(np.einsum("ij,j->i", self._vectors, query), level)
 
     def run(self, text: str, method: str) -> list[Hit] | None:
         """The method's hits, or None for NO_MATCH: nothing scored, or the top
@@ -97,7 +131,13 @@ class Matcher:
             return row.family
         return f"{row.variant} / {row.as_bought}"
 
-    def _hits(self, scores: NDArray[np.float64], level: int | None) -> list[Hit]:
+    def _query(self, text: str) -> tuple[list[str], int | None]:
+        """The words a method compares and the level applied through the family,
+        for a name key: a counted diary name, or typed text through name_key."""
+        words = tokens(strip_leanness(text), self._config.abbreviations)
+        return words, parse_leanness(text)
+
+    def _hits(self, scores: NDArray[np.floating], level: int | None) -> list[Hit]:
         """At most top_k distinct keys. A leanness-family row not at the text's
         level stands for the family's row at that level, so a derived level is
         reached through its family and a cooked row at the level keeps its own

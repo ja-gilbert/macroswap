@@ -5,8 +5,8 @@ from dataclasses import replace
 
 import pytest
 
-from macroswap.config import load_config
-from macroswap.match.matcher import Matcher, index_text
+from macroswap.config import Config, load_config
+from macroswap.match.matcher import Encoder, Matcher, index_text
 from macroswap.usda.keys import FieldRules
 from macroswap.usda.table import Row
 
@@ -124,3 +124,21 @@ def test_a_name_without_a_level_keys_at_the_family(matcher: Matcher) -> None:
 def test_no_match(usda_rows: list[Row], text: str, threshold: float) -> None:
     config = replace(CONFIG.match, no_match={"lexical": threshold})
     assert Matcher(usda_rows, config, RULES).run(text, "lexical") is None
+
+
+def test_embed_compares_the_text_normalized_like_the_index(
+    usda_rows: list[Row], fake_embedder: Encoder, pinned_config: Config
+) -> None:
+    """A typed plural meets its row's index text exactly, so the cosine is 1;
+    the level applies through the family as for lexical; a text with no words
+    abstains."""
+    matcher = Matcher(usda_rows, pinned_config.match, RULES, fake_embedder)
+    assert matcher.methods == ("lexical", "embed")
+    hits = matcher.run("Egg Whites", "embed")
+    assert hits is not None
+    assert hits[0].row.id == "sr:172183"
+    assert hits[0].score == pytest.approx(1.0)
+    level = matcher.run("ground beef 93/7", "embed")
+    assert level is not None
+    assert level[0].key == "beef, ground, 93/7 / raw"
+    assert matcher.run("93/7", "embed") is None

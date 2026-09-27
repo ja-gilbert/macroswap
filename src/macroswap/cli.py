@@ -15,6 +15,7 @@ from macroswap.diary.importer import DiaryImportError, import_directory
 from macroswap.diary.normalize import name_key
 from macroswap.diary.parse import ParseError
 from macroswap.diary.stats import compute_stats, format_stats
+from macroswap.match.embed import Embedder, EmbedUnavailable
 from macroswap.match.matcher import Matcher
 from macroswap.pull import PullError, pull, release_dirs
 from macroswap.store import connect, read_usda, write_usda
@@ -56,6 +57,11 @@ def build_parser() -> argparse.ArgumentParser:
     ).set_defaults(run=_data_report)
     match = commands.add_parser("match", help="the top USDA rows for a food name")
     match.add_argument("text", nargs="+", help='e.g. "greek yogurt w/ berries"')
+    match.add_argument(
+        "--method",
+        choices=["lexical", "embed"],
+        help="one method (default: every method that loads)",
+    )
     match.set_defaults(run=_match)
     return parser
 
@@ -72,6 +78,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         ParseError,
         PullError,
         BuildError,
+        EmbedUnavailable,
         OSError,
     ) as exc:
         print(f"error: {exc}", file=sys.stderr)
@@ -145,11 +152,23 @@ def _data_report(config: Config, db: Path, args: argparse.Namespace) -> int:
 def _match(config: Config, db: Path, args: argparse.Namespace) -> int:
     with _built(db) as conn:
         rows = read_usda(conn)
-    matcher = Matcher(rows, config.match, FieldRules(config.usda))
+    embedder: Embedder | None = None
+    fallback = ""
+    if args.method != "lexical":
+        try:
+            embedder = Embedder(config.match.model, config.match.revision, db.parent)
+        except EmbedUnavailable as exc:
+            # Asked for by name, the method fails; by default, lexical says why
+            # it runs alone.
+            if args.method is not None:
+                raise
+            fallback = f"; {exc}"
+    matcher = Matcher(rows, config.match, FieldRules(config.usda), embedder)
     text = name_key(" ".join(args.text))
-    results = {method: matcher.run(text, method) for method in matcher.methods}
+    methods = [args.method] if args.method else matcher.methods
+    results = {method: matcher.run(text, method) for method in methods}
     for method, hits in results.items():
-        print(f"method: {method}")
+        print(f"method: {method}{fallback}")
         if hits is None:
             print("NO_MATCH")
         for hit in hits or []:
