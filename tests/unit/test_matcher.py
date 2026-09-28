@@ -53,6 +53,12 @@ def test_a_leanness_family_row_indexes_without_its_level() -> None:
             id="cooking-field-reaches-the-cooked-row",
         ),
         pytest.param(
+            "grilled chicken breast",
+            "sr:171477",
+            "chicken, breast, meat only / cooked",
+            id="no-grilled-row-takes-the-family-cooked-row",
+        ),
+        pytest.param(
             "kirkland - chicken breast",
             "sr:171077",
             "chicken, breast, meat only / raw",

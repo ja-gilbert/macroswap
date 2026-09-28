@@ -33,6 +33,12 @@ EXIT_CODES = {
         0,
         "method: lexical; embed extra not installed (uv sync --extra embed)",
     ),
+    "match-label-before-diary-import": (
+        ["match", "label"],
+        True,
+        2,
+        "run `diary import` first",
+    ),
 }
 
 
@@ -43,12 +49,15 @@ EXIT_CODES = {
 def test_exit_code(
     tmp_path: Path,
     usda_rows: list[Row],
+    monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
     args: list[str],
     built: bool,
     code: int,
     says: str,
 ) -> None:
+    # The labels path is relative: never the repository's own file.
+    monkeypatch.chdir(tmp_path)
     db = _database(tmp_path, usda_rows if built else [])
     assert main(["--db", str(db), *args]) == code
     captured = capsys.readouterr()
@@ -200,6 +209,41 @@ def test_match_prints_the_method_then_one_line_per_hit(
         "Egg, white, raw, fresh",
         "[egg, white / raw]",
     )
+
+
+def test_match_label_draws_the_sample_then_needs_every_method(
+    tmp_path: Path,
+    fixtures_dir: Path,
+    usda_rows: list[Row],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The first run draws, prints the tail for review and labels nothing; a
+    label taken from lexical's list alone would favour lexical in the eval."""
+    monkeypatch.chdir(tmp_path)
+    db = str(_database(tmp_path, usda_rows))
+    assert main(["--db", db, "diary", "import", str(fixtures_dir)]) == 0
+    capsys.readouterr()
+    # Only the whole text `label` labels; any other text is a food to match.
+    assert main(["--db", db, "match", "label", "maker"]) == 1
+    assert capsys.readouterr().out.startswith("method: lexical")
+    assert main(["--db", db, "match", "label"]) == 0
+    assert capsys.readouterr().out.splitlines() == [
+        "data/labels/labels.csv: 10 names, "
+        "head dev 2, head test 6, tail dev 1, tail test 1",
+        "the tail, for review; delete the row of any name you will not publish:",
+        "  pictsweet farms - sweet potatoes",
+        "  quaker - old fashioned oats",
+    ]
+    labels = tmp_path / "data" / "labels" / "labels.csv"
+    drawn = labels.read_text(encoding="utf-8")
+    assert drawn.splitlines()[:2] == [
+        "name,count,bucket,split,label,label_source",
+        "egg whites,2,head,test,,",
+    ]
+    assert main(["--db", db, "match", "label"]) == 2
+    assert "embed extra not installed" in capsys.readouterr().err
+    assert labels.read_text(encoding="utf-8") == drawn
 
 
 def _database(tmp_path: Path, rows: list[Row]) -> Path:

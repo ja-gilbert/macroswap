@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from fractions import Fraction
 
@@ -31,6 +31,15 @@ _GRAMS_PER_UNIT = {
     "pound": 453.592,
     "pounds": 453.592,
 }
+# A number naming a mass unit, or what a quantity counts or sizes, is a
+# quantity wherever it stands, "rice 1 cup cooked" as much as after the comma;
+# the matcher drops it. A bare percent is not one.
+_UNIT_SPAN_RE = re.compile(
+    r"\b(?:\d+/\d+|\d*\.?\d+)\s*(?:"
+    + "|".join(_GRAMS_PER_UNIT)
+    + r"|cup|tbsp|tsp|serving|piece|slice|small|medium|large)s?\b"
+)
+_APOSTROPHE_RE = re.compile("['\u2018\u2019]")
 _LEAN_SLASH_RE = re.compile(r"\b(\d{2})\s*/\s*(\d{1,2})\b")
 _LEAN_WORD_RE = re.compile(r"\b(\d{2})(?:\s*%\s*|\s+)lean\b", re.IGNORECASE)
 # Letters and digits; every other character separates words.
@@ -109,11 +118,27 @@ def strip_leanness(text: str) -> str:
     return " ".join(_LEAN_WORD_RE.sub("", text).split())
 
 
+def parse_state(
+    text: str, cooking_words: Iterable[str], state_fields: Iterable[str]
+) -> set[str]:
+    """The words of each cooking word the text holds, empty when none, once the
+    table's own state phrases are deleted, so "not prepared" or "commercially
+    prepared" never reads as cooked; all read as the index reads words. The
+    matcher applies a cooked text through the family, as it does a level."""
+    phrases = "|".join(re.escape(" ".join(tokens(p, {}))) for p in state_fields)
+    plain = re.sub(rf"\b(?:{phrases})\b", " ", " ".join(tokens(text, {})))
+    words = set(plain.split())
+    held = (set(tokens(word, {})) for word in cooking_words)
+    return {w for cooking in held if cooking <= words for w in cooking}
+
+
 def tokens(text: str, abbreviations: Mapping[str, str]) -> list[str]:
-    """Lower-cased words with accents dropped, abbreviations expanded where they
-    stand as whole words, plurals folded."""
+    """Lower-cased words with accents dropped, apostrophes deleted rather than
+    splitting a word, a number and its unit dropped wherever they stand,
+    abbreviations expanded where they stand as whole words, plurals folded."""
     plain = unicodedata.normalize("NFKD", text.lower())
     plain = "".join(c for c in plain if not unicodedata.combining(c))
+    plain = _UNIT_SPAN_RE.sub(" ", _APOSTROPHE_RE.sub("", plain))
     words = (abbreviations.get(w, w) for w in re.split(r"[\s,()]+", plain))
     return [singular(w) for w in _WORD_RE.findall(" ".join(words))]
 
