@@ -201,8 +201,9 @@ anchors = { "10972" = "84/16", "10973" = "96/4" }
 retail = []
 
 [match]
-# Expanded wherever they stand as whole words, in names and descriptions alike.
-abbreviations = { "w/" = "with", "w/o" = "without", "bnls" = "boneless", "&" = "and" }
+# Expanded wherever they stand as whole words, in names and descriptions alike;
+# an empty expansion drops the word, as for a brand word matching a rare USDA one.
+abbreviations = { "w/" = "with", "w/o" = "without", "bnls" = "boneless", "&" = "and", "generic" = "" }
 # Up to this many hits per method, each a distinct key.
 top_k = 5
 # The frozen embedder behind the embed extra, pinned to one revision.

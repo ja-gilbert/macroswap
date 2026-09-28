@@ -15,7 +15,12 @@ from numpy.typing import NDArray
 from rank_bm25 import BM25Okapi
 
 from macroswap.config import MatchConfig
-from macroswap.diary.normalize import parse_leanness, strip_leanness, tokens
+from macroswap.diary.normalize import (
+    parse_leanness,
+    parse_state,
+    strip_leanness,
+    tokens,
+)
 from macroswap.usda.keys import FieldRules, is_leanness_field
 from macroswap.usda.table import Row
 
@@ -58,40 +63,54 @@ class Matcher:
         embedder: Encoder | None = None,
     ) -> None:
         self._config = config
-        # On an equal score a candidate leads an excluded row, an analytical
-        # duplicate comes last, then the lower id: an SR row beats the Foundation
-        # row repeating it.
+        self._rules = rules
+        self._leanness = {r.family for r in rows if r.lean_pct is not None}
+        words = {
+            r.id: tokens(
+                index_text(r.description, rules, r.family in self._leanness),
+                config.abbreviations,
+            )
+            for r in rows
+        }
+        # The tie order after the first-field count, which needs the text: a
+        # candidate before an index-only row, an analytical duplicate last, then
+        # the shorter index text, then SR before Foundation and the lower number
+        # within a source.
         ordered = sorted(
             rows,
             key=lambda r: (
                 r.exclusion_reason is not None,
                 r.exclusion_reason == "analytical-duplicate",
-                r.id,
+                len(words[r.id]),
+                r.source != "sr",
+                int(r.id.partition(":")[2]) if r.source != "derived" else 0,
             ),
         )
         self._index = [r for r in ordered if r.source != "derived"]
+        self._position = {r.id: i for i, r in enumerate(ordered)}
+        self._words = words
+        self._first = {
+            r.id: set(tokens(rules.food_fields(r.description)[0], config.abbreviations))
+            for r in rows
+        }
         # A leanness family's row at a level is its plain "<family>, NN/MM" row.
         self._at_level: dict[tuple[str, int], Row] = {}
         for r in ordered:
-            if (
-                r.lean_pct is not None
-                and r.variant == f"{r.family}, {r.lean_pct}/{100 - r.lean_pct}"
-            ):
+            if r.lean_pct is not None and r.variant == _plain(r):
                 self._at_level.setdefault((r.family, r.lean_pct), r)
-        self._leanness = {family for family, _ in self._at_level}
-        documents = [
-            tokens(
-                index_text(r.description, rules, r.family in self._leanness),
-                config.abbreviations,
-            )
-            for r in self._index
-        ]
+        # A family's cooked rows, at a level for a leanness family: its plain
+        # row first when it has one there, then the tie order.
+        self._cooked: dict[tuple[str, int | None], list[Row]] = {}
+        for r in sorted(ordered, key=lambda r: r.variant != _plain(r)):
+            if r.as_bought == "cooked":
+                self._cooked.setdefault((r.family, r.lean_pct), []).append(r)
+        documents = [words[r.id] for r in self._index]
         self._bm25 = BM25Okapi(documents)
         self._rankers: dict[str, Callable[[str], list[Hit]]] = {"lexical": self.lexical}
         if embedder is not None:
             self._embedder = embedder
             # Each distinct text is encoded once, so rows sharing a text share a
-            # vector and tie exactly, and the index order decides as in BM25.
+            # vector and tie exactly, and the tie order decides as in BM25.
             texts = [" ".join(d) for d in documents]
             distinct, inverse = np.unique(texts, return_inverse=True)
             self._vectors = embedder.index_vectors(distinct.tolist())[inverse]
@@ -100,13 +119,14 @@ class Matcher:
 
     def lexical(self, text: str) -> list[Hit]:
         """BM25 over the index text; a row scoring zero is never a hit."""
-        words, level = self._query(text)
-        return self._hits(self._bm25.get_scores(words), level)
+        words, level, cooking = self._query(text)
+        scores = self._bm25.get_scores(words)
+        return self._hits(scores, self._lags(words), level, cooking)
 
     def embed(self, text: str) -> list[Hit]:
         """Cosine similarity between the text and each row's index text, both
         normalized the same way; a text with no words scores nothing."""
-        words, level = self._query(text)
+        words, level, cooking = self._query(text)
         if not words:
             return []
         query = self._embedder.encode([" ".join(words)])[0]
@@ -114,12 +134,17 @@ class Matcher:
         # products and starves the encoder, 120 ms against 12 ms per ranking on
         # 32 cores. The top five match @ on the real table except where @ breaks
         # a tie between rows sharing a vector.
-        return self._hits(np.einsum("ij,j->i", self._vectors, query), level)
+        cosines = np.einsum("ij,j->i", self._vectors, query)
+        return self._hits(cosines, self._lags(words), level, cooking)
+
+    def rank(self, text: str, method: str) -> list[Hit]:
+        """The method's hits, whatever its threshold."""
+        return self._rankers[method](text)
 
     def run(self, text: str, method: str) -> list[Hit] | None:
         """The method's hits, or None for NO_MATCH: nothing scored, or the top
         score is below the method's threshold."""
-        hits = self._rankers[method](text)
+        hits = self.rank(text, method)
         if not hits or hits[0].score < self._config.no_match[method]:
             return None
         return hits
@@ -131,25 +156,69 @@ class Matcher:
             return row.family
         return f"{row.variant} / {row.as_bought}"
 
-    def _query(self, text: str) -> tuple[list[str], int | None]:
-        """The words a method compares and the level applied through the family,
-        for a name key: a counted diary name, or typed text through name_key."""
+    def _query(self, text: str) -> tuple[list[str], int | None, set[str]]:
+        """The words a method compares, and the level and the text's cooking
+        words, both applied through the family, for a name key: a counted diary
+        name, or typed text through name_key. A cooking word stays among the
+        words, as cooking fields stay in the index; every leanness family is
+        ground meat, so a level adds "ground" to words that lack it."""
         words = tokens(strip_leanness(text), self._config.abbreviations)
-        return words, parse_leanness(text)
+        level = parse_leanness(text)
+        if level is not None and words and "ground" not in words:
+            words.append("ground")
+        cooking = parse_state(text, self._rules.cooking_words, self._rules.state_fields)
+        return words, level, cooking
 
-    def _hits(self, scores: NDArray[np.floating], level: int | None) -> list[Hit]:
-        """At most top_k distinct keys. A leanness-family row not at the text's
-        level stands for the family's row at that level, so a derived level is
-        reached through its family and a cooked row at the level keeps its own
-        identity."""
+    def tie_order(self, text: str) -> Callable[[Row], tuple[int, int]]:
+        """How an exact score tie orders rows for the text: fewer first-field
+        words missing from the text's words first, so potatoes lead potato
+        bread for "potatoes", quinoa leads quinoa flour for "quinoa", and a
+        salmon fish row, one word short, leads salmon fish oil, two short, for
+        "salmon"; then the index order."""
+        query = set(self._query(text)[0])
+        return lambda row: (len(self._first[row.id] - query), self._position[row.id])
+
+    def _lags(self, words: list[str]) -> NDArray[np.int_]:
+        """Per index row, how many first-field words are not among the words:
+        tie_order's first key, the index order being its second."""
+        query = set(words)
+        return np.array([len(self._first[r.id] - query) for r in self._index])
+
+    def _hits(
+        self,
+        scores: NDArray[np.floating],
+        lags: NDArray[np.int_],
+        level: int | None,
+        cooking: set[str],
+    ) -> list[Hit]:
+        """At most top_k distinct keys, by score and on an exact tie by
+        tie_order, the lags then the index order. A leanness-family row not at
+        the text's level stands for the family's row at that level, so a
+        derived level is reached through its family; then, for a cooked text, a
+        row in another state stands for one of its family's cooked rows at the
+        level, taken plain row first and then by the tie order: the first whose
+        index text holds every cooking word of the text, else the first, so
+        "grilled chicken breast" reaches the grilled row, not the fried one
+        ahead of it. Either stand-in is the row itself when the family has no
+        such row."""
         hits: dict[str, Hit] = {}
-        # A stable sort keeps the index order on an equal score.
-        for i in np.argsort(-scores, kind="stable"):
+        for i in np.lexsort((lags, -scores)):
             if scores[i] <= 0 or len(hits) == self._config.top_k:
                 break
             row = self._index[i]
             if level is not None and row.lean_pct != level:
                 row = self._at_level.get((row.family, level), row)
+            if cooking and row.as_bought != "cooked":
+                cooked = self._cooked.get((row.family, row.lean_pct), [row])
+                held = (r for r in cooked if cooking.issubset(self._words[r.id]))
+                row = next(held, cooked[0])
             key = self.match_key(row, level)
             hits.setdefault(key, Hit(row, float(scores[i]), key))
         return list(hits.values())
+
+
+def _plain(row: Row) -> str:
+    """The variant a row has with no field beyond its family and level."""
+    if row.lean_pct is None:
+        return row.family
+    return f"{row.family}, {row.lean_pct}/{100 - row.lean_pct}"

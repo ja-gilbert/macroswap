@@ -112,6 +112,57 @@ PROBES = {
         "foundation:2727571",
         "bison, ground / raw",
     ),
+    # Measured 2026-09-27: a cooking word steers to the family's row in that
+    # state, a level implies ground meat, "generic" is dropped, and an exact tie
+    # goes to the row with the fewest first-field words missing from the text,
+    # then to SR, then to the lower number; SR first is implied by the id ranges
+    # today, every SR id below every Foundation id.
+    "cooking-word-steers-to-the-cooked-row": (
+        "cooked chicken breast",
+        "sr:171078",
+        "chicken, breast, meat only / cooked",
+    ),
+    "cooking-word-at-the-level": (
+        "ground beef 93/7 cooked",
+        "sr:174752",
+        "beef, ground, 93/7, patty / cooked",
+    ),
+    "cooked-row-at-the-level-is-its-plain-row": (
+        "ground turkey 93/7 cooked",
+        "sr:172851",
+        "turkey, ground, 93/7 / cooked",
+    ),
+    "level-implies-ground": (
+        "beef - 88/12",
+        "derived:beef, ground:88/12",
+        "beef, ground, 88/12 / raw",
+    ),
+    "generic-is-dropped": ("generic - banana", "sr:173944", "bananas / raw"),
+    "tie-to-the-first-field-the-text-holds": (
+        "potatoes",
+        "sr:170032",
+        "potatoes, skin / raw",
+    ),
+    "tie-to-fewer-first-field-words-missing": (
+        "salmon",
+        "sr:173688",
+        "fish, salmon, chinook / raw",
+    ),
+    "cooked-row-of-the-tie-winner": (
+        "salmon cooked",
+        "sr:171999",
+        "fish, salmon, chinook, dry heat / cooked",
+    ),
+    "almonds-over-almond-flour-on-a-tie": (
+        "almonds",
+        "sr:170567",
+        "nuts, almonds / raw",
+    ),
+    "tie-to-the-lower-number-not-the-string": (
+        "olive oil",
+        "foundation:748608",
+        "oil, olive, extra virgin / raw",
+    ),
 }
 
 
@@ -131,9 +182,17 @@ def test_a_cooking_word_reaches_a_cooked_row(real_rows: list[Row]) -> None:
     assert "rice" in top.row.family.replace(",", " ").split()
 
 
-# The embed top on the real table: the raw row over the dried one, and the SR
-# row over the analytical duplicate that shares its index text.
-EMBED_PROBES = {"egg whites": "sr:172183", "lowfat milk 1%": "sr:170872"}
+# The embed top on the real table: the raw row over the dried one, the SR row
+# over the analytical duplicate that shares its index text, and a raw chicken
+# breast standing for its family's cooked row that holds the cooking word, not
+# the fried row ahead of it. Lexical scores the grilled row first itself, and a
+# chicken-breast roll over the family for "roasted".
+EMBED_PROBES = {
+    "egg whites": "sr:172183",
+    "lowfat milk 1%": "sr:170872",
+    "grilled chicken breast": "sr:171534",
+    "roasted chicken breast": "sr:171477",
+}
 
 
 def test_the_pinned_model_embeds_the_real_index_within_its_budget(

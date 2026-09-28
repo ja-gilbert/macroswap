@@ -59,7 +59,7 @@ def compute_stats(conn: sqlite3.Connection, shares: tuple[float, ...]) -> DiaryS
             for day in _days_between(covered_from, covered_to)
             if day not in coverage
         )
-    counts = [row["n"] for row in conn.execute(_NAME_COUNTS_SQL)]
+    counts = [n for _, n in name_counts(conn)]
     return DiaryStats(
         files=len(files),
         covered_from=covered_from,
@@ -73,10 +73,13 @@ def compute_stats(conn: sqlite3.Connection, shares: tuple[float, ...]) -> DiaryS
         untracked_days=sum(untracked_by_day.values()),
         rows=conn.execute("SELECT count(*) AS n FROM diary_rows").fetchone()["n"],
         distinct_names=len(counts),
-        names_for_share=tuple(
-            (share, _names_needed(counts, share)) for share in shares
-        ),
+        names_for_share=tuple((share, names_needed(counts, share)) for share in shares),
     )
+
+
+def name_counts(conn: sqlite3.Connection) -> list[tuple[str, int]]:
+    """Each distinct name and its counted rows, most-logged first, then by name."""
+    return [(row["name"], row["n"]) for row in conn.execute(_NAME_COUNTS_SQL)]
 
 
 def format_stats(stats: DiaryStats) -> str:
@@ -101,7 +104,7 @@ def format_stats(stats: DiaryStats) -> str:
     return "\n".join(lines)
 
 
-def _names_needed(counts_desc: list[int], share: float) -> int:
+def names_needed(counts_desc: list[int], share: float) -> int:
     """How many of the most-logged names it takes to reach this share of rows."""
     total = sum(counts_desc)
     running = 0

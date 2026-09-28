@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import sqlite3
 import sys
+from collections import Counter
 from collections.abc import Callable, Sequence
 from dataclasses import astuple
 from pathlib import Path
@@ -14,8 +15,9 @@ from macroswap.config import Config, ConfigError, load_config
 from macroswap.diary.importer import DiaryImportError, import_directory
 from macroswap.diary.normalize import name_key
 from macroswap.diary.parse import ParseError
-from macroswap.diary.stats import compute_stats, format_stats
+from macroswap.diary.stats import compute_stats, format_stats, name_counts
 from macroswap.match.embed import Embedder, EmbedUnavailable
+from macroswap.match.label import draw_sample, label_session, write_labels
 from macroswap.match.matcher import Matcher
 from macroswap.pull import PullError, pull, release_dirs
 from macroswap.store import connect, read_usda, write_usda
@@ -56,7 +58,11 @@ def build_parser() -> argparse.ArgumentParser:
         "report", help="families, exclusion reasons, and override candidates"
     ).set_defaults(run=_data_report)
     match = commands.add_parser("match", help="the top USDA rows for a food name")
-    match.add_argument("text", nargs="+", help='e.g. "greek yogurt w/ berries"')
+    match.add_argument(
+        "text",
+        nargs="+",
+        help='e.g. "greek yogurt w/ berries", or `label` to label the sample',
+    )
     match.add_argument(
         "--method",
         choices=["lexical", "embed"],
@@ -150,6 +156,8 @@ def _data_report(config: Config, db: Path, args: argparse.Namespace) -> int:
 
 
 def _match(config: Config, db: Path, args: argparse.Namespace) -> int:
+    if args.text == ["label"]:
+        return _match_label(config, db)
     with _built(db) as conn:
         rows = read_usda(conn)
     embedder: Embedder | None = None
@@ -174,6 +182,33 @@ def _match(config: Config, db: Path, args: argparse.Namespace) -> int:
         for hit in hits or []:
             print(f"{hit.score:.3f}  {hit.row.id}  {hit.row.description}  [{hit.key}]")
     return 1 if all(hits is None for hits in results.values()) else 0
+
+
+def _match_label(config: Config, db: Path) -> int:
+    path = Path(config.paths.labels)
+    if not path.exists():
+        with _existing(db, "diary import") as conn:
+            counts = name_counts(conn)
+        if not counts:
+            raise FileNotFoundError(f"no diary names in {db}; run `diary import` first")
+        labels = draw_sample(counts, config.labels)
+        write_labels(path, labels)
+        cells = Counter(f"{label.bucket} {label.split}" for label in labels)
+        sizes = ", ".join(f"{cell} {n}" for cell, n in sorted(cells.items()))
+        print(f"{path}: {len(labels)} names, {sizes}")
+        print("the tail, for review; delete the row of any name you will not publish:")
+        for label in labels:
+            if label.bucket == "tail":
+                print(f"  {label.name}")
+        return 0
+    with _built(db) as conn:
+        rows = read_usda(conn)
+    # Every method or no labels: a label picked from one method's list alone
+    # would favour that method in the eval.
+    embedder = Embedder(config.match.model, config.match.revision, db.parent)
+    matcher = Matcher(rows, config.match, FieldRules(config.usda), embedder)
+    label_session(path, matcher, rows, config.labels)
+    return 0
 
 
 def _existing(db: Path, hint: str) -> sqlite3.Connection:

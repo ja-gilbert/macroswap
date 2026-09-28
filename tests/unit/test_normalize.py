@@ -9,6 +9,7 @@ from macroswap.diary.normalize import (
     name_key,
     parse_leanness,
     parse_quantity,
+    parse_state,
     plausible_grams,
     split_name,
     strip_leanness,
@@ -155,6 +156,27 @@ def test_strip_leanness_removes_what_parses(text: str, expected: str) -> None:
     ("text", "expected"),
     [
         pytest.param(
+            "mac and cheese, not prepared", set(), id="state-phrase-is-not-cooking"
+        ),
+        pytest.param(
+            "Pan-Broiled Ground Turkey",
+            {"pan", "broiled"},
+            id="cooking-words-as-the-index-reads-them",
+        ),
+    ],
+)
+def test_parse_state(text: str, expected: set[str]) -> None:
+    """The table's raw-state phrases hold cooking words, and "not prepared" ends
+    many a packaged food's name: the food as bought, not cooked. A cooking word
+    comes back in the words a row's index text holds."""
+    usda = load_config().usda
+    assert parse_state(text, usda.cooking_words, usda.state_fields) == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        pytest.param(
             "Chicken w/ Rice & Beans w/o Salt",
             ["chicken", "with", "rice", "and", "bean", "without", "salt"],
             id="abbreviations-are-whole-words",
@@ -170,6 +192,16 @@ def test_strip_leanness_removes_what_parses(text: str, expected: str) -> None:
             id="plurals-fold",
         ),
         pytest.param("Jalapeño", ["jalapeno"], id="accents-drop"),
+        pytest.param(
+            "Hellmann's - Mayonnaise, Kellogg\u2019s",
+            ["hellmann", "mayonnaise", "kellogg"],
+            id="apostrophes-deleted-not-split",
+        ),
+        pytest.param(
+            "rice 1 cup cooked, 2% milk",
+            ["rice", "cooked", "2", "milk"],
+            id="quantity-anywhere-dropped-bare-percent-kept",
+        ),
     ],
 )
 def test_tokens(text: str, expected: list[str]) -> None:

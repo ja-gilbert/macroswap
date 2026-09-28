@@ -33,6 +33,8 @@ class FieldRules:
     """The field classes from the config, compiled once."""
 
     def __init__(self, usda: UsdaConfig) -> None:
+        self.cooking_words = usda.cooking_words
+        self.state_fields = usda.state_fields
         self._note = re.compile(usda.note_pattern, re.IGNORECASE)
         self._dropped = set(usda.boilerplate_fields) | set(usda.state_fields)
         self._cosmetic = _full_field(usda.cosmetic_patterns)
