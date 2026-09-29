@@ -26,6 +26,8 @@ jobs:
       - run: uv run pytest
         env:
           MACROSWAP_REQUIRE_DATA: "1"
+      - name: The README's eval block is the committed table
+        run: uv run python scripts/render_eval.py && git diff --exit-code README.md
       - name: Config ships inside the wheel
         run: |
           uv build --wheel --out-dir dist
