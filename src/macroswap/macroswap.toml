@@ -206,6 +206,10 @@ retail = []
 abbreviations = { "w/" = "with", "w/o" = "without", "bnls" = "boneless", "&" = "and", "generic" = "" }
 # Up to this many hits per method, each a distinct key.
 top_k = 5
+# BM25's length normalization, 0 to 1: at 0.75 a short index text outscores a
+# longer one holding the same words. Lowered on the dev split if the labels
+# show that bias against plain names such as "white rice".
+bm25_b = 0.75
 # The frozen embedder behind the embed extra, pinned to one revision.
 model = "sentence-transformers/all-MiniLM-L6-v2"
 revision = "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
@@ -217,13 +221,15 @@ default_method = "lexical"
 # Reciprocal rank fusion: each method adds 1 / (rrf_k + rank) to a hit.
 rrf_k = 60
 
-# A method abstains (NO_MATCH) when its top score is below its threshold. Each
-# is tuned on the dev split for end-to-end top-1 per name, an abstention counted
-# wrong unless the label is NO_MATCH; hybrid abstains only below both. -inf
-# never abstains on a score.
+# A method abstains (NO_MATCH) when its top score is below its threshold; -inf
+# never abstains on a score, and hybrid abstains only below both.
+# `macroswap match eval` prints each method's dev-optimal line, ready to paste
+# here: the cut, -inf or midway between adjacent top scores, that gets the most
+# names in the whole dev split right end to end at top 1, an abstention counted
+# wrong unless the label is NO_MATCH; a tie goes to the lowest cut.
 [match.no_match]
-lexical = -inf
-embed = -inf
+lexical = 7.687868399668144  # dev-optimal: 55 of 139 right; 31 dev names labeled NO_MATCH
+embed = 0.6755481362342834  # dev-optimal: 63 of 139 right; 31 dev names labeled NO_MATCH
 
 [labels]
 # The head is the fewest names covering this share of counted rows; the tail

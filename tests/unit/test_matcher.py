@@ -112,6 +112,18 @@ def test_an_excluded_sr_row_still_beats_its_duplicate(usda_rows: list[Row]) -> N
     assert top.row.id == "sr:171269"
 
 
+def test_length_normalization_comes_from_the_config(usda_rows: list[Row]) -> None:
+    """A short index text scores higher at b 0.75 than at 0, where length
+    counts for nothing, so a typed bm25_b moves the ranking it tunes."""
+    scores = {
+        b: Matcher(usda_rows, replace(CONFIG.match, bm25_b=b), RULES)
+        .lexical("egg whites")[0]
+        .score
+        for b in (0.0, 0.75)
+    }
+    assert scores[0.0] < scores[0.75]
+
+
 def test_a_name_without_a_level_keys_at_the_family(matcher: Matcher) -> None:
     """Level resolution waits for the next milestone, so the family is the identity;
     the family's other rows cannot fill the top five."""

@@ -105,7 +105,7 @@ class Matcher:
             if r.as_bought == "cooked":
                 self._cooked.setdefault((r.family, r.lean_pct), []).append(r)
         documents = [words[r.id] for r in self._index]
-        self._bm25 = BM25Okapi(documents)
+        self._bm25 = BM25Okapi(documents, b=config.bm25_b)
         self._rankers: dict[str, Callable[[str], list[Hit]]] = {"lexical": self.lexical}
         if embedder is not None:
             self._embedder = embedder

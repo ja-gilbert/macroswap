@@ -73,6 +73,7 @@ class UsdaConfig:
 class MatchConfig:
     abbreviations: dict[str, str]
     top_k: int
+    bm25_b: float
     model: str
     revision: str
     index_seconds: float
