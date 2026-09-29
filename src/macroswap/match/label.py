@@ -193,3 +193,8 @@ def _choose(
             mixed = len(made) > 1 and any(k == r.family for r, k in chosen)
             if len({r.as_bought for r, _ in chosen}) == 1 and not mixed:
                 return " ".join(made), source
+            out(
+                "  a family key takes no other pick"
+                if mixed
+                else "  picks are in different as-bought states; pick one state"
+            )
