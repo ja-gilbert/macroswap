@@ -76,7 +76,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     match.add_argument(
         "--method",
-        choices=["lexical", "embed"],
+        choices=["lexical", "embed", "hybrid"],
         help="one method (default: every method that loads); not for `label` or `eval`",
     )
     match.add_argument(
@@ -226,7 +226,7 @@ def _match(config: Config, db: Path, args: argparse.Namespace) -> int:
         if hits is None:
             print("NO_MATCH")
         for hit in hits or []:
-            print(f"{hit.score:.3f}  {hit.row.id}  {hit.row.description}  [{hit.key}]")
+            print(f"{hit.score:#.4g}  {hit.row.id}  {hit.row.description}  [{hit.key}]")
     return 1 if all(hits is None for hits in results.values()) else 0
 
 

@@ -56,10 +56,11 @@ def test_suggestions_merge_every_method_one_per_key_by_description(
     usda_rows: list[Row], fake_embedder: Encoder
 ) -> None:
     """One row per key, alphabetical by description, shown even when every
-    method abstains: lexical and embed reach the whey key through different
-    rows, and the key order differs from the description order. A key's row is
-    the one leading by the tie order: for "banana ripe" lexical reaches the
-    bananas key through an analytical duplicate, embed through the SR row."""
+    method abstains: embed reaches the whey key through another row than
+    lexical and hybrid do, and the key order differs from the description
+    order. A key's row is the one leading by the tie order: for "banana ripe"
+    lexical reaches the bananas key through an analytical duplicate, embed
+    through the SR row."""
     abstaining = {"lexical": math.inf, "embed": math.inf}
     config = replace(CONFIG.match, no_match=abstaining)
     matcher = Matcher(usda_rows, config, RULES, fake_embedder)

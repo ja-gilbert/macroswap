@@ -1,7 +1,8 @@
 """Rank USDA rows for a diary name or a typed food, or abstain (NO_MATCH).
 
 The index is every non-derived row, exclusion_reason ignored, so NO_MATCH means
-no USDA food is right, never that the right one was filtered out.
+no USDA food is right, never that the right one was filtered out. Lexical and
+embed rank by their own scores; hybrid fuses their ranks.
 """
 
 from __future__ import annotations
@@ -50,6 +51,22 @@ def index_text(description: str, rules: FieldRules, leanness: bool = False) -> s
     if leanness:
         fields = [f for f in fields if not is_leanness_field(f)]
     return " ".join(fields)
+
+
+def fuse(
+    scores: Sequence[NDArray[np.floating]], lags: NDArray[np.int_], rrf_k: int
+) -> NDArray[np.float64]:
+    """Reciprocal rank fusion: each method ranks the rows it scores above zero,
+    from 1 and in the order of its own hits, an equal score going to the row
+    with the smaller lag and then to the index order, and a ranked row gains
+    1 / (rrf_k + rank). An unscored row gains nothing, where a rank would come
+    from the tie order alone."""
+    fused = np.zeros(len(scores[0]))
+    for s in scores:
+        order = np.lexsort((lags, -s))
+        ranked = order[s[order] > 0]
+        fused[ranked] += 1 / (rrf_k + np.arange(1, len(ranked) + 1))
+    return fused
 
 
 class Matcher:
@@ -115,6 +132,7 @@ class Matcher:
             distinct, inverse = np.unique(texts, return_inverse=True)
             self._vectors = embedder.index_vectors(distinct.tolist())[inverse]
             self._rankers["embed"] = self.embed
+            self._rankers["hybrid"] = self.hybrid
         self.methods = tuple(self._rankers)
 
     def lexical(self, text: str) -> list[Hit]:
@@ -127,15 +145,12 @@ class Matcher:
         """Cosine similarity between the text and each row's index text, both
         normalized the same way; a text with no words scores nothing."""
         words, level, cooking = self._query(text)
-        if not words:
-            return []
-        query = self._embedder.encode([" ".join(words)])[0]
-        # einsum, not @: BLAS spins its whole thread pool for one row of dot
-        # products and starves the encoder, 120 ms against 12 ms per ranking on
-        # 32 cores. The top five match @ on the real table except where @ breaks
-        # a tie between rows sharing a vector.
-        cosines = np.einsum("ij,j->i", self._vectors, query)
-        return self._hits(cosines, self._lags(words), level, cooking)
+        return self._hits(self._cosines(words), self._lags(words), level, cooking)
+
+    def hybrid(self, text: str) -> list[Hit]:
+        """Lexical and embed fused by rank, so neither method's score scale
+        counts; each ranking is whole, not cut at top_k."""
+        return self._fused(text)[0]
 
     def rank(self, text: str, method: str) -> list[Hit]:
         """The method's hits, whatever its threshold."""
@@ -143,7 +158,12 @@ class Matcher:
 
     def run(self, text: str, method: str) -> list[Hit] | None:
         """The method's hits, or None for NO_MATCH: nothing scored, or the top
-        score is below the method's threshold."""
+        score is below the method's threshold. A fused score is a function of
+        ranks alone, so hybrid abstains only when its top row is, for each
+        method, below its threshold or not scored by it."""
+        if method == "hybrid":
+            hits, abstains = self._fused(text)
+            return None if abstains else hits
         hits = self.rank(text, method)
         if not hits or hits[0].score < self._config.no_match[method]:
             return None
@@ -183,6 +203,34 @@ class Matcher:
         tie_order's first key, the index order being its second."""
         query = set(words)
         return np.array([len(self._first[r.id] - query) for r in self._index])
+
+    def _cosines(self, words: list[str]) -> NDArray[np.floating]:
+        """Each row's cosine with the words, a dot product of unit vectors; no
+        words score zero everywhere rather than embed an empty string."""
+        if not words:
+            return np.zeros(len(self._vectors))
+        query = self._embedder.encode([" ".join(words)])[0]
+        # einsum, not @: BLAS spins its whole thread pool for one row of dot
+        # products and starves the encoder, 120 ms against 12 ms per ranking on
+        # 32 cores. The top five match @ on the real table except where @ breaks
+        # a tie between rows sharing a vector.
+        cosines: NDArray[np.floating] = np.einsum("ij,j->i", self._vectors, query)
+        return cosines
+
+    def _fused(self, text: str) -> tuple[list[Hit], bool]:
+        """Hybrid's hits, and whether it abstains, as run says; its top row is
+        the first by the fused score and the tie order."""
+        words, level, cooking = self._query(text)
+        lags = self._lags(words)
+        lexical, embed = self._bm25.get_scores(words), self._cosines(words)
+        fused = fuse([lexical, embed], lags, self._config.rrf_k)
+        top = np.lexsort((lags, -fused))[0]
+        no_match = self._config.no_match
+        below = (lexical[top] <= 0 or lexical[top] < no_match["lexical"]) and (
+            embed[top] <= 0 or embed[top] < no_match["embed"]
+        )
+        hits = self._hits(fused, lags, level, cooking)
+        return hits, bool(below)
 
     def _hits(
         self,

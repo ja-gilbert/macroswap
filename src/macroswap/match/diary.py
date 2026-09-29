@@ -129,8 +129,9 @@ def check_fingerprint(
 def _matched(
     matcher: Matcher, name: str, method: str
 ) -> tuple[Row | str | None, float | None]:
-    """The top hit, a row or its family key, and its score. On NO_MATCH, no
-    target, and the top score the threshold refused when anything scored."""
+    """The top hit, a row or its family key, and its score under the method,
+    the fused score for hybrid. On NO_MATCH, no target, and the top score the
+    method refused when anything scored."""
     hits = matcher.run(name, method)
     if hits is None:
         ranked = matcher.rank(name, method)

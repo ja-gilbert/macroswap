@@ -155,16 +155,20 @@ def tune_threshold(scored: list[Scored]) -> float:
 def compare_methods(matcher: Matcher, rows: list[Row], labels: list[Label]) -> str:
     """Per method over the whole dev split, per name: end-to-end top-1 at its
     threshold, which picks the method `diary match` runs; then its dev-optimal
-    threshold, as a line for [match.no_match]."""
+    threshold, as a line for [match.no_match]. Hybrid has no threshold of its
+    own: it is scored at both of the others and gets no dev-optimal line."""
     dev = [label for label in labels if label.label and label.split == "dev"]
     no_match = sum(label.label == NO_MATCH for label in dev)
     scored = {method: score(matcher, rows, dev, method) for method in matcher.methods}
     lines = [
         f"method {method}: {sum(_right(s, s.abstains, 1) for s in names)} of "
-        f"{len(names)} dev names right end to end at its threshold"
+        f"{len(names)} dev names right end to end at "
+        f"{'both thresholds' if method == 'hybrid' else 'its threshold'}"
         for method, names in scored.items()
     ]
     for method, names in scored.items():
+        if method == "hybrid":
+            continue
         cut = tune_threshold(names)
         lines.append(
             f"{method} = {cut!r}  # dev-optimal: {_right_at(names, cut)} of "

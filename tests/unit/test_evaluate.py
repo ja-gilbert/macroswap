@@ -173,17 +173,19 @@ def test_a_label_naming_no_row_and_no_leanness_family_is_refused(
 def test_the_dev_objective_at_the_threshold_and_at_the_dev_optimal_cut(
     usda_rows: list[Row], fake_embedder: Encoder
 ) -> None:
-    """Over the whole dev split, each method on its own scores and threshold.
-    At 7.0 banana abstains too, which ranking alone would count right. The cut
-    between chipotle and the jasmine rice ties with the one past the rice,
-    whose top hit is wrong anyway, and the lower wins. When every top hit is
-    right, as for egg whites and banana, never abstaining wins."""
+    """Over the whole dev split, lexical and embed each on its own scores and
+    threshold, hybrid at both. At 7.0 banana abstains too, which ranking alone
+    would count right. The cut between chipotle and the jasmine rice ties with
+    the one past the rice, whose top hit is wrong anyway, and the lower wins.
+    Hybrid gets no dev-optimal line. When every top hit is right, as for egg
+    whites and banana, never abstaining wins."""
     config = replace(TUNED, no_match={"lexical": 7.0, "embed": 0.74})
     matcher = Matcher(usda_rows, config, RULES, fake_embedder)
     lines = compare_methods(matcher, usda_rows, LABELS)
     assert lines.splitlines() == [
         "method lexical: 4 of 8 dev names right end to end at its threshold",
         "method embed: 6 of 8 dev names right end to end at its threshold",
+        "method hybrid: 6 of 8 dev names right end to end at both thresholds",
         "lexical = 3.966069548219856  # dev-optimal: 6 of 8 right; "
         "2 dev names labeled NO_MATCH",
         "embed = 0.7400474846363068  # dev-optimal: 6 of 8 right; "
