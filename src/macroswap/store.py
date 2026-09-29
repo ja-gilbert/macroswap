@@ -42,6 +42,26 @@ CREATE TABLE IF NOT EXISTS diary_rows (
     fiber         REAL,
     PRIMARY KEY (date, meal, position)
 );
+CREATE TABLE IF NOT EXISTS diary_matches (
+    name      TEXT PRIMARY KEY,
+    rows      INTEGER NOT NULL,
+    usda_id   TEXT,
+    family    TEXT,
+    variant   TEXT,
+    as_bought TEXT,
+    source    TEXT NOT NULL,
+    score     REAL,
+    -- A NULL family is NO_MATCH; a family without a row is a leanness-family
+    -- name matched or labeled at its family, whose level the next milestone
+    -- applies.
+    CHECK ((usda_id IS NULL) = (variant IS NULL))
+);
+CREATE TABLE IF NOT EXISTS diary_matches_meta (
+    method        TEXT NOT NULL,
+    thresholds    TEXT NOT NULL,
+    labels_digest TEXT NOT NULL,
+    revision      TEXT NOT NULL
+);
 """
 
 
@@ -103,6 +123,9 @@ def write_usda(conn: sqlite3.Connection, rows: list[tuple[object, ...]]) -> None
     inherits columns or rows from an older build."""
     columns = ", ".join(_USDA_COLUMNS)
     marks = ", ".join("?" * len(_USDA_COLUMNS))
+    # Cleared before the schema script commits, so a failed insert never
+    # leaves old matches beside an empty table.
+    clear_diary_matches(conn)
     conn.executescript(_USDA_SCHEMA)
     with conn:
         conn.executemany(f"INSERT INTO usda_foods({columns}) VALUES ({marks})", rows)
@@ -112,3 +135,24 @@ def read_usda(conn: sqlite3.Connection) -> list[Row]:
     """Every row of the USDA table, as build_table made it."""
     columns = ", ".join(_USDA_COLUMNS)
     return [Row(*r) for r in conn.execute(f"SELECT {columns} FROM usda_foods")]
+
+
+def clear_diary_matches(conn: sqlite3.Connection) -> None:
+    """Empty diary_matches and its fingerprint in the caller's transaction: a
+    new USDA table or new diary rows leave every match stale."""
+    conn.execute("DELETE FROM diary_matches")
+    conn.execute("DELETE FROM diary_matches_meta")
+
+
+def write_diary_matches(
+    conn: sqlite3.Connection,
+    rows: list[tuple[object, ...]],
+    fingerprint: tuple[object, ...],
+) -> None:
+    """Replace every match and the fingerprint row together."""
+    with conn:
+        clear_diary_matches(conn)
+        conn.executemany(
+            "INSERT INTO diary_matches VALUES (?, ?, ?, ?, ?, ?, ?, ?)", rows
+        )
+        conn.execute("INSERT INTO diary_matches_meta VALUES (?, ?, ?, ?)", fingerprint)

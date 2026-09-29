@@ -16,15 +16,16 @@ from macroswap.diary.importer import DiaryImportError, import_directory
 from macroswap.diary.normalize import name_key
 from macroswap.diary.parse import ParseError
 from macroswap.diary.stats import compute_stats, format_stats, name_counts
+from macroswap.match.diary import Fingerprint, LabelError, match_diary
 from macroswap.match.embed import Embedder, EmbedUnavailable
-from macroswap.match.label import draw_sample, label_session, write_labels
+from macroswap.match.label import draw_sample, label_session, read_labels, write_labels
 from macroswap.match.matcher import Matcher
 from macroswap.pull import PullError, pull, release_dirs
 from macroswap.store import connect, read_usda, write_usda
 from macroswap.usda.keys import FieldRules
 from macroswap.usda.load import load_release, merge
 from macroswap.usda.report import family_report
-from macroswap.usda.table import BuildError, build_table
+from macroswap.usda.table import BuildError, Row, build_table
 
 Handler = Callable[[Config, Path, argparse.Namespace], int]
 
@@ -46,6 +47,9 @@ def build_parser() -> argparse.ArgumentParser:
     diary_commands.add_parser(
         "stats", help="coverage, untracked days, name shape"
     ).set_defaults(run=_diary_stats)
+    diary_commands.add_parser(
+        "match", help="resolve every diary name once (writes diary_matches)"
+    ).set_defaults(run=_diary_match)
     data = commands.add_parser("data", help="fetch and build the USDA food table")
     data_commands = data.add_subparsers(dest="data_command", required=True)
     data_commands.add_parser(
@@ -85,6 +89,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         PullError,
         BuildError,
         EmbedUnavailable,
+        LabelError,
         OSError,
     ) as exc:
         print(f"error: {exc}", file=sys.stderr)
@@ -110,6 +115,30 @@ def _diary_import(config: Config, db: Path, args: argparse.Namespace) -> int:
 def _diary_stats(config: Config, db: Path, args: argparse.Namespace) -> int:
     with _existing(db, "diary import") as conn:
         print(format_stats(compute_stats(conn, config.stats.coverage_shares)))
+    return 0
+
+
+def _diary_match(config: Config, db: Path, args: argparse.Namespace) -> int:
+    path = Path(config.paths.labels)
+    labels = read_labels(path) if path.exists() else []
+    fingerprint = Fingerprint.current(config.match, path)
+    method = config.match.default_method
+
+    def make_matcher(rows: list[Row]) -> Matcher:
+        # No fallback to lexical: the fingerprint names the method that ran.
+        embedder: Embedder | None = None
+        if method != "lexical":
+            embedder = Embedder(config.match.model, config.match.revision, db.parent)
+        return Matcher(rows, config.match, FieldRules(config.usda), embedder)
+
+    with _built(db) as conn:
+        summary = match_diary(conn, labels, make_matcher, fingerprint)
+    names = summary.by_label + summary.by_matcher + summary.no_match
+    print(f"method: {method}")
+    print(
+        f"names: {names}; by label: {summary.by_label}; "
+        f"by matcher: {summary.by_matcher}; NO_MATCH: {summary.no_match}"
+    )
     return 0
 
 

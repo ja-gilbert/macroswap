@@ -1,18 +1,22 @@
 from __future__ import annotations
 
 import shutil
-from dataclasses import astuple
+from dataclasses import astuple, replace
 from pathlib import Path
 
 import pytest
 
 from macroswap.cli import main
+from macroswap.config import Config
+from macroswap.match.diary import check_fingerprint
+from macroswap.match.label import Label, write_labels
 from macroswap.match.matcher import Encoder
 from macroswap.store import connect, write_usda
 from macroswap.usda.table import Row
 
 # The exit-code table, one row per case from this milestone on; the pull
-# checksum row is in test_pull.py.
+# checksum row is in test_pull.py, and `diary match` refusing without the
+# embed extra is in its own test.
 EXIT_CODES = {
     "match-where-every-method-abstains": (["match", "zzzz"], True, 1, "NO_MATCH"),
     "match-before-data-build": (
@@ -38,6 +42,12 @@ EXIT_CODES = {
         True,
         2,
         "run `diary import` first",
+    ),
+    "diary-match-before-data-build": (
+        ["diary", "match"],
+        False,
+        2,
+        "run `data build` first",
     ),
 }
 
@@ -244,6 +254,46 @@ def test_match_label_draws_the_sample_then_needs_every_method(
     assert main(["--db", db, "match", "label"]) == 2
     assert "embed extra not installed" in capsys.readouterr().err
     assert labels.read_text(encoding="utf-8") == drawn
+
+
+def test_diary_match_refuses_an_orphan_label_then_prints_the_counts(
+    tmp_path: Path,
+    fixtures_dir: Path,
+    usda_rows: list[Row],
+    pinned_config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The orphan label is reported before the model loads, and a default
+    method that needs the missing extra exits 2 rather than run lexical under
+    its name. Relabeled, under lexical, one name resolves by label, and the
+    cheddar, which nothing in the fixture table scores, is NO_MATCH, and the
+    recorded fingerprint is the one a reader recomputes."""
+    monkeypatch.chdir(tmp_path)
+    db = str(_database(tmp_path, usda_rows))
+    assert main(["--db", db, "diary", "import", str(fixtures_dir)]) == 0
+    capsys.readouterr()
+    embed = replace(pinned_config.match, default_method="embed")
+    monkeypatch.setattr(
+        "macroswap.cli.load_config",
+        lambda path=None: replace(pinned_config, match=embed),
+    )
+    labels = Path(pinned_config.paths.labels)
+    write_labels(labels, [Label("egg whites", 2, "head", "dev", "sr:1", "search")])
+    assert main(["--db", db, "diary", "match"]) == 2
+    assert "egg whites = sr:1" in capsys.readouterr().err
+    write_labels(labels, [Label("egg whites", 2, "head", "dev", "sr:172183", "search")])
+    assert main(["--db", db, "diary", "match"]) == 2
+    assert "embed extra not installed (uv sync --extra embed)" in (
+        capsys.readouterr().err
+    )
+    monkeypatch.setattr("macroswap.cli.load_config", lambda path=None: pinned_config)
+    assert main(["--db", db, "diary", "match"]) == 0
+    assert capsys.readouterr().out.splitlines() == [
+        "method: lexical",
+        "names: 10; by label: 1; by matcher: 8; NO_MATCH: 1",
+    ]
+    check_fingerprint(connect(Path(db)), pinned_config.match, labels)
 
 
 def _database(tmp_path: Path, rows: list[Row]) -> Path:

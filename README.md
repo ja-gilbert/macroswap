@@ -43,6 +43,20 @@ reports what they hold. On my own diary, 2026-09-22:
 
 Counted rows are the rows on tracked days that are not quick adds.
 
+`macroswap diary match` resolves each of those foods once: to a USDA row, to a
+family for ground meat matched or labeled at its family, or to NO_MATCH. A food
+I have labeled takes my label, and the default method resolves the rest:
+
+    uv run macroswap diary match
+
+    method: lexical
+    names: 1798; by label: 380; by matcher: 1315; NO_MATCH: 103
+
+The three counts add up to the names. NO_MATCH covers both the foods I
+labeled as having no USDA match and the ones the matcher abstained on. Unlike
+`match`, `diary match` never falls back to lexical: a default method that needs
+the missing `embed` extra exits 2. 
+
 ## The USDA Table
 
 `macroswap data pull` fetches the two pinned USDA releases, SR Legacy and

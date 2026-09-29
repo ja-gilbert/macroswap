@@ -16,6 +16,7 @@ from macroswap.diary.normalize import (
     split_name,
 )
 from macroswap.diary.parse import parse_diary_html
+from macroswap.store import clear_diary_matches
 
 _FILENAME_RE = re.compile(r"^mfp_(\d{4}-\d{2}-\d{2})_(\d{4}-\d{2}-\d{2})\.html$")
 # The page rounds each cell to a whole number, so a day's rows may differ
@@ -142,6 +143,7 @@ def import_file(
         )
     span = (start.isoformat(), end.isoformat())
     with conn:
+        clear_diary_matches(conn)
         # Foreign keys are on: children go out first and parents come back first.
         conn.execute("DELETE FROM diary_rows WHERE date BETWEEN ? AND ?", span)
         conn.execute("DELETE FROM diary_days WHERE date BETWEEN ? AND ?", span)
