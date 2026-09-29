@@ -9,14 +9,15 @@ import pytest
 from macroswap.cli import main
 from macroswap.config import Config
 from macroswap.match.diary import check_fingerprint
-from macroswap.match.label import Label, write_labels
+from macroswap.match.evaluate import read_expected
+from macroswap.match.label import NO_MATCH, Label, write_labels
 from macroswap.match.matcher import Encoder
 from macroswap.store import connect, write_usda
 from macroswap.usda.table import Row
 
 # The exit-code table, one row per case from this milestone on; the pull
-# checksum row is in test_pull.py, and `diary match` refusing without the
-# embed extra is in its own test.
+# checksum row is in test_pull.py, and `diary match` and `match eval
+# --write-expected` refusing without the embed extra are in their own tests.
 EXIT_CODES = {
     "match-where-every-method-abstains": (["match", "zzzz"], True, 1, "NO_MATCH"),
     "match-before-data-build": (
@@ -48,6 +49,12 @@ EXIT_CODES = {
         False,
         2,
         "run `data build` first",
+    ),
+    "match-eval-before-match-label": (
+        ["match", "eval"],
+        True,
+        2,
+        "run `match label` first",
     ),
 }
 
@@ -294,6 +301,55 @@ def test_diary_match_refuses_an_orphan_label_then_prints_the_counts(
         "names: 10; by label: 1; by matcher: 8; NO_MATCH: 1",
     ]
     check_fingerprint(connect(Path(db)), pinned_config.match, labels)
+
+
+def test_match_eval_prints_dev_then_writes_the_test_table(
+    tmp_path: Path,
+    usda_rows: list[Row],
+    pinned_config: Config,
+    fake_embedder: Encoder,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Without the extra the eval runs lexical alone and says so, but will not
+    write the table CI checks every method against. The test split prints only
+    with --test; --write-expected writes it without printing it."""
+    monkeypatch.chdir(tmp_path)
+    db = str(_database(tmp_path, usda_rows))
+    write_labels(
+        Path(pinned_config.paths.labels),
+        [
+            Label("egg whites", 2, "head", "dev", "sr:172183", "suggestion"),
+            Label("chipotle - chicken bowl", 1, "tail", "test", NO_MATCH, "no_match"),
+        ],
+    )
+    assert main(["--db", db, "match", "eval"]) == 0
+    dev = capsys.readouterr().out.splitlines()
+    assert dev[:3] == [
+        "method: lexical; embed extra not installed (uv sync --extra embed)",
+        "| split | bucket | weighting | metric | lexical |",
+        "| --- | --- | --- | --- | --- |",
+    ]
+    assert "| dev | head | rows | top1_end_to_end | 1.000 [1.000, 1.000] n=1 |" in dev
+    assert not [line for line in dev if line.startswith("| test")]
+    assert dev[-2:] == [
+        "method lexical: 1 of 1 dev names right end to end at its threshold",
+        "lexical = -inf  # dev-optimal: 1 of 1 right; 0 dev names labeled NO_MATCH",
+    ]
+    assert main(["--db", db, "match", "eval", "--test"]) == 0
+    recall = "| test | tail | names | no_match_recall | 0.000 [0.000, 0.000] n=1 |"
+    assert recall in capsys.readouterr().out.splitlines()
+    expected = Path(pinned_config.paths.eval_expected)
+    assert main(["--db", db, "match", "eval", "--write-expected"]) == 2
+    assert "embed extra not installed" in capsys.readouterr().err
+    assert not expected.exists()
+    monkeypatch.setattr("macroswap.cli.Embedder", lambda *args: fake_embedder)
+    assert main(["--db", db, "match", "eval", "--write-expected"]) == 0
+    out = capsys.readouterr().out.splitlines()
+    assert not [line for line in out if line.startswith("| test")]
+    assert out[-1] == f"{expected}: 12 test cells"
+    written = {(cell.method, cell.split) for cell in read_expected(expected)}
+    assert written == {("lexical", "test"), ("embed", "test")}
 
 
 def _database(tmp_path: Path, rows: list[Row]) -> Path:

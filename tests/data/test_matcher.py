@@ -12,11 +12,14 @@ from numpy.typing import NDArray
 
 from macroswap.config import load_config
 from macroswap.match.embed import Embedder, EmbedUnavailable
+from macroswap.match.evaluate import compare, evaluate, read_expected
+from macroswap.match.label import Label, read_labels
 from macroswap.match.matcher import Matcher
 from macroswap.usda.keys import FieldRules
 from macroswap.usda.load import load_release, merge
 from macroswap.usda.table import Row, build_table
 
+ROOT = Path(__file__).resolve().parents[2]
 CONFIG = load_config()
 RULES = FieldRules(CONFIG.usda)
 
@@ -29,6 +32,18 @@ def real_rows(releases: dict[str, Path]) -> list[Row]:
         CONFIG.usda.dry_basis_marker,
     )
     return build_table(loaded.foods, CONFIG.usda)
+
+
+@pytest.fixture(scope="module")
+def made_labels() -> list[Label]:
+    """The committed labels made so far. Until the first is made there is
+    nothing to compare, so the comparison skips, in CI too."""
+    path = ROOT / CONFIG.paths.labels
+    labels = read_labels(path) if path.exists() else []
+    made = [label for label in labels if label.label]
+    if not made:
+        pytest.skip(f"no labels made in {path}")
+    return made
 
 
 @pytest.fixture
@@ -252,3 +267,15 @@ def test_first_use_offline_says_so_and_is_unavailable(
         Embedder(CONFIG.match.model, CONFIG.match.revision, tmp_path)
     notice = f"downloading {CONFIG.match.model}@{CONFIG.match.revision[:7]} (first use)"
     assert notice in capsys.readouterr().err
+
+
+def test_the_test_split_scores_as_the_committed_table_says(
+    made_labels: list[Label], real_rows: list[Row], embedder: Embedder
+) -> None:
+    """Lexical exactly; the embedder within tolerated_flips names per cell, the
+    float noise between CPU and GPU. The dev split is never gated."""
+    matcher = Matcher(real_rows, CONFIG.match, RULES, embedder)
+    test = [label for label in made_labels if label.split == "test"]
+    cells = evaluate(matcher, real_rows, test, CONFIG.eval, matcher.methods)
+    expected = read_expected(ROOT / CONFIG.paths.eval_expected)
+    assert compare(cells, expected, CONFIG.eval.tolerated_flips) == []

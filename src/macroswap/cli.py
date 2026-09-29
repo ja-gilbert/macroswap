@@ -18,6 +18,12 @@ from macroswap.diary.parse import ParseError
 from macroswap.diary.stats import compute_stats, format_stats, name_counts
 from macroswap.match.diary import Fingerprint, LabelError, match_diary
 from macroswap.match.embed import Embedder, EmbedUnavailable
+from macroswap.match.evaluate import (
+    compare_methods,
+    evaluate,
+    format_cells,
+    write_expected,
+)
 from macroswap.match.label import draw_sample, label_session, read_labels, write_labels
 from macroswap.match.matcher import Matcher
 from macroswap.pull import PullError, pull, release_dirs
@@ -65,12 +71,21 @@ def build_parser() -> argparse.ArgumentParser:
     match.add_argument(
         "text",
         nargs="+",
-        help='e.g. "greek yogurt w/ berries", or `label` to label the sample',
+        help='e.g. "greek yogurt w/ berries"; `label` labels the sample, `eval` '
+        "scores every method on it",
     )
     match.add_argument(
         "--method",
         choices=["lexical", "embed"],
-        help="one method (default: every method that loads)",
+        help="one method (default: every method that loads); not for `label` or `eval`",
+    )
+    match.add_argument(
+        "--test", action="store_true", help="eval only: print the test split too"
+    )
+    match.add_argument(
+        "--write-expected",
+        action="store_true",
+        help="eval only: rewrite the committed expected table from the test split",
     )
     match.set_defaults(run=_match)
     return parser
@@ -187,6 +202,8 @@ def _data_report(config: Config, db: Path, args: argparse.Namespace) -> int:
 def _match(config: Config, db: Path, args: argparse.Namespace) -> int:
     if args.text == ["label"]:
         return _match_label(config, db)
+    if args.text == ["eval"]:
+        return _match_eval(config, db, args)
     with _built(db) as conn:
         rows = read_usda(conn)
     embedder: Embedder | None = None
@@ -237,6 +254,37 @@ def _match_label(config: Config, db: Path) -> int:
     embedder = Embedder(config.match.model, config.match.revision, db.parent)
     matcher = Matcher(rows, config.match, FieldRules(config.usda), embedder)
     label_session(path, matcher, rows, config.labels)
+    return 0
+
+
+def _match_eval(config: Config, db: Path, args: argparse.Namespace) -> int:
+    path = Path(config.paths.labels)
+    if not path.exists():
+        raise FileNotFoundError(f"no labels at {path}; run `match label` first")
+    labels = read_labels(path)
+    with _built(db) as conn:
+        rows = read_usda(conn)
+    embedder: Embedder | None = None
+    try:
+        embedder = Embedder(config.match.model, config.match.revision, db.parent)
+    except EmbedUnavailable as exc:
+        # The committed table needs every method, since CI checks each; lexical
+        # alone is still worth measuring, and the header says what is missing.
+        if args.write_expected:
+            raise
+        print(f"method: lexical; {exc}")
+    matcher = Matcher(rows, config.match, FieldRules(config.usda), embedder)
+    # The test split is scored only when asked for, and never tunes anything.
+    splits = ("dev", "test") if args.test or args.write_expected else ("dev",)
+    wanted = [label for label in labels if label.split in splits]
+    cells = evaluate(matcher, rows, wanted, config.eval, matcher.methods)
+    print(format_cells([cell for cell in cells if cell.split == "dev" or args.test]))
+    print(compare_methods(matcher, rows, labels))
+    if args.write_expected:
+        expected = Path(config.paths.eval_expected)
+        test = [cell for cell in cells if cell.split == "test"]
+        write_expected(expected, test)
+        print(f"{expected}: {len(test)} test cells")
     return 0
 
 
