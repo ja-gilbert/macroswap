@@ -1,463 +1,463 @@
 name,count,bucket,split,label,label_source
-kirkland - chicken breast,583,head,test,,
-"honey - honey, basic ***",496,head,test,,
-quaker oats - oatmeal,338,head,test,,
-blueberries,291,head,test,,
-banana,282,head,test,,
-subway multigrain - wheat bred subway,269,head,test,,
-nature nate's - texas honey,268,head,test,,
-fage - yogurt- greek 0%,267,head,test,,
-chiquita banana - chiquita banana,258,head,test,,
-ascent - protein powder,254,head,dev,,
-subway - steak,242,head,dev,,
-heritage farms chicken - breast,172,head,dev,,
-sweet potato,151,head,test,,
-cheese - mozzarella cheese,150,head,test,,
-great value - peanut butter powder,129,head,test,,
-whole milk,127,head,test,,
-kirkland organic peanut butter - peanut butter,123,head,dev,,
-sauder's eggs - eggs,122,head,dev,,
-butter - butter unsalted,119,head,test,,
-isopure - vanilla,117,head,test,,
-kroger - cottage cheese,116,head,test,,
-yogurt greco 5% (fage) - fage 5%,111,head,test,,
-pathmark's ground beef - 80/20 ground beef,107,head,test,,
-cal eggs - eggs,105,head,test,,
-mahatma - jasmin rice,103,head,dev,,
-parmesan cheese - parmesan cheese,99,head,test,,
-nature valley - crunchy cinnamon granola,97,head,test,,
-pumpkin,94,head,dev,,
-peanut butter,92,head,dev,,
-premier - chocolate protein powder,90,head,dev,,
-"simply potatoes - potatoes, diced",89,head,test,,
-jasmine brand - jasmine rice,86,head,test,,
-gold standard whey - whey protein drink,85,head,test,,
-mexican cheese - shredded cheese,85,head,test,,
-kroger - natural crunchy peanut butter,81,head,dev,,
-chocolate chips,79,head,test,,
-trappey's - banana peppers,79,head,test,,
-dave’s - blueberry bagels,77,head,test,,
-thomas' - cinnamon raisin bagel,76,head,test,,
-flik - red onion slices,75,head,dev,,
-veggie bag - green pepper slices,75,head,dev,,
-meijer 4% cottage cheese - cottage cheese,74,head,test,,
-premier protein - vanilla protein powder,71,head,test,,
-de cecco - linguine,67,head,test,,
-nate's - hot honey,67,head,dev,,
-sunnyside nonfat greek yogurt - nonfat greek yogurt,67,head,test,,
-pbfit peanut butter powder - powder peanut butter (net carbs),65,head,test,,
-subway - jalapeno peppers,65,head,test,,
-snacks - nature valley granola bar,63,head,test,,
-grape nuts - grape nuts,62,head,test,,
-quaker - oats,59,head,test,,
-kirkland - clover honey,58,head,test,,
-brandless - peanut powder,57,head,dev,,
-panda express - grilled teriyaki-chicken,55,head,test,,
-"subway - 6"" italian herbs & cheese bread",55,head,test,,
-85/15 ground beef - 85/15 ground beef,52,head,test,,
-boiled egg,51,head,test,,
-crazy richards - 100% natural peanut butter,51,head,dev,,
-gold standard - whey,51,head,test,,
-"oatmeal, dry",51,head,test,,
-trader joe's - milk - whole - whole milk,51,head,dev,,
-wegmans - tzatziki,50,head,dev,,
-olive oil,49,head,test,,
-great value - greek plain yogurt,45,head,test,,
-thomas' - plain bagels,45,head,dev,,
-"usda - blueberries, raw",45,head,test,,
-"generic - white onion, 1 small",44,head,dev,,
-hannaford - california blend vegetables,44,head,test,,
-subway - pepperjack,44,head,dev,,
-avocado,43,head,dev,,
-drizzilicious - birthday cake bites,43,head,test,,
-quaker oats - quaker rolled oats,42,head,dev,,
-red onion,42,head,test,,
-blueberries aldi - blueberries,41,head,test,,
-pura vida - fire roasted veggies,41,head,dev,,
-"riceland - rice, extra long grain",41,head,dev,,
-kirkland parmigiano reggiano - parmigiano reggiano,40,head,test,,
-nature valley - protein granola,40,head,test,,
-egg-lands best - egg,38,head,test,,
-portabella mushroom-generic - portabella mushroom 2021,38,head,test,,
-jiff peanut butter - peanut butter crunchy,37,head,test,,
-"pumpkin, canned",37,head,test,,
-pictsweet farms - sweet potatoes,36,head,dev,,
-rice cake caramel corn - rice cake,36,head,test,,
-ritz crackers,36,head,dev,,
-cuisine camino - unsweetened chocolate chips,35,head,test,,
-jasmine rice - rice,35,head,test,,
-pepperidge farms - 15 grain whole grain bread,35,head,dev,,
-cucumber,34,head,dev,,
-panda express - chow mein,34,head,test,,
-private selection - petite cherry snacking tomatoes,34,head,test,,
-shredded lettuce,34,head,test,,
-"tomato - tomato slices, raw",33,head,test,,
-cinnamon - spice,31,head,test,,
-"milk, whole",31,head,test,,
-milk: fairlife - whole milk,31,head,dev,,
-smuckers organic - peanut butter,31,head,test,,
-sour cream,31,head,test,,
-white onion,31,head,test,,
-kirkland - quinoa,30,head,test,,
-royal basmati rice - rice,30,head,dev,,
-vital proteins collagen peptides chocolate potassium 923g - collagen,30,head,test,,
-yukon gold - potato,30,head,test,,
-greek god - nonfat greek yogurt,29,head,dev,,
-simply potatoes - sweet potatoes,29,head,test,,
-skotidakis feta - feta cheese,29,head,test,,
-heritage farms - chicken breast boneless,28,head,test,,
-nice eggs - eggs,28,head,test,,
-aunt millie's - country buttermilk bread,27,head,test,,
-owyn powder - protein powder,27,head,test,,
-sarah lee - honey wheat bread,27,head,dev,,
-blackberries,26,head,dev,,
-great value - pumpkin,26,head,test,,
-perdue - chicken breast tenderloins,26,head,test,,
-"potato inspirations - potatoes, honey gold, bite-size",26,head,test,,
-subway - rotisserie-style chicken,26,head,test,,
-tortilla land - flour tortillas,26,head,test,,
-fresh produce - strawberries,25,head,test,,
-oikios - strawberry,25,head,test,,
-philadelphia cream cheese - original,25,head,test,,
-barilla plus - protein pasta,24,head,dev,,
-private selection - petite gold gourmet potatoes,24,head,dev,,
-seattle sourdough - sourdough bread,24,head,test,,
-spring valley farms - raw honey,24,head,test,,
-subway - bacon,24,head,test,,
-tops - berry medley,24,head,test,,
-cosmic crisp - cosmic crisp apple,23,head,test,,
-fiesta tortilla chips - tortilla chips,23,head,test,,
-great value - greek yogurt nonfat,23,head,test,,
-subway - rotisserie chicken (meat only),23,head,test,,
-boudin sourdough - organic sourdough,22,head,test,,
-catalina snacks [net carb adjusted] - catalina crunch cereal,22,head,test,,
-daisy - low fat sour cream (revised),22,head,test,,
-kroger - mozzarella,22,head,test,,
-nestlé chocolate chips - chocolate chips,22,head,dev,,
-honey - graham cracker,21,head,dev,,
-meijer vanilla protein powder - protein powder,21,head,test,,
-ryse - jet-puffed marshmallow flavor protein drink mix,21,head,test,,
-sunny fruit dried figs - dried figs,21,head,test,,
-baby bella mushrooms***,20,head,test,,
-chobani - nonfat plain greek yogurt,20,head,test,,
-cucumber - thinly sliced,20,head,test,,
-fruit - honeycrisp apple,20,head,test,,
-generic russet potato - *russet potato,20,head,dev,,
-perdue - chicken breast,20,head,test,,
-zucchini,20,head,dev,,
-93/7 ground beef - 93/7 ground beef,19,head,test,,
-egg eggs egg - egg,19,head,test,,
-generic - ground beef (93/7),19,head,test,,
-"milk, reduced fat, 2%",19,head,test,,
-almond butter - kirkland almond butter,18,head,test,,
-kirkland - fancy salted nuts,18,head,test,,
-natures own - honey wheat,18,head,dev,,
-pb fit - peanut butter powder*,18,head,test,,
-philadelphia - cream cheese spread,18,head,test,,
-subway - provolone,18,head,test,,
-dymatize - iso100 vanilla,17,head,test,,
-elevation - whey protein powder,17,head,test,,
-fage - 0% greek yogurt,17,head,test,,
-fareway - walnut halves,17,head,dev,,
-goya - black beans - 15.5 oz can,17,head,dev,,
-oats,17,head,dev,,
-ole - xtreme wellness wrap,17,head,dev,,
-onion - white onion - diced,17,head,dev,,
-barbella - bar,16,head,test,,
-broccoli,16,head,test,,
-japanese sweet potato,16,head,test,,
-ketchup - ketchup :),16,head,test,,
-kirkland - roasted and salted peanuts,16,head,test,,
-kirkland greek yogurt - plain,16,head,dev,,
-meijer chicken breasts with rib meat - meijer chicken breast with rib meat,16,head,test,,
-nature valley granola protein - granola,16,head,dev,,
-prego - homestyle alfredo,16,head,test,,
-sundate medjool dates - dates,16,head,test,,
-birds eye - corn,15,head,dev,,
-chick fil a - grilled nuggets,15,head,dev,,
-costco - parmesan cheese bagel,15,head,test,,
-fat free mozzarella cheese - kraft,15,head,test,,
-great value - basmati rice,15,head,test,,
-great value - blueberries,15,head,dev,,
-great value - nonfat greek yogurt,15,head,test,,
-harris teeters greek yogurt - greek yogurt,15,head,test,,
-honey maid - low fat graham crackers,15,head,test,,
-kroger crunchy peanut butter - peanut butter,15,head,test,,
-mission - carb balance tortilla wraps,15,head,test,,
-oscar mayer - roast beef,15,head,test,,
-quest - oatmeal quest bar,15,head,test,,
-rice krispie - treat,15,head,test,,
-rotel - tomatoes,15,head,test,,
-thomas' bagel - plain bagel,15,head,dev,,
-unsweetened coconut flakes,15,head,test,,
-watermelon,15,head,test,,
-avacado 2oz slice - avacado,14,head,test,,
-bread - aunt millie's buttermilk bread,14,head,test,,
-english muffin - thomas original,14,head,dev,,
-fat free milk - fat free milk,14,head,dev,,
-kroger thai jasmine rice - jasmine rice (steamed),14,head,dev,,
-laura lawn beef 96/4 - 96/4,14,head,test,,
-nature's own - honey wheat,14,head,test,,
-"russet potato, raw",14,head,dev,,
-ryse - cinnamon protein,14,head,dev,,
-sargento - provolone,14,head,test,,
-bel gioioso mozzarella - mozzarella,13,head,dev,,
-cool whip - lite cool whip,13,head,test,,
-great value - enriched long grain rice,13,head,test,,
-great value - sourdough,13,head,test,,
-irish cheddar - irish cheddar,13,head,test,,
-kirkland - chicken can,13,head,dev,,
-kodiak - buttermilk power cakes,13,head,dev,,
-lenders - plain bagel,13,head,test,,
-raspberries,13,head,test,,
-sargento - swiss,13,head,test,,
-subway - pepperoni,13,head,dev,,
-cream of wheat - cream of wheat,12,head,test,,
-culture - keto bread,12,head,test,,
-giant whipped cream cheese - whipped cream cheese,12,head,test,,
-great value - whole milk,12,head,test,,
-iga - berry medley,12,head,dev,,
-kraft - triple cheddar,12,head,test,,
-kroger gala - apple,12,head,test,,
-mustard - yellow,12,head,test,,
-popeyes - blackened chicken sandwich plain (no mayo/pickle),12,head,dev,,
-season - sardines in olive oil,12,head,dev,,
-thomas' - bagel thins,12,head,dev,,
-"thomas' - bagel, blueberry",12,head,test,,
-"thomas' - swirl, bread, cinnamon",12,head,dev,,
-costco - everything bagel,11,head,test,,
-cream cheese - great value,11,head,test,,
-farmers promise - yellow potatoes,11,head,dev,,
-flour tortillas - small - flour tortillas - small fajita,11,head,test,,
-great value - honey wheat bread,11,head,test,,
-honey,11,head,test,,
-kirkland - lean ground beef (91%/9% fat),11,head,test,,
-kroger - shredded cheddar,11,head,test,,
-kroger - yukon gold potatoes,11,head,test,,
-"meijer - whey protein powder, chocolate peanut butter",11,head,dev,,
-members mark - canned albacore tuna,11,head,test,,
-national pecan - pecans,11,head,test,,
-oat bread - oat bread,11,head,test,,
-panda express - super greens,11,head,dev,,
-premium - saltines,11,head,test,,
-bell pepper - red/orange/yellow,10,head,dev,,
-better oats - steel cut oats,10,head,dev,,
-blueberry,10,head,test,,
-chick fil a - fruit cup,10,head,dev,,
-cracker barrel - buttermilk biscuit,10,head,test,,
-gardania whole wheat bread - whole wheat bread,10,head,test,,
-"generic - sweet bell pepper (green, red, yellow, orange)",10,head,test,,
-good culture - cottage cheese,10,head,dev,,
-"great value - rice, jasmine",10,head,test,,
-great value frozen - peppers & onions,10,head,test,,
-"hummus hummus - hummus, roasted red pepper",10,head,test,,
-jocko - molk,10,head,test,,
-kirkland - stir fry veggies,10,head,test,,
-kirkland almond butter - natural almond butter,10,head,dev,,
-kirkland organic chicken breast - chicken breast organic,10,head,test,,
-kraft cool whip (orginal) - cool whip,10,head,test,,
-med dole - dole banana,10,head,test,,
-"mushrooms, 3 fl. oz, pieces/slices",10,head,test,,
-omelet veggie mix - veggie mix,10,head,test,,
-onion - white onion,10,head,test,,
-premier protein - premier protien shake,10,head,test,,
-raspberries - fresh - raspberries - fresh,10,head,dev,,
-"ritz - crackers, whole wheat",10,head,dev,,
-starkist - starkist tuna pouch,10,head,dev,,
-strawberries - strawberry 1 medium,10,head,dev,,
-"subway - grilled chicken, buffalo",10,head,dev,,
-sun date - california medjool dates,10,head,dev,,
-texas pete - sriracha cha,10,head,test,,
-athenos feta - feta,9,head,dev,,
-blue diamond - almonds - smokehouse,9,head,test,,
-cameo apple - apple,9,head,test,,
-chicken of the sea - salmon,9,head,test,,
-chocxo - dark chocolate coconut cups,9,head,dev,,
-cuties,9,head,dev,,
-delmonaco sardines filets - filets de sardines,9,head,test,,
-egglands best - 1egg,9,head,dev,,
-fairlife - skim milk,9,head,test,,
-great value - hashbrowns (shredded),9,head,test,,
-great value - mixed fruit - pineapple strawberries mango peaches,9,head,dev,,
-green grapes,9,head,test,,
-hadley - whole dates,9,head,test,,
-instant oatmeal-maple & brown sugar - instant oatmeal-maple & brown sugar,9,head,test,,
-krafts - grated parm,9,head,dev,,
-meijer - honey fig spread,9,head,test,,
-meijer - whipped cream cheese,9,head,dev,,
-metrx - protein bar,9,head,dev,,
-new york strip - strip loin steak,9,head,test,,
-pineapple,9,head,test,,
-quaker - original single pack oats,9,head,test,,
-raos - pasta sauce,9,head,test,,
-russet potato,9,head,test,,
-"salsa, red",9,head,dev,,
-subway - chicken strips,9,head,dev,,
-"walmart - organic bananas, bunch",9,head,test,,
-wisconsin sharp cheddar - cheddar cheese,9,head,test,,
-xtreme wellness - tortilla wraps,9,head,dev,,
-a1 steak sauce - a1 steak sauce ph1967,8,head,test,,
-"aunt millie's - bread, potato",8,head,test,,
-bacon - bacon,8,head,test,,
-bear naked - vanilla granola,8,head,test,,
-beef - 88/12,8,head,test,,
-blue dimond - pecan nut-thins,8,head,test,,
-bryers carbsmart - brownie a la mode (less alcohol sugar carbs),8,head,test,,
-cherries,8,head,test,,
-cracker barrel - grilled chicken tenders,8,head,dev,,
-cracker barrel - hashbrown casserole,8,head,test,,
-family bakers - artisan style special recipe bread 1/2 loaf,8,head,test,,
-franz - white bread,8,head,test,,
-gracias - mexican cheese sauce,8,head,dev,,
-grapes - white,8,head,test,,
-great value cottage cheese - 4% cottage cheese,8,head,test,,
-homeland 90/10 beef - 90/10 beef,8,head,dev,,
-kirkland albacore tuna - albacore tuna,8,head,dev,,
-signature select - oven roasted chicken breast,8,tail,test,,
-cracker barrel side of green beans - green beans (low carb) (updated 041421),7,tail,test,,
-ground bison - 90/10,7,tail,test,,
-oscar mayer - chipotle seasoned chicken breast,7,tail,test,,
-quest protein bar - quest protein bar,7,tail,test,,
-walnuts - walnuts,7,tail,test,,
-curry sauce - sauce,6,tail,dev,,
-fat free cheddar,6,tail,test,,
-goldminer sourdough - sourdough bread,6,tail,test,,
-hillshire farms - black pepper turkey breast,6,tail,dev,,
-kroger - original cream cheese,6,tail,dev,,
-minute white rice - white rice,6,tail,dev,,
-simple truth - plain low fat yogurt,6,tail,test,,
-belgioso mozzarella - mozzarella,5,tail,test,,
-blue diamond - almond nut thins,5,tail,test,,
-curry,5,tail,test,,
-egg,5,tail,test,,
-meijer - greek whole milk yogurt,5,tail,dev,,
-milk - kroger 2%,5,tail,dev,,
-washington - cosmic crisp apple,5,tail,test,,
-bear naked granola - heavenly chocolate,4,tail,test,,
-broccoli crowns,4,tail,test,,
-great value frozen cherries - frozen cherries,4,tail,dev,,
-green bell pepper,4,tail,dev,,
-"kraft - mozzarella cheese stick, 2%",4,tail,dev,,
-lenders - plain bagels,4,tail,dev,,
-organic marketside - gold potatoes,4,tail,test,,
-prego - creamy roasted garlic pesto,4,tail,test,,
-simple truth - whole milk greek yogurt,4,tail,test,,
-thai - rice noodles,4,tail,test,,
-tilamook - shredded mozzarella cheese,4,tail,dev,,
-yoplait original low fat yogurt - low fat yogurt,4,tail,dev,,
-cracker barrel white gravy - cracker barrel gravy,3,tail,dev,,
-great value - pulled pork in bbq sauce (pouch),3,tail,test,,
-great value mango chunks frozen - mango chunks frozen,3,tail,dev,,
-koch foods - boneless skinless chicken breast fillets,3,tail,test,,
-la terra gina - quest dip with cheddar,3,tail,test,,
-mre bar - crunchy peanut butter cup bar,3,tail,test,,
-pictsweet farms - seasoned vegetables for the air fryer,3,tail,dev,,
-private selection - 90/10 ground beef sirloin,3,tail,test,,
-raos - spaghetti noodles,3,tail,test,,
-ribeye - ribeye,3,tail,test,,
-sarah lee - 100% whole wheat,3,tail,test,,
-sargento - colby- pepper jack,3,tail,test,,
-sargento - provolone cheese slice,3,tail,dev,,
-"starkist selects - solid white albacore, tuna in water",3,tail,dev,,
-"strawberry, 1 cup, halves",3,tail,dev,,
-wholly - smashed avocado,3,tail,test,,
-all natural - 90/10 lean ground beef,2,tail,test,,
-beef - ground beef drained 80/20,2,tail,test,,
-costco turkey - turkey,2,tail,test,,
-fage greek yogurt 5% - greek yogurt,2,tail,test,,
-generic - jalepeno,2,tail,test,,
-great value - whole milk plain greek yogurt,2,tail,test,,
-ground beef - 92 8,2,tail,test,,
-kefir - strawberry,2,tail,test,,
-kroger - colby jack,2,tail,test,,
-la banderita flour tortilla - small flour tortilla,2,tail,dev,,
-logan's roadhouse - green beans,2,tail,dev,,
-"meijer - finely shredded cheese, parmesan",2,tail,dev,,
-meijer - original roast beef,2,tail,test,,
-metrx bar - protien bar,2,tail,test,,
-old el paso - small tortilla shells,2,tail,test,,
-pita bread,2,tail,dev,,
-seriously low carb - low carb bread,2,tail,test,,
-tillamook - provolone farmstyle slice,2,tail,test,,
-tumaros - sun dried tomato wrap,2,tail,test,,
-wegmans - 95% 5%,2,tail,test,,
-wholly guacamole - quacamole,2,tail,test,,
-20 croutons - croutons - seasoned,1,tail,test,,
-80/20 ground beef - 80/20 ground beef,1,tail,dev,,
-arby's - double roast beef,1,tail,dev,,
-beef jerky bucees - beef jerky,1,tail,dev,,
-bethel - sliced tomatoes,1,tail,test,,
-bottom round steak - bottom round,1,tail,test,,
-bumblebee - sundried tomato & basil tuna,1,tail,dev,,
-busch - black beans,1,tail,test,,
-carnation - evaporated milk,1,tail,dev,,
-chick-fil-a - grilled sandwich,1,tail,test,,
-chicken thighs costco - thighs,1,tail,test,,
-chipotle - shredded cheese,1,tail,test,,
-chipotle - steak - double serving,1,tail,test,,
-coles - porterhouse steak,1,tail,test,,
-"cracker barrel - cracker barrel classic sampler, chicken n' dumplins",1,tail,dev,,
-cracker barrel - fried apples,1,tail,dev,,
-cracker barrel - sawmill gravy,1,tail,dev,,
-del monte - mango pineapple cups,1,tail,test,,
-"dip in - greek yogurt dip, jalapeno",1,tail,test,,
-first watch - healthy turkey (no preserves),1,tail,test,,
-focaccia bun - roll,1,tail,dev,,
-french's - ketchup,1,tail,test,,
-fresh - rasperries**,1,tail,test,,
-great value frozen blueberries - frozen blueberries,1,tail,test,,
-ground beef cooked - ground beef cooked,1,tail,test,,
-highland - country honey ham steak,1,tail,dev,,
-"hillshire farm - sausage, smoked",1,tail,test,,
-homemade - broccoli cheese casserole,1,tail,test,,
-jif to go - jif natural,1,tail,dev,,
-just bare - lightly breaded chicken nugget,1,tail,test,,
-kerrygold - butter,1,tail,dev,,
-kind - chewy with a crunch peanut butter dark chocolate,1,tail,test,,
-kirkland - pacific cod,1,tail,test,,
-"kirkland - whole fancy cashew nuts, 3 oz (28g) (about 17 pcs)",1,tail,test,,
-kirkland's blueberries - blueberries,1,tail,test,,
-kroger - 80 / 20 ground beef,1,tail,test,,
-kroger - honey turkey & havarti cheese pinwheel tray,1,tail,test,,
-la costena - whole black beans,1,tail,test,,
-lidl - gucamole spicy mini cups,1,tail,test,,
-marketside - twin demi baguette,1,tail,test,,
-meijer - pork loin filet,1,tail,test,,
-meijer diced potatoes - diced potatoes,1,tail,dev,,
-members mark - chicken breast canned,1,tail,test,,
-milanesa - extra thin cut beef top round,1,tail,test,,
-minute - cilantro lime rice,1,tail,test,,
-mission - spinach wrap,1,tail,test,,
-mole chicken - 1,1,tail,test,,
-mybar - cookie dough,1,tail,test,,
-naan - garlic naan bread,1,tail,dev,,
-no sugar added pudding - pudding,1,tail,dev,,
-"oh yeah! - one, protein bars, maple glazed donut",1,tail,test,,
-olive garden - grilled chicken margherita,1,tail,test,,
-olive oil - organic olive oil,1,tail,test,,
-outback - grilled chicken on the barbie,1,tail,test,,
-panda chinese - grilled teriyaki chicken,1,tail,test,,
-panda express - fried rice (plate prtion),1,tail,dev,,
-panera - panera cinnamon crunch,1,tail,test,,
-panera - turkey & cheddar half sandwich,1,tail,test,,
-patak's original - papadums,1,tail,test,,
-pictsweet farms - vegetables for roasting,1,tail,dev,,
-prime bites - brownie protein,1,tail,test,,
-private selection - sliced gouda cheese,1,tail,test,,
-"pumpkin, 1 cup, mashed",1,tail,dev,,
-quest protein cookie - protein cookie,1,tail,dev,,
-red pepper - raw red pepper,1,tail,test,,
-safeway wedges - potatoes wedged,1,tail,test,,
-sargento - pepper jack,1,tail,dev,,
-shrimp - raw med shrimp,1,tail,test,,
-simple truth - powdered peanut butter,1,tail,dev,,
-sourdough - sourdough bread,1,tail,test,,
-sunkist tuna - tuna,1,tail,test,,
-taco time canada - hot sauce,1,tail,test,,
-texas roadhouse - beans- green,1,tail,test,,
-texas roadhouse - new york strip 8oz,1,tail,test,,
-tita baked - tortillas - 6 inch corn,1,tail,test,,
-turkey breast / applewood smoked - sliced deli meat,1,tail,test,,
-watermelon - seedless,1,tail,dev,,
-winco - black beans,1,tail,test,,
-yukon gold - potatoes,1,tail,dev,,
+kirkland - chicken breast,583,head,test,foundation:2646170 sr:171077,suggestion
+"honey - honey, basic ***",496,head,test,sr:169640,suggestion
+quaker oats - oatmeal,338,head,test,sr:172989 sr:173904,suggestion
+blueberries,291,head,test,sr:171711 sr:173950,suggestion
+banana,282,head,test,sr:173944,suggestion
+subway multigrain - wheat bred subway,269,head,test,sr:168013,search
+nature nate's - texas honey,268,head,test,sr:169640,suggestion
+fage - yogurt- greek 0%,267,head,test,sr:170894,suggestion
+chiquita banana - chiquita banana,258,head,test,sr:173944,suggestion
+ascent - protein powder,254,head,dev,sr:173180,suggestion
+subway - steak,242,head,dev,NO_MATCH,no_match
+heritage farms chicken - breast,172,head,dev,foundation:2646170 sr:171077,suggestion
+sweet potato,151,head,test,sr:168482,suggestion
+cheese - mozzarella cheese,150,head,test,sr:171244 sr:170900 sr:170847,search
+great value - peanut butter powder,129,head,test,sr:174267 sr:172435,search
+whole milk,127,head,test,sr:171265 foundation:322892 sr:172217,search
+kirkland organic peanut butter - peanut butter,123,head,dev,sr:174294 sr:172470,suggestion
+sauder's eggs - eggs,122,head,dev,sr:171287,suggestion
+butter - butter unsalted,119,head,test,sr:173430,suggestion
+isopure - vanilla,117,head,test,sr:173180,search
+kroger - cottage cheese,116,head,test,sr:172179 sr:172182,suggestion
+yogurt greco 5% (fage) - fage 5%,111,head,test,sr:171304,search
+pathmark's ground beef - 80/20 ground beef,107,head,test,sr:174036,suggestion
+cal eggs - eggs,105,head,test,sr:171287,suggestion
+mahatma - jasmin rice,103,head,dev,sr:168877 sr:169756,search
+parmesan cheese - parmesan cheese,99,head,test,sr:171247 foundation:2259795 sr:173431,suggestion
+nature valley - crunchy cinnamon granola,97,head,test,sr:167542,suggestion
+pumpkin,94,head,dev,sr:168448,suggestion
+peanut butter,92,head,dev,sr:174294 sr:172470 sr:172469,suggestion
+premier - chocolate protein powder,90,head,dev,sr:173180,suggestion
+"simply potatoes - potatoes, diced",89,head,test,sr:170026,suggestion
+jasmine brand - jasmine rice,86,head,test,sr:168877 sr:169756,search
+gold standard whey - whey protein drink,85,head,test,sr:173180,suggestion
+mexican cheese - shredded cheese,85,head,test,sr:171288,suggestion
+kroger - natural crunchy peanut butter,81,head,dev,sr:172469,suggestion
+chocolate chips,79,head,test,sr:167976,search
+trappey's - banana peppers,79,head,test,sr:169766,search
+dave’s - blueberry bagels,77,head,test,sr:167533 sr:172664,suggestion
+thomas' - cinnamon raisin bagel,76,head,test,sr:172664,suggestion
+flik - red onion slices,75,head,dev,foundation:790577 sr:170000,suggestion
+veggie bag - green pepper slices,75,head,dev,sr:170427,suggestion
+meijer 4% cottage cheese - cottage cheese,74,head,test,sr:172179,search
+premier protein - vanilla protein powder,71,head,test,sr:173180,suggestion
+de cecco - linguine,67,head,test,sr:169736 sr:168927,search
+nate's - hot honey,67,head,dev,sr:169640,suggestion
+sunnyside nonfat greek yogurt - nonfat greek yogurt,67,head,test,sr:170894,suggestion
+pbfit peanut butter powder - powder peanut butter (net carbs),65,head,test,sr:174267 sr:172435,search
+subway - jalapeno peppers,65,head,test,sr:170080,suggestion
+snacks - nature valley granola bar,63,head,test,sr:167542,suggestion
+grape nuts - grape nuts,62,head,test,sr:171647,suggestion
+quaker - oats,59,head,test,sr:172989 sr:173904,suggestion
+kirkland - clover honey,58,head,test,sr:169640,suggestion
+brandless - peanut powder,57,head,dev,sr:174267 sr:172435,suggestion
+panda express - grilled teriyaki-chicken,55,head,test,NO_MATCH,no_match
+"subway - 6"" italian herbs & cheese bread",55,head,test,sr:174913,suggestion
+85/15 ground beef - 85/15 ground beef,52,head,test,sr:171796,suggestion
+boiled egg,51,head,test,sr:173424,suggestion
+crazy richards - 100% natural peanut butter,51,head,dev,sr:172470 sr:172469,suggestion
+gold standard - whey,51,head,test,sr:173180,search
+"oatmeal, dry",51,head,test,sr:173904 sr:171661,suggestion
+trader joe's - milk - whole - whole milk,51,head,dev,sr:171265 foundation:322892 sr:172217,search
+wegmans - tzatziki,50,head,dev,NO_MATCH,no_match
+olive oil,49,head,test,sr:171413 foundation:748608 foundation:1750351,suggestion
+great value - greek plain yogurt,45,head,test,sr:170894 sr:171312,suggestion
+thomas' - plain bagels,45,head,dev,sr:174899 sr:175049,search
+"usda - blueberries, raw",45,head,test,sr:171711,suggestion
+"generic - white onion, 1 small",44,head,dev,foundation:1104962 sr:170000,suggestion
+hannaford - california blend vegetables,44,head,test,NO_MATCH,no_match
+subway - pepperjack,44,head,dev,sr:170844 foundation:2647438,search
+avocado,43,head,dev,foundation:2710824 sr:171705 sr:171706,suggestion
+drizzilicious - birthday cake bites,43,head,test,NO_MATCH,no_match
+quaker oats - quaker rolled oats,42,head,dev,sr:173904 sr:172989,suggestion
+red onion,42,head,test,foundation:790577 sr:170000,suggestion
+blueberries aldi - blueberries,41,head,test,sr:171711 sr:173950,suggestion
+pura vida - fire roasted veggies,41,head,dev,NO_MATCH,no_match
+"riceland - rice, extra long grain",41,head,dev,sr:168877 sr:169756,suggestion
+kirkland parmigiano reggiano - parmigiano reggiano,40,head,test,sr:170848,search
+nature valley - protein granola,40,head,test,NO_MATCH,no_match
+egg-lands best - egg,38,head,test,sr:171287,suggestion
+portabella mushroom-generic - portabella mushroom 2021,38,head,test,sr:169255 sr:170143,suggestion
+jiff peanut butter - peanut butter crunchy,37,head,test,sr:172469,suggestion
+"pumpkin, canned",37,head,test,sr:168450,suggestion
+pictsweet farms - sweet potatoes,36,head,dev,sr:169306,suggestion
+rice cake caramel corn - rice cake,36,head,test,sr:169679 sr:170250,suggestion
+ritz crackers,36,head,dev,sr:173258,suggestion
+cuisine camino - unsweetened chocolate chips,35,head,test,sr:167568,suggestion
+jasmine rice - rice,35,head,test,sr:168877 sr:169756,search
+pepperidge farms - 15 grain whole grain bread,35,head,dev,sr:168013,suggestion
+cucumber,34,head,dev,sr:168409 sr:169225,suggestion
+panda express - chow mein,34,head,test,NO_MATCH,no_match
+private selection - petite cherry snacking tomatoes,34,head,test,foundation:321360 sr:170457,search
+shredded lettuce,34,head,test,sr:169248,search
+"tomato - tomato slices, raw",33,head,test,sr:170457,search
+cinnamon - spice,31,head,test,sr:171320,suggestion
+"milk, whole",31,head,test,sr:171265 foundation:322892 sr:172217,search
+milk: fairlife - whole milk,31,head,dev,NO_MATCH,no_match
+smuckers organic - peanut butter,31,head,test,sr:174294 sr:172470 sr:172469,suggestion
+sour cream,31,head,test,sr:171257,suggestion
+white onion,31,head,test,foundation:1104962 sr:170000,suggestion
+kirkland - quinoa,30,head,test,sr:168874,suggestion
+royal basmati rice - rice,30,head,dev,sr:168877 sr:169756,suggestion
+vital proteins collagen peptides chocolate potassium 923g - collagen,30,head,test,NO_MATCH,no_match
+yukon gold - potato,30,head,test,foundation:2346403,suggestion
+greek god - nonfat greek yogurt,29,head,dev,sr:170894,suggestion
+simply potatoes - sweet potatoes,29,head,test,sr:168482,suggestion
+skotidakis feta - feta cheese,29,head,test,sr:173420,suggestion
+heritage farms - chicken breast boneless,28,head,test,foundation:2646170 sr:171077,suggestion
+nice eggs - eggs,28,head,test,sr:171287,suggestion
+aunt millie's - country buttermilk bread,27,head,test,foundation:325871,search
+owyn powder - protein powder,27,head,test,sr:173181,suggestion
+sarah lee - honey wheat bread,27,head,dev,sr:172686,suggestion
+blackberries,26,head,dev,sr:173946 sr:171710,suggestion
+great value - pumpkin,26,head,test,sr:168450,suggestion
+perdue - chicken breast tenderloins,26,head,test,foundation:2646170 sr:171077,suggestion
+"potato inspirations - potatoes, honey gold, bite-size",26,head,test,foundation:2346403,suggestion
+subway - rotisserie-style chicken,26,head,test,sr:171445 sr:171118,suggestion
+tortilla land - flour tortillas,26,head,test,sr:175037,suggestion
+fresh produce - strawberries,25,head,test,sr:167762,suggestion
+oikios - strawberry,25,head,test,sr:171299 sr:171297,search
+philadelphia cream cheese - original,25,head,test,sr:173418,suggestion
+barilla plus - protein pasta,24,head,dev,sr:168937,suggestion
+private selection - petite gold gourmet potatoes,24,head,dev,foundation:2346403,suggestion
+seattle sourdough - sourdough bread,24,head,test,sr:172675,suggestion
+spring valley farms - raw honey,24,head,test,sr:169640,suggestion
+subway - bacon,24,head,test,foundation:749420 sr:168321 sr:167914,search
+tops - berry medley,24,head,test,NO_MATCH,no_match
+cosmic crisp - cosmic crisp apple,23,head,test,sr:171688 foundation:1105547,search
+fiesta tortilla chips - tortilla chips,23,head,test,sr:167558 sr:173143 sr:168116,suggestion
+great value - greek yogurt nonfat,23,head,test,sr:170894,suggestion
+subway - rotisserie chicken (meat only),23,head,test,sr:171445 sr:171118,suggestion
+boudin sourdough - organic sourdough,22,head,test,sr:172675,suggestion
+catalina snacks [net carb adjusted] - catalina crunch cereal,22,head,test,NO_MATCH,no_match
+daisy - low fat sour cream (revised),22,head,test,sr:173443,suggestion
+kroger - mozzarella,22,head,test,sr:171244 sr:170900 sr:170847,search
+nestlé chocolate chips - chocolate chips,22,head,dev,sr:167976,search
+honey - graham cracker,21,head,dev,sr:174957 sr:175083,suggestion
+meijer vanilla protein powder - protein powder,21,head,test,sr:173180,suggestion
+ryse - jet-puffed marshmallow flavor protein drink mix,21,head,test,sr:173180,search
+sunny fruit dried figs - dried figs,21,head,test,sr:174665,suggestion
+baby bella mushrooms***,20,head,test,sr:168434 sr:168557,search
+chobani - nonfat plain greek yogurt,20,head,test,sr:171312 sr:170894,suggestion
+cucumber - thinly sliced,20,head,test,sr:168409 sr:169225,suggestion
+fruit - honeycrisp apple,20,head,test,foundation:1105547,suggestion
+generic russet potato - *russet potato,20,head,dev,sr:170027 foundation:2346401,suggestion
+perdue - chicken breast,20,head,test,foundation:2646170 sr:171077,suggestion
+zucchini,20,head,dev,foundation:2685568,suggestion
+93/7 ground beef - 93/7 ground beef,19,head,test,sr:173110,suggestion
+egg eggs egg - egg,19,head,test,sr:171287,suggestion
+generic - ground beef (93/7),19,head,test,sr:173110,suggestion
+"milk, reduced fat, 2%",19,head,test,sr:171267,suggestion
+almond butter - kirkland almond butter,18,head,test,sr:168588,suggestion
+kirkland - fancy salted nuts,18,head,test,sr:169428,suggestion
+natures own - honey wheat,18,head,dev,sr:172686,search
+pb fit - peanut butter powder*,18,head,test,sr:174267 sr:172435,search
+philadelphia - cream cheese spread,18,head,test,sr:169081,suggestion
+subway - provolone,18,head,test,foundation:2647440 sr:170850,suggestion
+dymatize - iso100 vanilla,17,head,test,sr:173180,search
+elevation - whey protein powder,17,head,test,sr:173180,suggestion
+fage - 0% greek yogurt,17,head,test,sr:170894,suggestion
+fareway - walnut halves,17,head,dev,sr:170187,suggestion
+goya - black beans - 15.5 oz can,17,head,dev,sr:175188 sr:175238,suggestion
+oats,17,head,dev,sr:169705,suggestion
+ole - xtreme wellness wrap,17,head,dev,NO_MATCH,no_match
+onion - white onion - diced,17,head,dev,foundation:1104962 sr:170000,suggestion
+barbella - bar,16,head,test,NO_MATCH,no_match
+broccoli,16,head,test,sr:170379 sr:169968,suggestion
+japanese sweet potato,16,head,test,NO_MATCH,no_match
+ketchup - ketchup :),16,head,test,sr:168556,suggestion
+kirkland - roasted and salted peanuts,16,head,test,sr:173806 sr:173809 sr:172431,suggestion
+kirkland greek yogurt - plain,16,head,dev,sr:170894 sr:171312,suggestion
+meijer chicken breasts with rib meat - meijer chicken breast with rib meat,16,head,test,foundation:2646170 sr:171077,suggestion
+nature valley granola protein - granola,16,head,dev,NO_MATCH,no_match
+prego - homestyle alfredo,16,head,test,NO_MATCH,no_match
+sundate medjool dates - dates,16,head,test,sr:168191,suggestion
+birds eye - corn,15,head,dev,sr:168398,search
+chick fil a - grilled nuggets,15,head,dev,NO_MATCH,no_match
+costco - parmesan cheese bagel,15,head,test,sr:174899 sr:175049,search
+fat free mozzarella cheese - kraft,15,head,test,sr:169051,suggestion
+great value - basmati rice,15,head,test,sr:168877 sr:169756,suggestion
+great value - blueberries,15,head,dev,sr:173950 sr:171711,suggestion
+great value - nonfat greek yogurt,15,head,test,sr:170894,suggestion
+harris teeters greek yogurt - greek yogurt,15,head,test,sr:170894,suggestion
+honey maid - low fat graham crackers,15,head,test,sr:174083,suggestion
+kroger crunchy peanut butter - peanut butter,15,head,test,sr:172469,suggestion
+mission - carb balance tortilla wraps,15,head,test,NO_MATCH,no_match
+oscar mayer - roast beef,15,head,test,sr:174570,search
+quest - oatmeal quest bar,15,head,test,NO_MATCH,no_match
+rice krispie - treat,15,head,test,sr:169687,suggestion
+rotel - tomatoes,15,head,test,sr:170053,search
+thomas' bagel - plain bagel,15,head,dev,sr:174899 sr:175049,search
+unsweetened coconut flakes,15,head,test,sr:170170,search
+watermelon,15,head,test,sr:167765 foundation:2747675,suggestion
+avacado 2oz slice - avacado,14,head,test,foundation:2710824 sr:171705,suggestion
+bread - aunt millie's buttermilk bread,14,head,test,foundation:325871,search
+english muffin - thomas original,14,head,dev,sr:167515,suggestion
+fat free milk - fat free milk,14,head,dev,sr:171269 foundation:322559,search
+kroger thai jasmine rice - jasmine rice (steamed),14,head,dev,sr:168878 sr:169757 sr:169753,search
+laura lawn beef 96/4 - 96/4,14,head,test,"derived:beef, ground:96/4",suggestion
+nature's own - honey wheat,14,head,test,sr:172686,search
+"russet potato, raw",14,head,dev,sr:170027 foundation:2346401,suggestion
+ryse - cinnamon protein,14,head,dev,sr:173180,search
+sargento - provolone,14,head,test,sr:170850 foundation:2647440,suggestion
+bel gioioso mozzarella - mozzarella,13,head,dev,sr:170845,suggestion
+cool whip - lite cool whip,13,head,test,sr:167687,suggestion
+great value - enriched long grain rice,13,head,test,sr:168877,suggestion
+great value - sourdough,13,head,test,sr:172675,suggestion
+irish cheddar - irish cheddar,13,head,test,sr:173414 sr:170899,suggestion
+kirkland - chicken can,13,head,dev,sr:171110,suggestion
+kodiak - buttermilk power cakes,13,head,dev,NO_MATCH,no_match
+lenders - plain bagel,13,head,test,sr:174899,suggestion
+raspberries,13,head,test,sr:167755 sr:168209,suggestion
+sargento - swiss,13,head,test,sr:171251 foundation:326135,suggestion
+subway - pepperoni,13,head,dev,sr:174575,suggestion
+cream of wheat - cream of wheat,12,head,test,sr:174655 sr:173010 sr:173901,suggestion
+culture - keto bread,12,head,test,NO_MATCH,no_match
+giant whipped cream cheese - whipped cream cheese,12,head,test,sr:169081,suggestion
+great value - whole milk,12,head,test,sr:171265 foundation:322892 sr:172217,suggestion
+iga - berry medley,12,head,dev,NO_MATCH,no_match
+kraft - triple cheddar,12,head,test,sr:173414 sr:170899,suggestion
+kroger gala - apple,12,head,test,sr:168204,suggestion
+mustard - yellow,12,head,test,sr:172234,suggestion
+popeyes - blackened chicken sandwich plain (no mayo/pickle),12,head,dev,NO_MATCH,no_match
+season - sardines in olive oil,12,head,dev,sr:175139,suggestion
+thomas' - bagel thins,12,head,dev,sr:174899 sr:175049,search
+"thomas' - bagel, blueberry",12,head,test,sr:172664 sr:174899 sr:175049,search
+"thomas' - swirl, bread, cinnamon",12,head,dev,sr:171849,suggestion
+costco - everything bagel,11,head,test,sr:174899 sr:175049,search
+cream cheese - great value,11,head,test,sr:173418,suggestion
+farmers promise - yellow potatoes,11,head,dev,foundation:2346403,search
+flour tortillas - small - flour tortillas - small fajita,11,head,test,sr:167535 sr:175082,suggestion
+great value - honey wheat bread,11,head,test,sr:172686,suggestion
+honey,11,head,test,sr:169640,suggestion
+kirkland - lean ground beef (91%/9% fat),11,head,test,"beef, ground",suggestion
+kroger - shredded cheddar,11,head,test,sr:173414 sr:170899,suggestion
+kroger - yukon gold potatoes,11,head,test,foundation:2346403,suggestion
+"meijer - whey protein powder, chocolate peanut butter",11,head,dev,sr:173180,suggestion
+members mark - canned albacore tuna,11,head,test,sr:175158 sr:171988,search
+national pecan - pecans,11,head,test,sr:170182,suggestion
+oat bread - oat bread,11,head,test,sr:172678 sr:172676,suggestion
+panda express - super greens,11,head,dev,NO_MATCH,no_match
+premium - saltines,11,head,test,sr:172746,suggestion
+bell pepper - red/orange/yellow,10,head,dev,sr:170108 foundation:2258591 sr:169383,suggestion
+better oats - steel cut oats,10,head,dev,foundation:2346397 sr:169705,suggestion
+blueberry,10,head,test,sr:171711 sr:173950,suggestion
+chick fil a - fruit cup,10,head,dev,NO_MATCH,no_match
+cracker barrel - buttermilk biscuit,10,head,test,sr:172670 sr:174903,suggestion
+gardania whole wheat bread - whole wheat bread,10,head,test,sr:172688,suggestion
+"generic - sweet bell pepper (green, red, yellow, orange)",10,head,test,sr:170108 sr:170427 sr:169383,suggestion
+good culture - cottage cheese,10,head,dev,sr:172182,suggestion
+"great value - rice, jasmine",10,head,test,sr:168877 sr:169756,suggestion
+great value frozen - peppers & onions,10,head,test,NO_MATCH,no_match
+"hummus hummus - hummus, roasted red pepper",10,head,test,sr:174289,suggestion
+jocko - molk,10,head,test,sr:173180,search
+kirkland - stir fry veggies,10,head,test,NO_MATCH,no_match
+kirkland almond butter - natural almond butter,10,head,dev,sr:168588,suggestion
+kirkland organic chicken breast - chicken breast organic,10,head,test,foundation:2646170 sr:171077,suggestion
+kraft cool whip (orginal) - cool whip,10,head,test,sr:170868,search
+med dole - dole banana,10,head,test,sr:173944,suggestion
+"mushrooms, 3 fl. oz, pieces/slices",10,head,test,sr:169254,search
+omelet veggie mix - veggie mix,10,head,test,NO_MATCH,no_match
+onion - white onion,10,head,test,foundation:1104962 sr:170000,suggestion
+premier protein - premier protien shake,10,head,test,NO_MATCH,no_match
+raspberries - fresh - raspberries - fresh,10,head,dev,sr:167755,suggestion
+"ritz - crackers, whole wheat",10,head,dev,sr:171846 sr:173258,suggestion
+starkist - starkist tuna pouch,10,head,dev,sr:173709 sr:171986,search
+strawberries - strawberry 1 medium,10,head,dev,sr:167762,suggestion
+"subway - grilled chicken, buffalo",10,head,dev,NO_MATCH,no_match
+sun date - california medjool dates,10,head,dev,sr:168191,suggestion
+texas pete - sriracha cha,10,head,test,sr:171187,suggestion
+athenos feta - feta,9,head,dev,sr:173420,suggestion
+blue diamond - almonds - smokehouse,9,head,test,sr:169420,suggestion
+cameo apple - apple,9,head,test,sr:171688,suggestion
+chicken of the sea - salmon,9,head,test,sr:175175 sr:173724,search
+chocxo - dark chocolate coconut cups,9,head,dev,NO_MATCH,no_match
+cuties,9,head,dev,sr:168195,search
+delmonaco sardines filets - filets de sardines,9,head,test,sr:175139,suggestion
+egglands best - 1egg,9,head,dev,sr:171287,suggestion
+fairlife - skim milk,9,head,test,NO_MATCH,no_match
+great value - hashbrowns (shredded),9,head,test,sr:170043 sr:168945,suggestion
+great value - mixed fruit - pineapple strawberries mango peaches,9,head,dev,NO_MATCH,no_match
+green grapes,9,head,test,foundation:2263891 sr:174683,suggestion
+hadley - whole dates,9,head,test,sr:168191 sr:171726,suggestion
+instant oatmeal-maple & brown sugar - instant oatmeal-maple & brown sugar,9,head,test,sr:173907 sr:173920,suggestion
+krafts - grated parm,9,head,dev,sr:171247,suggestion
+meijer - honey fig spread,9,head,test,sr:169641,search
+meijer - whipped cream cheese,9,head,dev,sr:169081,suggestion
+metrx - protein bar,9,head,dev,NO_MATCH,no_match
+new york strip - strip loin steak,9,head,test,foundation:2727572,suggestion
+pineapple,9,head,test,sr:169124 sr:168194 sr:168193,suggestion
+quaker - original single pack oats,9,head,test,sr:171661,search
+raos - pasta sauce,9,head,test,NO_MATCH,no_match
+russet potato,9,head,test,sr:170027 foundation:2346401,suggestion
+"salsa, red",9,head,dev,sr:174524,suggestion
+subway - chicken strips,9,head,dev,NO_MATCH,no_match
+"walmart - organic bananas, bunch",9,head,test,sr:173944,suggestion
+wisconsin sharp cheddar - cheddar cheese,9,head,test,sr:170899 sr:173414,suggestion
+xtreme wellness - tortilla wraps,9,head,dev,NO_MATCH,no_match
+a1 steak sauce - a1 steak sauce ph1967,8,head,test,sr:171825,suggestion
+"aunt millie's - bread, potato",8,head,test,sr:167943,suggestion
+bacon - bacon,8,head,test,sr:168277,suggestion
+bear naked - vanilla granola,8,head,test,sr:173892 sr:174654,search
+beef - 88/12,8,head,test,"derived:beef, ground:88/12",suggestion
+blue dimond - pecan nut-thins,8,head,test,NO_MATCH,no_match
+bryers carbsmart - brownie a la mode (less alcohol sugar carbs),8,head,test,NO_MATCH,no_match
+cherries,8,head,test,sr:171719,suggestion
+cracker barrel - grilled chicken tenders,8,head,dev,NO_MATCH,no_match
+cracker barrel - hashbrown casserole,8,head,test,NO_MATCH,no_match
+family bakers - artisan style special recipe bread 1/2 loaf,8,head,test,sr:172675,search
+franz - white bread,8,head,test,sr:174924,suggestion
+gracias - mexican cheese sauce,8,head,dev,sr:171191 sr:172209,search
+grapes - white,8,head,test,foundation:2263891 foundation:2346413 sr:174683,search
+great value cottage cheese - 4% cottage cheese,8,head,test,sr:172179,search
+homeland 90/10 beef - 90/10 beef,8,head,dev,sr:174030,suggestion
+kirkland albacore tuna - albacore tuna,8,head,dev,sr:175158 sr:171988,search
+signature select - oven roasted chicken breast,8,tail,test,sr:172963 sr:174608,suggestion
+cracker barrel side of green beans - green beans (low carb) (updated 041421),7,tail,test,NO_MATCH,no_match
+ground bison - 90/10,7,tail,test,foundation:2727571 sr:175293,suggestion
+oscar mayer - chipotle seasoned chicken breast,7,tail,test,foundation:2759004 sr:172962,search
+quest protein bar - quest protein bar,7,tail,test,NO_MATCH,no_match
+walnuts - walnuts,7,tail,test,sr:170187,suggestion
+curry sauce - sauce,6,tail,dev,NO_MATCH,no_match
+fat free cheddar,6,tail,test,sr:171295,suggestion
+goldminer sourdough - sourdough bread,6,tail,test,sr:172675,suggestion
+hillshire farms - black pepper turkey breast,6,tail,dev,sr:172941 sr:174612,suggestion
+kroger - original cream cheese,6,tail,dev,sr:173418,suggestion
+minute white rice - white rice,6,tail,dev,sr:169709,search
+simple truth - plain low fat yogurt,6,tail,test,sr:170886,suggestion
+belgioso mozzarella - mozzarella,5,tail,test,sr:170845,suggestion
+blue diamond - almond nut thins,5,tail,test,NO_MATCH,no_match
+curry,5,tail,test,NO_MATCH,no_match
+egg,5,tail,test,sr:171287,suggestion
+meijer - greek whole milk yogurt,5,tail,dev,sr:171304 sr:171309,suggestion
+milk - kroger 2%,5,tail,dev,sr:171267,suggestion
+washington - cosmic crisp apple,5,tail,test,sr:171688 foundation:1105547,suggestion
+bear naked granola - heavenly chocolate,4,tail,test,sr:173892 sr:174654,search
+broccoli crowns,4,tail,test,sr:170379,suggestion
+great value frozen cherries - frozen cherries,4,tail,dev,sr:171719,suggestion
+green bell pepper,4,tail,dev,sr:170427,suggestion
+"kraft - mozzarella cheese stick, 2%",4,tail,dev,sr:171244,search
+lenders - plain bagels,4,tail,dev,sr:174899,suggestion
+organic marketside - gold potatoes,4,tail,test,foundation:2346403,suggestion
+prego - creamy roasted garlic pesto,4,tail,test,sr:171582 sr:171185,suggestion
+simple truth - whole milk greek yogurt,4,tail,test,sr:171304 sr:171309,suggestion
+thai - rice noodles,4,tail,test,sr:169742,suggestion
+tilamook - shredded mozzarella cheese,4,tail,dev,sr:170900,suggestion
+yoplait original low fat yogurt - low fat yogurt,4,tail,dev,sr:170889 sr:171286,suggestion
+cracker barrel white gravy - cracker barrel gravy,3,tail,dev,NO_MATCH,no_match
+great value - pulled pork in bbq sauce (pouch),3,tail,test,sr:173344,suggestion
+great value mango chunks frozen - mango chunks frozen,3,tail,dev,sr:169910,suggestion
+koch foods - boneless skinless chicken breast fillets,3,tail,test,foundation:2646170 sr:171077,suggestion
+la terra gina - quest dip with cheddar,3,tail,test,sr:174069 sr:174068,suggestion
+mre bar - crunchy peanut butter cup bar,3,tail,test,NO_MATCH,no_match
+pictsweet farms - seasoned vegetables for the air fryer,3,tail,dev,NO_MATCH,no_match
+private selection - 90/10 ground beef sirloin,3,tail,test,sr:174030,suggestion
+raos - spaghetti noodles,3,tail,test,foundation:2758998,suggestion
+ribeye - ribeye,3,tail,test,foundation:2646172,suggestion
+sarah lee - 100% whole wheat,3,tail,test,sr:172688,suggestion
+sargento - colby- pepper jack,3,tail,test,sr:173416 foundation:2647438,suggestion
+sargento - provolone cheese slice,3,tail,dev,foundation:2647440 sr:170850,suggestion
+"starkist selects - solid white albacore, tuna in water",3,tail,dev,sr:175158 sr:171988,suggestion
+"strawberry, 1 cup, halves",3,tail,dev,sr:167762,suggestion
+wholly - smashed avocado,3,tail,test,foundation:2710824 sr:171705 sr:171706,suggestion
+all natural - 90/10 lean ground beef,2,tail,test,sr:174030,suggestion
+beef - ground beef drained 80/20,2,tail,test,sr:171799,suggestion
+costco turkey - turkey,2,tail,test,NO_MATCH,no_match
+fage greek yogurt 5% - greek yogurt,2,tail,test,sr:171304,suggestion
+generic - jalepeno,2,tail,test,sr:168576 foundation:2747661,suggestion
+great value - whole milk plain greek yogurt,2,tail,test,sr:171304 sr:171309,suggestion
+ground beef - 92 8,2,tail,test,"beef, ground",suggestion
+kefir - strawberry,2,tail,test,sr:171301,suggestion
+kroger - colby jack,2,tail,test,sr:173416 foundation:2647438,suggestion
+la banderita flour tortilla - small flour tortilla,2,tail,dev,sr:167535 sr:175082,suggestion
+logan's roadhouse - green beans,2,tail,dev,NO_MATCH,no_match
+"meijer - finely shredded cheese, parmesan",2,tail,dev,sr:173431,suggestion
+meijer - original roast beef,2,tail,test,sr:174570,search
+metrx bar - protien bar,2,tail,test,NO_MATCH,no_match
+old el paso - small tortilla shells,2,tail,test,sr:172800,suggestion
+pita bread,2,tail,dev,sr:172816,suggestion
+seriously low carb - low carb bread,2,tail,test,NO_MATCH,no_match
+tillamook - provolone farmstyle slice,2,tail,test,foundation:2647440 sr:170850,suggestion
+tumaros - sun dried tomato wrap,2,tail,test,sr:167535,search
+wegmans - 95% 5%,2,tail,test,"beef, ground",search
+wholly guacamole - quacamole,2,tail,test,NO_MATCH,no_match
+20 croutons - croutons - seasoned,1,tail,test,sr:172752,suggestion
+80/20 ground beef - 80/20 ground beef,1,tail,dev,sr:174036,suggestion
+arby's - double roast beef,1,tail,dev,sr:170791,suggestion
+beef jerky bucees - beef jerky,1,tail,dev,NO_MATCH,no_match
+bethel - sliced tomatoes,1,tail,test,foundation:1750354,suggestion
+bottom round steak - bottom round,1,tail,test,sr:168697 sr:172128,suggestion
+bumblebee - sundried tomato & basil tuna,1,tail,dev,NO_MATCH,no_match
+busch - black beans,1,tail,test,sr:175188 sr:175238,suggestion
+carnation - evaporated milk,1,tail,dev,sr:171276,suggestion
+chick-fil-a - grilled sandwich,1,tail,test,sr:170368,suggestion
+chicken thighs costco - thighs,1,tail,test,foundation:2646171 sr:173627,suggestion
+chipotle - shredded cheese,1,tail,test,sr:170844 foundation:2647438,search
+chipotle - steak - double serving,1,tail,test,NO_MATCH,no_match
+coles - porterhouse steak,1,tail,test,sr:168715,suggestion
+"cracker barrel - cracker barrel classic sampler, chicken n' dumplins",1,tail,dev,NO_MATCH,no_match
+cracker barrel - fried apples,1,tail,dev,NO_MATCH,no_match
+cracker barrel - sawmill gravy,1,tail,dev,NO_MATCH,no_match
+del monte - mango pineapple cups,1,tail,test,NO_MATCH,no_match
+"dip in - greek yogurt dip, jalapeno",1,tail,test,NO_MATCH,no_match
+first watch - healthy turkey (no preserves),1,tail,test,NO_MATCH,no_match
+focaccia bun - roll,1,tail,dev,sr:167945,suggestion
+french's - ketchup,1,tail,test,sr:168556,search
+fresh - rasperries**,1,tail,test,sr:167755,suggestion
+great value frozen blueberries - frozen blueberries,1,tail,test,sr:173950,suggestion
+ground beef cooked - ground beef cooked,1,tail,test,"beef, ground",suggestion
+highland - country honey ham steak,1,tail,dev,sr:167874,suggestion
+"hillshire farm - sausage, smoked",1,tail,test,sr:174585 sr:172954,suggestion
+homemade - broccoli cheese casserole,1,tail,test,NO_MATCH,no_match
+jif to go - jif natural,1,tail,dev,sr:174294 foundation:324860 sr:174266,search
+just bare - lightly breaded chicken nugget,1,tail,test,NO_MATCH,no_match
+kerrygold - butter,1,tail,dev,sr:173410,suggestion
+kind - chewy with a crunch peanut butter dark chocolate,1,tail,test,sr:167548,suggestion
+kirkland - pacific cod,1,tail,test,foundation:2747654 sr:174191,suggestion
+"kirkland - whole fancy cashew nuts, 3 oz (28g) (about 17 pcs)",1,tail,test,sr:169421,suggestion
+kirkland's blueberries - blueberries,1,tail,test,sr:171711 sr:173950,suggestion
+kroger - 80 / 20 ground beef,1,tail,test,sr:174036,suggestion
+kroger - honey turkey & havarti cheese pinwheel tray,1,tail,test,NO_MATCH,no_match
+la costena - whole black beans,1,tail,test,sr:175188 sr:175238,suggestion
+lidl - gucamole spicy mini cups,1,tail,test,NO_MATCH,no_match
+marketside - twin demi baguette,1,tail,test,sr:172675,search
+meijer - pork loin filet,1,tail,test,foundation:2646168 sr:168251,suggestion
+meijer diced potatoes - diced potatoes,1,tail,dev,sr:170026,search
+members mark - chicken breast canned,1,tail,test,sr:171110,search
+milanesa - extra thin cut beef top round,1,tail,test,sr:171743 sr:168712,suggestion
+minute - cilantro lime rice,1,tail,test,NO_MATCH,no_match
+mission - spinach wrap,1,tail,test,sr:175082,suggestion
+mole chicken - 1,1,tail,test,NO_MATCH,no_match
+mybar - cookie dough,1,tail,test,NO_MATCH,no_match
+naan - garlic naan bread,1,tail,dev,sr:171845,suggestion
+no sugar added pudding - pudding,1,tail,dev,NO_MATCH,no_match
+"oh yeah! - one, protein bars, maple glazed donut",1,tail,test,NO_MATCH,no_match
+olive garden - grilled chicken margherita,1,tail,test,NO_MATCH,no_match
+olive oil - organic olive oil,1,tail,test,sr:171413 foundation:748608,suggestion
+outback - grilled chicken on the barbie,1,tail,test,NO_MATCH,no_match
+panda chinese - grilled teriyaki chicken,1,tail,test,NO_MATCH,no_match
+panda express - fried rice (plate prtion),1,tail,dev,sr:167668,suggestion
+panera - panera cinnamon crunch,1,tail,test,NO_MATCH,no_match
+panera - turkey & cheddar half sandwich,1,tail,test,NO_MATCH,no_match
+patak's original - papadums,1,tail,test,sr:168106,suggestion
+pictsweet farms - vegetables for roasting,1,tail,dev,NO_MATCH,no_match
+prime bites - brownie protein,1,tail,test,NO_MATCH,no_match
+private selection - sliced gouda cheese,1,tail,test,sr:171241,suggestion
+"pumpkin, 1 cup, mashed",1,tail,dev,sr:168449,search
+quest protein cookie - protein cookie,1,tail,dev,NO_MATCH,no_match
+red pepper - raw red pepper,1,tail,test,sr:170108,suggestion
+safeway wedges - potatoes wedged,1,tail,test,sr:168443,suggestion
+sargento - pepper jack,1,tail,dev,foundation:2647438,suggestion
+shrimp - raw med shrimp,1,tail,test,foundation:2684443,suggestion
+simple truth - powdered peanut butter,1,tail,dev,sr:174267 sr:172435,search
+sourdough - sourdough bread,1,tail,test,sr:172675,suggestion
+sunkist tuna - tuna,1,tail,test,sr:173709 sr:171986,search
+taco time canada - hot sauce,1,tail,test,sr:174527,search
+texas roadhouse - beans- green,1,tail,test,NO_MATCH,no_match
+texas roadhouse - new york strip 8oz,1,tail,test,sr:174712 sr:168718 sr:170240,search
+tita baked - tortillas - 6 inch corn,1,tail,test,sr:173241,suggestion
+turkey breast / applewood smoked - sliced deli meat,1,tail,test,sr:172941,suggestion
+watermelon - seedless,1,tail,dev,foundation:2747675 sr:167765,suggestion
+winco - black beans,1,tail,test,sr:175188 sr:175238,suggestion
+yukon gold - potatoes,1,tail,dev,foundation:2346403,suggestion
