@@ -272,8 +272,8 @@ def test_first_use_offline_says_so_and_is_unavailable(
 def test_the_test_split_scores_as_the_committed_table_says(
     made_labels: list[Label], real_rows: list[Row], embedder: Embedder
 ) -> None:
-    """Lexical exactly; the embedder within tolerated_flips names per cell, the
-    float noise between CPU and GPU. The dev split is never gated."""
+    """Lexical exactly; embed and hybrid within tolerated_flips names per cell,
+    the float noise between CPU and GPU. The dev split is never gated."""
     matcher = Matcher(real_rows, CONFIG.match, RULES, embedder)
     test = [label for label in made_labels if label.split == "test"]
     cells = evaluate(matcher, real_rows, test, CONFIG.eval, matcher.methods)

@@ -32,6 +32,12 @@ EXIT_CODES = {
         2,
         "embed extra not installed (uv sync --extra embed)",
     ),
+    "match-hybrid-by-name-without-the-extra": (
+        ["match", "egg whites", "--method", "hybrid"],
+        True,
+        2,
+        "embed extra not installed (uv sync --extra embed)",
+    ),
     "match-by-default-without-the-extra-runs-lexical": (
         ["match", "egg whites"],
         True,
@@ -196,7 +202,7 @@ def test_data_build_before_pull_is_exit_two(
     [
         pytest.param(["--method", "lexical"], ["lexical"], id="lexical"),
         pytest.param(["--method", "embed"], ["embed"], id="embed"),
-        pytest.param([], ["lexical", "embed"], id="default"),
+        pytest.param([], ["lexical", "embed", "hybrid"], id="default"),
     ],
 )
 def test_match_prints_the_method_then_one_line_per_hit(
@@ -210,7 +216,7 @@ def test_match_prints_the_method_then_one_line_per_hit(
 ) -> None:
     """A typed name sheds its quantity before matching; a method asked for by
     name runs alone, lexical without the extra, and by default every method
-    runs."""
+    runs. A score shows four significant digits, so fused scores stay apart."""
     if "embed" in methods:
         monkeypatch.setattr("macroswap.cli.Embedder", lambda *args: fake_embedder)
     db = _database(tmp_path, usda_rows)
@@ -221,6 +227,8 @@ def test_match_prints_the_method_then_one_line_per_hit(
     assert lines[0] == headers[0]
     score, row_id, description, key = lines[1].split("  ")
     assert float(score) > 0
+    scores = [line.split("  ")[0] for line in lines if line not in headers]
+    assert scores == [f"{float(shown):#.4g}" for shown in scores]
     assert (row_id, description, key) == (
         "sr:172183",
         "Egg, white, raw, fresh",
@@ -347,9 +355,9 @@ def test_match_eval_prints_dev_then_writes_the_test_table(
     assert main(["--db", db, "match", "eval", "--write-expected"]) == 0
     out = capsys.readouterr().out.splitlines()
     assert not [line for line in out if line.startswith("| test")]
-    assert out[-1] == f"{expected}: 12 test cells"
+    assert out[-1] == f"{expected}: 18 test cells"
     written = {(cell.method, cell.split) for cell in read_expected(expected)}
-    assert written == {("lexical", "test"), ("embed", "test")}
+    assert written == {(method, "test") for method in ("lexical", "embed", "hybrid")}
 
 
 def _database(tmp_path: Path, rows: list[Row]) -> Path:

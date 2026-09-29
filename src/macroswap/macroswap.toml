@@ -217,12 +217,13 @@ revision = "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
 # data tier fails above four times that, so a slow model shows.
 index_seconds = 60.0
 # What `diary match` runs: the dev winner, a tie going to the simpler method.
-default_method = "lexical"
+default_method = "embed"
 # Reciprocal rank fusion: each method adds 1 / (rrf_k + rank) to a hit.
 rrf_k = 60
 
 # A method abstains (NO_MATCH) when its top score is below its threshold; -inf
-# never abstains on a score, and hybrid abstains only below both.
+# never abstains on a score. Hybrid abstains only when its top row is below
+# both, a row a method does not score counting as below it.
 # `macroswap match eval` prints each method's dev-optimal line, ready to paste
 # here: the cut, -inf or midway between adjacent top scores, that gets the most
 # names in the whole dev split right end to end at top 1, an abstention counted
