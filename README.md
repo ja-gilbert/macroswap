@@ -50,7 +50,7 @@ I have labeled takes my label, and the default method resolves the rest:
     uv run macroswap diary match
 
     method: lexical
-    names: 1798; by label: 380; by matcher: 1315; NO_MATCH: 103
+    names: 1798; by label: 380; by matcher: 1206; NO_MATCH: 212
 
 The three counts add up to the names. NO_MATCH covers both the foods I
 labeled as having no USDA match and the ones the matcher abstained on. Unlike
@@ -108,32 +108,32 @@ from the table CI checks the eval against:
 | split | bucket | weighting | metric | lexical | embed |
 | --- | --- | --- | --- | --- | --- |
 | test | head | names | top1_ranking | 0.508 [0.437, 0.577] n=197 | 0.467 [0.399, 0.533] n=197 |
-| test | head | names | top1_end_to_end | 0.455 [0.391, 0.518] n=220 | 0.418 [0.355, 0.482] n=220 |
+| test | head | names | top1_end_to_end | 0.455 [0.391, 0.518] n=220 | 0.409 [0.345, 0.468] n=220 |
 | test | head | names | top5_ranking | 0.706 [0.641, 0.767] n=197 | 0.695 [0.629, 0.756] n=197 |
-| test | head | names | top5_end_to_end | 0.632 [0.568, 0.695] n=220 | 0.623 [0.555, 0.682] n=220 |
-| test | head | names | no_match_precision | 0.000 [0.000, 0.000] n=2 | - |
-| test | head | names | no_match_recall | 0.000 [0.000, 0.000] n=23 | 0.000 [0.000, 0.000] n=23 |
+| test | head | names | top5_end_to_end | 0.627 [0.564, 0.691] n=220 | 0.532 [0.464, 0.595] n=220 |
+| test | head | names | no_match_precision | 0.143 [0.000, 0.357] n=14 | 0.213 [0.131, 0.299] n=89 |
+| test | head | names | no_match_recall | 0.087 [0.000, 0.222] n=23 | 0.826 [0.647, 0.960] n=23 |
 | test | head | names | exact_id | 0.449 [0.379, 0.518] n=196 | 0.418 [0.352, 0.485] n=196 |
 | test | head | rows | top1_ranking | 0.563 [0.423, 0.678] n=197 | 0.498 [0.365, 0.623] n=197 |
-| test | head | rows | top1_end_to_end | 0.535 [0.400, 0.649] n=220 | 0.473 [0.347, 0.594] n=220 |
+| test | head | rows | top1_end_to_end | 0.536 [0.403, 0.650] n=220 | 0.449 [0.321, 0.577] n=220 |
 | test | head | rows | top5_ranking | 0.734 [0.620, 0.824] n=197 | 0.703 [0.582, 0.801] n=197 |
-| test | head | rows | top5_end_to_end | 0.697 [0.587, 0.784] n=220 | 0.668 [0.552, 0.766] n=220 |
-| test | head | rows | no_match_precision | 0.000 [0.000, 0.000] n=2 | - |
-| test | head | rows | no_match_recall | 0.000 [0.000, 0.000] n=23 | 0.000 [0.000, 0.000] n=23 |
+| test | head | rows | top5_end_to_end | 0.697 [0.587, 0.785] n=220 | 0.587 [0.456, 0.699] n=220 |
+| test | head | rows | no_match_precision | 0.067 [0.000, 0.235] n=14 | 0.156 [0.080, 0.258] n=89 |
+| test | head | rows | no_match_recall | 0.060 [0.000, 0.177] n=23 | 0.905 [0.767, 0.982] n=23 |
 | test | head | rows | exact_id | 0.525 [0.380, 0.646] n=196 | 0.468 [0.333, 0.594] n=196 |
 | test | tail | names | top1_ranking | 0.453 [0.342, 0.566] n=75 | 0.507 [0.395, 0.622] n=75 |
-| test | tail | names | top1_end_to_end | 0.340 [0.252, 0.437] n=103 | 0.369 [0.272, 0.466] n=103 |
+| test | tail | names | top1_end_to_end | 0.340 [0.252, 0.437] n=103 | 0.505 [0.408, 0.602] n=103 |
 | test | tail | names | top5_ranking | 0.693 [0.587, 0.797] n=75 | 0.787 [0.687, 0.880] n=75 |
-| test | tail | names | top5_end_to_end | 0.515 [0.427, 0.612] n=103 | 0.573 [0.476, 0.670] n=103 |
-| test | tail | names | no_match_precision | 0.333 [0.000, 1.000] n=3 | - |
-| test | tail | names | no_match_recall | 0.036 [0.000, 0.118] n=28 | 0.000 [0.000, 0.000] n=28 |
+| test | tail | names | top5_end_to_end | 0.505 [0.408, 0.602] n=103 | 0.602 [0.515, 0.699] n=103 |
+| test | tail | names | no_match_precision | 0.222 [0.000, 0.500] n=9 | 0.453 [0.314, 0.588] n=53 |
+| test | tail | names | no_match_recall | 0.071 [0.000, 0.182] n=28 | 0.857 [0.706, 0.967] n=28 |
 | test | tail | names | exact_id | 0.375 [0.266, 0.486] n=72 | 0.417 [0.304, 0.535] n=72 |
 | test | tail | rows | top1_ranking | 0.523 [0.378, 0.663] n=75 | 0.585 [0.445, 0.717] n=75 |
-| test | tail | rows | top1_end_to_end | 0.409 [0.282, 0.538] n=103 | 0.448 [0.322, 0.573] n=103 |
+| test | tail | rows | top1_end_to_end | 0.391 [0.271, 0.517] n=103 | 0.526 [0.408, 0.650] n=103 |
 | test | tail | rows | top5_ranking | 0.756 [0.627, 0.865] n=75 | 0.835 [0.719, 0.922] n=75 |
-| test | tail | rows | top5_end_to_end | 0.587 [0.462, 0.707] n=103 | 0.639 [0.513, 0.755] n=103 |
-| test | tail | rows | no_match_precision | 0.400 [0.000, 1.000] n=3 | - |
-| test | tail | rows | no_match_recall | 0.037 [0.000, 0.130] n=28 | 0.000 [0.000, 0.000] n=28 |
+| test | tail | rows | top5_end_to_end | 0.557 [0.428, 0.680] n=103 | 0.622 [0.507, 0.731] n=103 |
+| test | tail | rows | no_match_precision | 0.158 [0.000, 0.455] n=9 | 0.436 [0.260, 0.603] n=53 |
+| test | tail | rows | no_match_recall | 0.056 [0.000, 0.163] n=28 | 0.889 [0.732, 0.984] n=28 |
 | test | tail | rows | exact_id | 0.433 [0.291, 0.584] n=72 | 0.485 [0.341, 0.629] n=72 |
 <!-- eval:end -->
 
