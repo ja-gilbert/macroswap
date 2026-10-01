@@ -8,6 +8,8 @@ from importlib.resources import files
 from pathlib import Path
 from typing import Any
 
+from macroswap.swap.fit import Macros
+
 _PACKAGED = "macroswap.toml"
 
 
@@ -38,7 +40,15 @@ class PathsConfig:
 
 @dataclass(frozen=True)
 class SwapConfig:
-    rank_weights: tuple[float, ...]
+    fit_weights: Macros
+    rank_weights: Macros
+    serving_bounds_g: tuple[float, float]
+    tie_epsilon: float
+    popularity_floor: int
+    common_threshold: int
+    diary_window_days: int
+    top: int
+    staples: dict[str, str]
 
 
 @dataclass(frozen=True)
@@ -47,6 +57,7 @@ class Leanness:
     nominal: bool
     anchors: dict[str, str]
     retail: tuple[str, ...]
+    default: str
 
 
 @dataclass(frozen=True)
@@ -133,6 +144,8 @@ def load_config(path: Path | None = None) -> Config:
     stats = _section(StatsConfig, raw, "stats", source)
     paths = _section(PathsConfig, raw, "paths", source)
     swap = _section(SwapConfig, raw, "swap", source)
+    fit_weights = _section(Macros, raw["swap"], "fit_weights", source)
+    rank_weights = _section(Macros, raw["swap"], "rank_weights", source)
     usda = _section(UsdaConfig, raw, "usda", source)
     leanness = tuple(
         _section(Leanness, {"leanness": table}, "leanness", source)
@@ -142,7 +155,7 @@ def load_config(path: Path | None = None) -> Config:
         diary,
         stats,
         paths,
-        swap,
+        replace(swap, fit_weights=fit_weights, rank_weights=rank_weights),
         replace(usda, leanness=leanness),
         _section(MatchConfig, raw, "match", source),
         _section(LabelsConfig, raw, "labels", source),
@@ -156,6 +169,7 @@ def _section[
         StatsConfig,
         PathsConfig,
         SwapConfig,
+        Macros,
         UsdaConfig,
         Leanness,
         MatchConfig,

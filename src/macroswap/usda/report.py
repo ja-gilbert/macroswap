@@ -10,15 +10,16 @@ import math
 import re
 import sqlite3
 from collections import Counter, defaultdict
+from dataclasses import astuple
 from statistics import median
+
+from macroswap.swap.fit import Macros
 
 _MACROS = ("protein", "carbs", "fat")
 _STOP_WORDS = frozenset({"and", "or", "with", "in"})
 
 
-def family_report(
-    conn: sqlite3.Connection, weights: tuple[float, ...], threshold: float
-) -> str:
+def family_report(conn: sqlite3.Connection, weights: Macros, threshold: float) -> str:
     rows = conn.execute(
         "SELECT source, family, exclusion_reason, as_bought, protein, carbs, fat "
         "FROM usda_foods"
@@ -35,8 +36,8 @@ def family_report(
         + "; ".join(f"{f} ({n})" for f, n in per_family.most_common(10)),
         "exclusion reasons:",
         *(f"  {reason}: {n}" for reason, n in reasons.most_common()),
-        *_varietal(_representatives(rows, "raw"), weights, threshold),
-        *_alias_candidates(rows, _representatives(rows), weights),
+        *_varietal(_representatives(rows, "raw"), astuple(weights), threshold),
+        *_alias_candidates(rows, _representatives(rows), astuple(weights)),
     ]
     return "\n".join(lines)
 
