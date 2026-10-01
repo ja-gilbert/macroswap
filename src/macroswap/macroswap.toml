@@ -23,9 +23,40 @@ labels = "data/labels/labels.csv"
 eval_expected = "data/labels/eval_expected.csv"
 
 [swap]
-# Squared gram deltas of protein, carbs, fat, weighted to kcal space with
-# protein counted three times: 3*(4P)^2 + (4C)^2 + (9F)^2. Spec 4.5.
-rank_weights = [48.0, 16.0, 81.0]
+# How many grams to eat: the serving minimizes squared gram deltas under these
+# weights, protein counted three times because it is the macro being kept.
+fit_weights = { protein = 3.0, carbs = 1.0, fat = 1.0 }
+# Which foods to show first: squared gram deltas of protein, carbs, fat,
+# weighted to kcal space with protein counted three times:
+# 3*(4P)^2 + (4C)^2 + (9F)^2. Spec 4.5.
+rank_weights = { protein = 48.0, carbs = 16.0, fat = 81.0 }
+# A candidate whose serving falls outside these grams is not offered, so three
+# kilograms of cucumber never answer a bowl of rice.
+serving_bounds_g = [5.0, 1000.0]
+# Families whose rank scores sit within this of the best of their cluster are
+# ordered by popularity instead: about ten kcal of weighted miss.
+tie_epsilon = 10.0
+# Participant counts: a family below the floor is not offered, and a family at
+# or above the common threshold is listed in the first tier. Both are set from
+# the measured family counts once the popularity table is built; until then no
+# candidate carries a count, so every family passes and counts as common.
+popularity_floor = 0
+common_threshold = 50
+# A diary target's macros and a leanness family's default level come from the
+# rows logged in this many days ending at the last diary day with rows, then
+# from the whole diary.
+diary_window_days = 90
+# Family rows printed unless --top says otherwise.
+top = 10
+
+# Everyday names resolved before the matcher is asked, each to a family or to
+# "variant / as_bought", never a row id, since ids change between releases. A
+# curated synonym layer, not a matcher result: no eval number counts it.
+[swap.staples]
+"white rice" = "rice, white, long-grain, regular / raw"
+"potatoes" = "potatoes, flesh and skin / raw"
+"greek yogurt" = "yogurt, greek, plain, nonfat / raw"
+"salmon" = "fish, salmon, atlantic, farmed / raw"
 
 [usda]
 # A USDA description is comma-separated fields, split outside parentheses and
@@ -179,13 +210,15 @@ cooked = ['rotisserie.*']
 "lunchmeat, ham" = "ham, sliced"
 
 # Ground-meat leanness families. Anchors are SR NDB numbers with their label
-# level; retail levels between anchors become derived rows.
+# level; retail levels between anchors become derived rows. The default is the
+# level a swap shows for the family when the diary logs none.
 [[usda.leanness]]
 family = "beef, ground"
 # SR's ground beef is label-nominal: fat is exactly 100 minus lean.
 nominal = true
 anchors = { "13498" = "70/30", "23577" = "75/25", "23572" = "80/20", "23567" = "85/15", "23562" = "90/10", "23472" = "93/7", "23557" = "95/5", "23477" = "97/3" }
 retail = ["73/27", "88/12", "92/8", "94/6", "96/4"]
+default = "85/15"
 
 [[usda.leanness]]
 family = "turkey, ground"
@@ -193,12 +226,14 @@ nominal = false
 # 5662 is "fat free", measured at 1.95 g fat per 100 g; it enters as 99/1.
 anchors = { "5668" = "85/15", "5665" = "93/7", "5662" = "99/1" }
 retail = []
+default = "93/7"
 
 [[usda.leanness]]
 family = "pork, ground"
 nominal = false
 anchors = { "10972" = "84/16", "10973" = "96/4" }
 retail = []
+default = "84/16"
 
 [match]
 # Expanded wherever they stand as whole words, in names and descriptions alike;
