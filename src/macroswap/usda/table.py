@@ -235,7 +235,9 @@ def _with_roles(rows: list[Row], threshold: float) -> list[Row]:
     pools: dict[str, set[str]] = defaultdict(set)
     for r in rows:
         if r.exclusion_reason is None and _macros_usable(r):
-            pools[r.family] |= _pools_of(r, threshold)
+            pools[r.family] |= pools_of(
+                r.protein or 0.0, r.carbs or 0.0, r.fat or 0.0, threshold
+            )
     return [
         replace(r, roles=",".join(p for p in _POOLS if p in pools[r.family]))
         if _macros_usable(r)
@@ -249,12 +251,10 @@ def _macros_usable(r: Row) -> bool:
     return None not in macros and macros != (0.0, 0.0, 0.0)
 
 
-def _pools_of(r: Row, threshold: float) -> set[str]:
-    kcal = {
-        "protein": 4 * (r.protein or 0.0),
-        "carbs": 4 * (r.carbs or 0.0),
-        "fat": 9 * (r.fat or 0.0),
-    }
+def pools_of(protein: float, carbs: float, fat: float, threshold: float) -> set[str]:
+    """The pools a food's macros reach: the one giving most of its calories,
+    and any giving at least the threshold share of them."""
+    kcal = {"protein": 4 * protein, "carbs": 4 * carbs, "fat": 9 * fat}
     total = sum(kcal.values())
     dominant = max(kcal, key=lambda p: kcal[p])
     return {dominant} | {p for p, v in kcal.items() if v / total >= threshold}
