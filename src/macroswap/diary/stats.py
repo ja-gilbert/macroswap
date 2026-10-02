@@ -1,4 +1,5 @@
-"""Coverage, untracked days and the head/tail shape of distinct food names."""
+"""Coverage, untracked days, the head/tail shape of distinct food names, and
+the counted rows a swap reads."""
 
 from __future__ import annotations
 
@@ -9,16 +10,27 @@ from datetime import date, timedelta
 
 # Counted rows, spec 4.1: tracked days, quick adds excluded. The name is the
 # brand and food text together, which is also the matcher's input.
-_NAME_COUNTS_SQL = """
-SELECT lower(CASE WHEN r.brand IS NULL THEN r.food_text
-                  ELSE r.brand || ' - ' || r.food_text END) AS name,
-       count(*) AS n
-FROM diary_rows AS r
+_NAME = """lower(CASE WHEN r.brand IS NULL THEN r.food_text
+                  ELSE r.brand || ' - ' || r.food_text END)"""
+_COUNTED = """FROM diary_rows AS r
 JOIN diary_days AS d ON d.date = r.date
-WHERE d.untracked = 0 AND r.is_quick_add = 0
+WHERE d.untracked = 0 AND r.is_quick_add = 0"""
+_NAME_COUNTS_SQL = f"""
+SELECT {_NAME} AS name, count(*) AS n
+{_COUNTED}
 GROUP BY name
 ORDER BY n DESC, name
 """
+_COUNTED_ROWS_SQL = f"""
+SELECT {_NAME} AS name, r.date, r.protein, r.carbs, r.fat, r.lean_pct
+{_COUNTED}
+"""
+
+
+def counted_rows(conn: sqlite3.Connection) -> list[sqlite3.Row]:
+    """Each counted row as a swap reads it: its name, day, logged protein,
+    carbs and fat, and leanness level."""
+    return conn.execute(_COUNTED_ROWS_SQL).fetchall()
 
 
 @dataclass(frozen=True)
