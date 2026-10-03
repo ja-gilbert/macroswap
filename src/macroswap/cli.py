@@ -1,9 +1,10 @@
-"""Command-line entry point. Exit codes: 0 success, 1 no match, 2 usage or
-missing data."""
+"""Command-line entry point. Exit codes: 0 success, 1 no match or no swap, 2
+usage or missing data."""
 
 from __future__ import annotations
 
 import argparse
+import math
 import sqlite3
 import sys
 from collections import Counter
@@ -16,7 +17,7 @@ from macroswap.diary.importer import DiaryImportError, import_directory
 from macroswap.diary.normalize import name_key
 from macroswap.diary.parse import ParseError
 from macroswap.diary.stats import compute_stats, format_stats, name_counts
-from macroswap.match.diary import Fingerprint, LabelError, match_diary
+from macroswap.match.diary import Fingerprint, LabelError, StaleMatches, match_diary
 from macroswap.match.embed import Embedder, EmbedUnavailable
 from macroswap.match.evaluate import (
     compare_methods,
@@ -28,6 +29,16 @@ from macroswap.match.label import draw_sample, label_session, read_labels, write
 from macroswap.match.matcher import Matcher
 from macroswap.pull import PullError, pull, release_dirs
 from macroswap.store import connect, read_usda, write_usda
+from macroswap.swap.logged import (
+    default_levels,
+    diary_families,
+    entry,
+    like_log,
+    read_diary,
+)
+from macroswap.swap.rank import Candidate, rank
+from macroswap.swap.show import header, table
+from macroswap.swap.target import NoTarget, TargetError, typed
 from macroswap.usda.keys import FieldRules
 from macroswap.usda.load import load_release, merge
 from macroswap.usda.report import family_report
@@ -88,6 +99,42 @@ def build_parser() -> argparse.ArgumentParser:
         help="eval only: rewrite the committed expected table from the test split",
     )
     match.set_defaults(run=_match)
+    swap = commands.add_parser(
+        "swap", help="other foods, and the grams of each, that match a food's macros"
+    )
+    swap.add_argument("text", nargs="*", help='a food, e.g. "egg whites"')
+    swap.add_argument("--grams", type=float, help="how much of the typed food")
+    swap.add_argument(
+        "--like-log",
+        action="store_true",
+        help="the typed food at the median macros the diary logs for it",
+    )
+    swap.add_argument(
+        "--entry", metavar="NAME", help="a diary food by its name, as logged"
+    )
+    swap.add_argument(
+        "--top", type=int, help="family rows to print (default: swap.top)"
+    )
+    swap.add_argument(
+        "--variants",
+        action="store_true",
+        help="each family's other variants, and the target's own family",
+    )
+    swap.add_argument(
+        "--new-only", action="store_true", help="leave out families the diary logs"
+    )
+    swap.add_argument(
+        "--include-obscure",
+        action="store_true",
+        help="keep families below the popularity floor",
+    )
+    swap.add_argument(
+        "--method",
+        choices=["lexical", "embed", "hybrid"],
+        help="how the typed food is matched (default: match.default_method); "
+        "not for --entry",
+    )
+    swap.set_defaults(run=_swap)
     return parser
 
 
@@ -105,6 +152,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         BuildError,
         EmbedUnavailable,
         LabelError,
+        StaleMatches,
+        TargetError,
         OSError,
     ) as exc:
         print(f"error: {exc}", file=sys.stderr)
@@ -209,14 +258,7 @@ def _match(config: Config, db: Path, args: argparse.Namespace) -> int:
     embedder: Embedder | None = None
     fallback = ""
     if args.method != "lexical":
-        try:
-            embedder = Embedder(config.match.model, config.match.revision, db.parent)
-        except EmbedUnavailable as exc:
-            # Asked for by name, the method fails; by default, lexical says why
-            # it runs alone.
-            if args.method is not None:
-                raise
-            fallback = f"; {exc}"
+        embedder, fallback = _embedder(config, db, args.method)
     matcher = Matcher(rows, config.match, FieldRules(config.usda), embedder)
     text = name_key(" ".join(args.text))
     methods = [args.method] if args.method else matcher.methods
@@ -286,6 +328,90 @@ def _match_eval(config: Config, db: Path, args: argparse.Namespace) -> int:
         write_expected(expected, test)
         print(f"{expected}: {len(test)} test cells")
     return 0
+
+
+def _swap(config: Config, db: Path, args: argparse.Namespace) -> int:
+    text = " ".join(args.text)
+    amounts = (args.grams is not None, args.like_log, bool(args.entry))
+    if sum(amounts) != 1 or bool(text) == bool(args.entry):
+        raise TargetError(
+            "give a food with --grams or --like-log, or --entry with a diary name"
+        )
+    if (args.grams is not None and not 0 < args.grams < math.inf) or (
+        args.top is not None and args.top < 1
+    ):
+        raise TargetError("--grams must be above zero and --top at least 1")
+    with _built(db) as conn:
+        rows = read_usda(conn)
+        diary = read_diary(conn, config)
+    levels = default_levels(diary, rows, config)
+    fallback = ""
+    if args.entry:
+        resolved = entry(args.entry, diary, rows, config)
+    else:
+        method = args.method or config.match.default_method
+        embedder: Embedder | None = None
+        if method != "lexical":
+            embedder, fallback = _embedder(config, db, args.method)
+        matcher = Matcher(rows, config.match, FieldRules(config.usda), embedder)
+        if embedder is None:
+            method = "lexical"
+        try:
+            if args.like_log:
+                resolved = like_log(text, diary, rows, matcher, method, config, levels)
+            else:
+                grams = args.grams
+                resolved = typed(text, grams, rows, matcher, method, config, levels)
+        except NoTarget as exc:
+            print(f"method: {method}{fallback}")
+            nearest = [
+                (name, hit) for name, hits in exc.nearest.items() for hit in hits
+            ]
+            rows_follow = ". The nearest rows:" if nearest else ""
+            print(f"{exc}; --method tries another method{rows_follow}")
+            for name, hit in nearest:
+                print(f"  {name}  {hit.row.id}  {hit.row.description}  [{hit.key}]")
+            return 1
+    families, unmatched = diary_families(diary)
+    ranking = rank(
+        resolved.target,
+        [Candidate(row) for row in rows if row.exclusion_reason is None],
+        config.swap,
+        default_levels=levels,
+        diary_families=families,
+        variants=args.variants,
+        new_only=args.new_only,
+        include_obscure=args.include_obscure,
+        top=args.top,
+    )
+    amount = "as logged" if args.grams is None else f"{args.grams:g} g"
+    print("\n".join(header(resolved, amount, fallback)))
+    if args.new_only:
+        print(
+            f"new only: {len(families)} diary families left out; "
+            f"{unmatched} diary names matched nothing"
+        )
+    # Every candidate's count is unknown until the popularity table is built.
+    print("popularity: not built; every family counts as common")
+    if not ranking.common and not ranking.rest:
+        reasons = "; ".join(f"{reason} {n}" for reason, n in ranking.filtered.items())
+        print(f"no swap: every candidate was left out ({reasons})")
+        return 1
+    print("\n".join(table(ranking, levels)))
+    return 0
+
+
+def _embedder(
+    config: Config, db: Path, asked: str | None
+) -> tuple[Embedder | None, str]:
+    """The embedder, or none and why: a method asked for by name fails without
+    it; by default lexical runs alone and the header says why."""
+    try:
+        return Embedder(config.match.model, config.match.revision, db.parent), ""
+    except EmbedUnavailable as exc:
+        if asked is not None:
+            raise
+        return None, f"; {exc}"
 
 
 def _existing(db: Path, hint: str) -> sqlite3.Connection:
