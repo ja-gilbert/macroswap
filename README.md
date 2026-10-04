@@ -151,3 +151,31 @@ is right only for a food labeled NO_MATCH. `no_match_precision` is the share of
 abstentions that were right, `no_match_recall` the share of NO_MATCH foods that
 abstained, and `exact_id` the share whose top hit is the very row I picked
 first.
+
+## Swaps
+
+`macroswap swap` answers the question at the top: other foods, and the grams of
+each, that give a food's macros. The food is typed with its grams; typed with
+`--like-log`, at the median macros I log for it; or named as a diary entry with
+`--entry`. Every row prints its serving and its protein, carbs, fat and kcal
+deltas, so a reader sees which macro a swap misses and by how much; no line
+carries a single distance.
+
+    uv run macroswap swap "egg whites" --grams 165
+    uv run macroswap swap "ground beef 93/7" --grams 150 --variants
+    uv run macroswap swap --entry "kirkland - chicken breast"
+
+A typed name is looked up first in a table of four everyday names
+(`[swap.staples]` in `macroswap.toml`: white rice, potatoes, greek yogurt and
+salmon), compared exactly after the matcher's own normalization of the text, and
+only then given to the matcher. The table is a curated synonym layer kept out of
+the matcher, so every number in the eval block above is for the matcher alone.
+
+Until the popularity table is built, every family counts as common, the header
+says so, and the rows are the closest macro matches whatever the food: chicken
+breast is answered with ostrich before turkey. `data/acceptance/swaps.toml` holds
+the swaps I would accept, and the ones I call absurd, for 17 foods, marked from
+the engine's top 25 on the USDA table alone, and CI holds the engine to them
+within those 25 rows: 76 accepted swaps are there today and 5 absurd ones are
+not; 40 more accepted and 189 absurd ones are tagged `requires = "popularity"`,
+asserted once the popularity table exists.

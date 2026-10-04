@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import time
 from dataclasses import replace
 from pathlib import Path
@@ -16,22 +15,11 @@ from macroswap.match.evaluate import compare, evaluate, read_expected
 from macroswap.match.label import Label, read_labels
 from macroswap.match.matcher import Matcher
 from macroswap.usda.keys import FieldRules
-from macroswap.usda.load import load_release, merge
-from macroswap.usda.table import Row, build_table
+from macroswap.usda.table import Row
 
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = load_config()
 RULES = FieldRules(CONFIG.usda)
-
-
-@pytest.fixture(scope="module")
-def real_rows(releases: dict[str, Path]) -> list[Row]:
-    loaded = merge(
-        load_release(releases["sr_legacy"], "sr"),
-        load_release(releases["foundation"], "foundation"),
-        CONFIG.usda.dry_basis_marker,
-    )
-    return build_table(loaded.foods, CONFIG.usda)
 
 
 @pytest.fixture(scope="module")
@@ -44,18 +32,6 @@ def made_labels() -> list[Label]:
     if not made:
         pytest.skip(f"no labels made in {path}")
     return made
-
-
-@pytest.fixture
-def embedder(tmp_path: Path) -> Embedder:
-    """The pinned model, caching into tmp_path. Without the extra, or offline
-    without the model, the tests that load it skip, and in CI fail."""
-    try:
-        return Embedder(CONFIG.match.model, CONFIG.match.revision, tmp_path)
-    except EmbedUnavailable as exc:
-        if os.environ.get("MACROSWAP_REQUIRE_DATA") == "1":
-            pytest.fail(str(exc))
-        pytest.skip(str(exc))
 
 
 @pytest.mark.parametrize(
