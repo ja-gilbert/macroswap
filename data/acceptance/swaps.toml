@@ -1,0 +1,524 @@
+# The swaps I would accept, and the ones I call absurd, for the data tier's
+# acceptance test: each source is typed text plus grams against the USDA table
+# alone, no diary, under the default method. Marked on 2026-10-02 from the
+# engine's top 25 per source; a row here is the specification, and a rule change
+# that breaks one is fixed in the rule.
+#
+# accept: family keys that must be among the first 25 family rows, the rows of
+# `--top 25` the marks were made on (the command prints ten by default).
+# absurd: family keys that must not be among those 25.
+# requires = "popularity": the same two kinds, asserted once the popularity table
+# is built. Today every family counts as common and the rows above an accepted
+# family are foods nobody buys, or the absurd family is one that only the
+# popularity floor removes. A tagged family that still fails then is a
+# conversation, not a loosened row.
+#
+# Not asserted, by my rulings of 2026-10-02 (known limits):
+# - whole eggs for chicken breast: 231 g of egg carries 19 g more fat than the breast.
+# - salmon for chicken breast: farmed Atlantic has 10 g more fat per 100 g; the canned
+#   pink row, 2.8 g over, is a technicality, not the food meant.
+# - ribeye for salmon: 5 g of fat off either way (lean only -5.1, lean and fat +5.1).
+# - tuna and chicken breast for Greek yogurt, Greek yogurt for egg whites: 170 g of
+#   nonfat Greek yogurt carries 6 g of carbs no meat or egg white has.
+# - ricotta, mozzarella and whole eggs for cottage cheese: 6 to 7 g more fat.
+# - shredded wheat for oats: its family, cereals ready-to-eat, post, offers Alpha-Bits
+#   first, so a family row would mean nothing.
+# - dry pasta for white rice, potatoes, sweet potato and brown rice: 2 to 4 g of protein
+#   over at the carbs, behind common fruit and vegetables; expected back if the carb
+#   pool splits into starch and sugar at milestone 5.
+# - rice cakes (Snacks), pork sausage and bratwurst (Sausages and Luncheon Meats):
+#   excluded categories, so no tag can admit them. Jerky is present, through the
+#   Snacks allow word; sausages are not. At milestone 5 rice cakes is one allow
+#   word in Snacks, the route jerky already takes.
+
+[[staples]]
+text = "white rice"
+grams = 60
+accept = ["sweet potato, canned", "potatoes, hash brown", "potatoes, mashed"]
+absurd = ["cucumber"]
+
+[[staples]]
+text = "white rice"
+grams = 60
+requires = "popularity"
+accept = ["sweet potato", "cereals, cream of rice", "potatoes", "rice, brown"]
+absurd = [
+  "burdock root",
+  "longans",
+  "cherries, sour",
+  "abiyuch",
+  "sugar-apples",
+  "onions",
+  "mountain yam, hawaii",
+  "lemon juice from concentrate, bottled",
+  "potato flour",
+  "grapefruit",
+  "corn bran, crude",
+  "oranges",
+  "flour, rice",
+  "chicory roots",
+  "seaweed, agar",
+  "lemon juice from concentrate, canned or bottled",
+  "tangerines",
+  "pummelo",
+]
+
+[[staples]]
+text = "potatoes"
+grams = 200
+accept = ["potatoes, yellow fleshed", "potatoes, o'brien", "potatoes, mashed"]
+absurd = []
+
+[[staples]]
+text = "potatoes"
+grams = 200
+requires = "popularity"
+accept = ["rice, white", "sweet potato"]
+absurd = [
+  "jerusalem-artichokes",
+  "onions",
+  "beets, canned",
+  "apricots, canned",
+  "onions, dehydrated flakes",
+  "radishes, oriental",
+  "fungi, cloud ears",
+  "seaweed, irishmoss",
+  "butterbur",
+  "hearts of palm",
+  "mushrooms, shiitake",
+  "wheat flour",
+  "kanpyo",
+  "sorghum flour, refined",
+]
+
+[[staples]]
+text = "greek yogurt"
+grams = 170
+accept = [
+  "cheese, cottage",
+  "beverages, protein powder whey based",
+  "turkey breast, low salt",
+]
+absurd = []
+
+[[staples]]
+text = "greek yogurt"
+grams = 170
+requires = "popularity"
+accept = ["egg, white"]
+absurd = [
+  "mollusks, abalone",
+  "mollusks, whelk",
+  "seaweed, spirulina",
+  "soy protein concentrate, produced by alcohol extraction",
+  "soy protein concentrate, produced by acid wash",
+  "cheese, cream",
+  "kraft free singles american nonfat pasteurized process cheese product",
+  "cheese, cheddar",
+  "cheese, american",
+  "vital wheat gluten",
+  "soy sauce made from soy",
+  "mollusks, squid",
+  "watercress",
+  "mollusks, octopus",
+]
+
+[[staples]]
+text = "salmon"
+grams = 150
+accept = [
+  "beef, round",
+  "pork, shoulder",
+  "chicken, rotisserie",
+  "beef, chuck",
+  "pork, cured",
+  "pork, loin",
+  "beef, loin",
+  "beef, top sirloin",
+  "beef, ground",
+]
+absurd = []
+
+[[staples]]
+text = "salmon"
+grams = 150
+requires = "popularity"
+accept = ["egg, whole"]
+absurd = [
+  "lamb, variety meats and by-products",
+  "pork, variety meats and by-products",
+  "fish, eel",
+  "quail, meat and skin",
+]
+
+[[general]]
+text = "chicken breast"
+grams = 150
+accept = [
+  "game meat, bison",
+  "fish, tilapia",
+  "turkey, whole",
+  "turkey, ground",
+  "turkey, breast",
+  "chicken, rotisserie",
+  "turkey, retail parts",
+]
+absurd = ["lentils"]
+
+[[general]]
+text = "chicken breast"
+grams = 150
+requires = "popularity"
+accept = [
+  "pork, loin",
+  "crustaceans, shrimp",
+  "fish, tuna",
+  "fish, cod",
+  "egg, white",
+  "beef, ground",
+]
+absurd = [
+  "ostrich, outside leg",
+  "game meat, antelope",
+  "ostrich, outside strip",
+  "ostrich, inside leg",
+  "chicken, roasting",
+  "emu, full rump",
+  "fish, cisco",
+  "chicken, light meat",
+]
+
+[[general]]
+text = "ground beef 93/7"
+grams = 150
+accept = [
+  "beef, flank",
+  "turkey, whole",
+  "turkey, retail parts",
+  "beef, round",
+  "beef, loin",
+  "beef, rib eye steak/roast",
+  "chicken, rotisserie",
+  "beef, tenderloin",
+]
+absurd = []
+
+[[general]]
+text = "ground beef 93/7"
+grams = 150
+requires = "popularity"
+accept = ["pork, loin", "chicken, thigh", "turkey, ground", "beef, top sirloin"]
+absurd = ["fish, anchovy", "fish, milkfish"]
+
+[[general]]
+text = "ground beef 75/25"
+grams = 150
+accept = ["beef, rib"]
+absurd = ["butter"]
+
+[[general]]
+text = "ground beef 75/25"
+grams = 150
+requires = "popularity"
+accept = []
+absurd = [
+  "lamb, variety meats and by-products",
+  "beef, variety meats and by-products",
+  "egg, yolk",
+  "pork, variety meats and by-products",
+  "cheese, monterey",
+  "cheese, mexican",
+  "cheese, cheddar",
+  "cheese, roquefort",
+  "cheese, pasteurized process",
+  "beef, carcass",
+  "seeds, hemp seed",
+  "cheese, goat",
+  "cheese, feta",
+]
+
+[[general]]
+text = "whole eggs"
+grams = 100
+accept = [
+  "cheese, monterey",
+  "chicken, rotisserie",
+  "cheese, cheddar",
+  "turkey, ground",
+  "chicken, wing",
+  "beef, loin",
+  "beef, chuck",
+  "cheese, mexican",
+  "beef, top sirloin",
+]
+absurd = []
+
+[[general]]
+text = "whole eggs"
+grams = 100
+requires = "popularity"
+accept = ["beef, ground", "fish, salmon", "chicken, thigh"]
+absurd = ["fish, cisco", "veal, variety meats and by-products"]
+
+[[general]]
+text = "egg whites"
+grams = 165
+accept = [
+  "beverages, protein powder whey based",
+  "fish, cod",
+  "turkey, breast",
+  "fish, tuna",
+  "crustaceans, shrimp",
+]
+absurd = ["gelatins, dry powder"]
+
+[[general]]
+text = "egg whites"
+grams = 165
+requires = "popularity"
+accept = ["chicken, breast", "fish, tilapia"]
+absurd = [
+  "soy protein isolate, potassium type",
+  "mollusks, cuttlefish",
+  "frog legs",
+  "emu, outside drum",
+  "turtle, green",
+  "emu, flat fillet",
+  "game meat, moose",
+  "fish, ling",
+  "ruffed grouse, breast meat",
+  "emu, fan fillet",
+  "fish, pike",
+]
+
+[[general]]
+text = "sweet potato"
+grams = 150
+accept = ["cereals, cream of rice", "rice, white"]
+absurd = []
+
+[[general]]
+text = "sweet potato"
+grams = 150
+requires = "popularity"
+accept = ["potatoes"]
+absurd = [
+  "seaweed, agar",
+  "pummelo",
+  "tangerines",
+  "potato flour",
+  "mountain yam, hawaii",
+  "waterchestnuts, chinese",
+  "jew's ear",
+  "abiyuch",
+  "sweet potato, canned",
+  "beans, adzuki",
+  "orange juice",
+  "grapefruit, sections",
+  "longans",
+  "oranges",
+  "peaches, canned",
+  "chicory roots",
+  "cherries, sweet",
+  "longans, dried",
+]
+
+[[general]]
+text = "oats"
+grams = 40
+accept = ["bread, wheat", "quinoa, uncooked", "bread, whole-wheat"]
+absurd = ["cucumber"]
+
+[[general]]
+text = "oats"
+grams = 40
+requires = "popularity"
+accept = [
+  "cereals ready-to-eat, general mills",
+  "pasta, whole grain",
+  "cereals, cream of wheat",
+]
+absurd = [
+  "beans, snap",
+  "vegetable juice cocktail, canned",
+  "tomato juice, canned",
+  "soymilk, lowfat",
+  "celtuce",
+  "soymilk, chocolate and other flavors",
+  "tofu yogurt",
+  "yogurt, fruit",
+  "squash, summer",
+  "tomatoes, red",
+  "mushrooms",
+]
+
+[[general]]
+text = "bread"
+grams = 60
+accept = ["quinoa, uncooked", "oats"]
+absurd = []
+
+[[general]]
+text = "bread"
+grams = 60
+requires = "popularity"
+accept = ["bagels, plain", "english muffins, plain", "tortillas, ready-to-bake or -fry"]
+absurd = [
+  "soymilk, lowfat",
+  "celtuce",
+  "vegetable juice cocktail, canned",
+  "tofu yogurt",
+  "tomato juice, canned",
+  "mushrooms",
+  "bread, rice bran",
+  "beans, snap",
+  "seeds, sisymbrium sp. seeds",
+  "bread, crumbs",
+  "peppers, sweet",
+  "tomatoes, red",
+  "bread, reduced-calorie",
+  "flour, amaranth",
+  "bread, roll",
+  "flour, oat",
+]
+
+[[general]]
+text = "brown rice"
+grams = 60
+requires = "popularity"
+accept = ["rice, white", "potatoes", "sweet potato"]
+absurd = [
+  "rice flour, brown",
+  "nectarines",
+  "passion-fruit",
+  "melon balls",
+  "ginger root",
+  "cherimoya",
+  "peaches, yellow",
+  "strawberries",
+  "carrots",
+  "currants",
+  "ice cream cones, sugar",
+  "carrots, canned",
+  "cereals ready-to-eat, frosted oat cereal with marshmallows",
+  "sorghum flour, whole-grain",
+  "melons, cantaloupe",
+  "cherries, sour",
+]
+
+[[general]]
+text = "chicken thighs"
+grams = 150
+accept = [
+  "beef, rib eye steak/roast",
+  "beef, chuck",
+  "pork, cured",
+  "pork, loin",
+  "beef, loin",
+  "beef, rib",
+  "beef, round",
+  "beef, brisket",
+  "beef, flank",
+  "chicken, breast",
+]
+absurd = []
+
+[[general]]
+text = "chicken thighs"
+grams = 150
+requires = "popularity"
+accept = ["turkey, ground", "beef, ground"]
+absurd = [
+  "squab",
+  "ostrich, ground",
+  "game meat, bear",
+  "chicken, stewing",
+  "pheasant, meat and skin",
+]
+
+[[general]]
+text = "tilapia"
+grams = 150
+accept = [
+  "game meat, bison",
+  "chicken, breast",
+  "turkey, ground",
+  "turkey, whole",
+  "turkey, breast",
+  "chicken, rotisserie",
+  "turkey, retail parts",
+]
+absurd = []
+
+[[general]]
+text = "tilapia"
+grams = 150
+requires = "popularity"
+accept = ["fish, cod", "crustaceans, shrimp", "fish, tuna", "pork, loin", "egg, white"]
+absurd = [
+  "ostrich, outside leg",
+  "game meat, antelope",
+  "ostrich, inside leg",
+  "ostrich, outside strip",
+  "emu, full rump",
+  "fish, cisco",
+]
+
+[[general]]
+text = "Yogurt, plain, low fat"
+grams = 170
+accept = ["milk, lowfat", "yogurt, greek"]
+absurd = []
+
+[[general]]
+text = "Yogurt, plain, low fat"
+grams = 170
+requires = "popularity"
+accept = []
+absurd = [
+  "arugula",
+  "chives",
+  "asparagus, canned",
+  "cereals ready-to-eat, sun country",
+  "lupins",
+  "dock",
+  "mollusks, oyster",
+  "spinach, canned",
+  "mushrooms, straw",
+  "borage",
+  "parsley, freeze-dried",
+  "coriander leaves",
+  "spinach",
+  "taro leaves",
+  "pokeberry shoots",
+  "leavening agents, yeast",
+  "squash, zucchini",
+]
+
+[[general]]
+text = "Cheese, cottage, lowfat, 2% milkfat"
+grams = 150
+accept = ["yogurt, greek", "turkey breast, sliced"]
+absurd = []
+
+[[general]]
+text = "Cheese, cottage, lowfat, 2% milkfat"
+grams = 150
+requires = "popularity"
+accept = []
+absurd = [
+  "egg substitute, powder",
+  "mollusks, oyster",
+  "goose, liver",
+  "alfalfa seeds, sprouted",
+  "soy flour, low-fat",
+  "seaweed, spirulina",
+  "balsam-pear, leafy tips",
+  "winged bean, cooked",
+  "winged beans, immature seeds",
+  "beef, variety meats and by-products",
+  "duck, domesticated",
+  "veal, variety meats and by-products",
+  "fish, gefiltefish",
+  "pumpkin leaves",
+]
