@@ -1,6 +1,5 @@
-# Pinned USDA FoodData Central releases. `macroswap data pull` downloads each
-# archive into data/raw/usda/, refuses it unless its SHA-256 matches, and
-# unpacks it beside the archive.
+# Pinned downloads. `macroswap data pull` fetches each into data/raw/usda/,
+# refuses it unless its SHA-256 matches, and unpacks each .zip beside it.
 
 [sr_legacy]
 url = "https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_sr_legacy_food_csv_2018-04.zip"
@@ -9,3 +8,17 @@ sha256 = "b80817294b8850530aaedf2e515c02593b1824f763a0ff356e5c2081643e6fd0"
 [foundation]
 url = "https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_foundation_food_csv_2026-04-30.zip"
 sha256 = "70457ee9d9342f43bda2010318c85f04210c689fdeb9cd2da4c513b0e8dbc655"
+
+# The survey foods and their ingredients: FNDDS 2021-2023.
+[fndds]
+url = "https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_survey_food_csv_2024-10-31.zip"
+sha256 = "5ccc25ec2777a8982fbb61378a42f415316173eb11e48c9a8ba4cb19f5a4f29c"
+
+# NHANES 2021-2023 dietary recall, individual foods, days one and two.
+[nhanes_day1]
+url = "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/DR1IFF_L.xpt"
+sha256 = "97177395e5fd1322ec8cb72d271a3f8d46e6a83b1105f89f6ef6f39f156037b3"
+
+[nhanes_day2]
+url = "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/DR2IFF_L.xpt"
+sha256 = "7c06a8ed008e3ea063a62cd97fe26bf3b59322e31dda4b5bc9c217a6a5482a04"

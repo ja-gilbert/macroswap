@@ -44,13 +44,13 @@ def usda_rows(foods: list[Food]) -> list[Row]:
 
 @pytest.fixture(scope="session")
 def releases() -> dict[str, Path]:
-    """The pulled USDA releases, for tests/data. Without them the tier skips,
+    """The pulled sources, for tests/data. Without them the tier skips,
     except in CI, where MACROSWAP_REQUIRE_DATA=1 turns the skip into a failure
     so a broken pull can never pass by skipping the tier."""
     config = load_config()
     dirs = release_dirs(ROOT / config.paths.manifest, ROOT / config.paths.raw)
-    if missing := [str(d) for d in dirs.values() if not d.is_dir()]:
-        message = f"USDA releases not pulled: {missing}; run `macroswap data pull`"
+    if missing := [str(d) for d in dirs.values() if not d.exists()]:
+        message = f"sources not pulled: {missing}; run `macroswap data pull`"
         if os.environ.get("MACROSWAP_REQUIRE_DATA") == "1":
             pytest.fail(message)
         pytest.skip(message)
