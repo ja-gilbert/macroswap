@@ -214,7 +214,7 @@ def _data_pull(config: Config, db: Path, args: argparse.Namespace) -> int:
 
 def _data_build(config: Config, db: Path, args: argparse.Namespace) -> int:
     dirs = release_dirs(Path(config.paths.manifest), Path(config.paths.raw))
-    for folder in dirs.values():
+    for folder in (dirs["sr_legacy"], dirs["foundation"]):
         if not folder.is_dir():
             raise PullError(f"no USDA release at {folder}; run `data pull` first")
     loaded = merge(

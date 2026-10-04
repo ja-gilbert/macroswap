@@ -1,4 +1,4 @@
-"""Download the pinned USDA releases and refuse any whose checksum differs."""
+"""Download the pinned sources and refuse any whose checksum differs."""
 
 from __future__ import annotations
 
@@ -26,15 +26,15 @@ def read_manifest(path: Path) -> dict[str, tuple[str, str]]:
 
 
 def release_dirs(manifest: Path, raw: Path) -> dict[str, Path]:
-    """Where each source unpacks: a folder named after its archive."""
+    """Where each source lands: a folder named after its .zip, or the file itself."""
     return {
-        name: raw / "usda" / Path(url.rsplit("/", 1)[-1]).stem
+        name: raw / "usda" / url.rsplit("/", 1)[-1].removesuffix(".zip")
         for name, (url, _) in read_manifest(manifest).items()
     }
 
 
 def pull(manifest: Path, raw: Path) -> list[str]:
-    """Fetch each archive unless a verified copy is present, then unpack it."""
+    """Fetch each source unless a verified copy is present, and unpack each .zip."""
     target = raw / "usda"
     target.mkdir(parents=True, exist_ok=True)
     lines = []
@@ -57,8 +57,9 @@ def pull(manifest: Path, raw: Path) -> list[str]:
                 )
             partial.replace(archive)
             state = "downloaded"
-        with zipfile.ZipFile(archive) as bundle:
-            bundle.extractall(target)
+        if archive.suffix == ".zip":
+            with zipfile.ZipFile(archive) as bundle:
+                bundle.extractall(target)
         lines.append(f"{name}: {state}, {archive.name}")
     return lines
 
