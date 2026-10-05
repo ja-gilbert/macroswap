@@ -111,6 +111,12 @@ class EvalConfig:
 
 
 @dataclass(frozen=True)
+class PopularityConfig:
+    water_families: tuple[str, ...]
+    count_as: dict[str, str]
+
+
+@dataclass(frozen=True)
 class Config:
     diary: DiaryConfig
     stats: StatsConfig
@@ -120,6 +126,7 @@ class Config:
     match: MatchConfig
     labels: LabelsConfig
     eval: EvalConfig
+    popularity: PopularityConfig
 
 
 def load_config(path: Path | None = None) -> Config:
@@ -160,6 +167,7 @@ def load_config(path: Path | None = None) -> Config:
         _section(MatchConfig, raw, "match", source),
         _section(LabelsConfig, raw, "labels", source),
         _section(EvalConfig, raw, "eval", source),
+        _section(PopularityConfig, raw, "popularity", source),
     )
 
 
@@ -175,6 +183,7 @@ def _section[
         MatchConfig,
         LabelsConfig,
         EvalConfig,
+        PopularityConfig,
     )
 ](cls: type[S], raw: dict[str, Any], name: str, source: str) -> S:
     table = raw.get(name, {})

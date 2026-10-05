@@ -34,6 +34,7 @@ def test_packaged_config_loads_with_expected_values() -> None:
     assert all(isinstance(t, float) for t in config.match.no_match.values())
     assert config.match.default_method in {"lexical", "embed", "hybrid"}
     assert config.eval.tolerated_flips == {"lexical": 0, "embed": 1, "hybrid": 1}
+    assert config.popularity.water_families == ("beverages, water", "water, bottled")
 
 
 @pytest.mark.parametrize(
