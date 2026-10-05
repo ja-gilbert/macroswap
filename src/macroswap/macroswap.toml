@@ -21,6 +21,9 @@ manifest = "data/manifest.toml"
 # The labeled sample and the eval's expected table, both committed.
 labels = "data/labels/labels.csv"
 eval_expected = "data/labels/eval_expected.csv"
+# The participant counts with their metadata, committed: `data build
+# --write-popularity` rewrites the file, and the data tier fails when it drifts.
+popularity = "data/popularity/popularity.json"
 
 [swap]
 # How many grams to eat: the serving minimizes squared gram deltas under these
@@ -37,10 +40,11 @@ serving_bounds_g = [5.0, 1000.0]
 # ordered by popularity instead: about ten kcal of weighted miss.
 tie_epsilon = 10.0
 # Participant counts: a family below the floor is not offered, and a family at
-# or above the common threshold is listed in the first tier. Both are set from
-# the measured family counts once the popularity table is built; until then no
-# candidate carries a count, so every family passes and counts as common.
-popularity_floor = 0
+# or above the common threshold is listed in the first tier. Both were read
+# from the committed counts of the cycle [popularity] names and are frozen.
+# Until a swap reads the counts no candidate carries one, so every family
+# passes and counts as common.
+popularity_floor = 10
 common_threshold = 50
 # A diary target's macros and a leanness family's default level come from the
 # rows logged in this many days ending at the last diary day with rows, then
@@ -296,6 +300,19 @@ cycle = "2021-2023"
 # largest ingredient outside these families, and toward water only when it is
 # all water, so oatmeal made with water counts as oats.
 water_families = ["beverages, water", "water, bottled"]
+# The staples: a threshold that left one of them out of the first tier would be
+# wrong, so the data tier holds each at or above common_threshold.
+must_pass = [
+    "chicken, breast", "beef, ground", "turkey, ground", "pork, loin",
+    "fish, tilapia", "fish, cod", "crustaceans, shrimp", "fish, tuna",
+    "fish, salmon", "egg, whole", "egg, white", "yogurt, greek", "cheese, cottage",
+    "beverages, protein powder whey based", "rice, white", "potatoes",
+    "sweet potato", "cereals, oats", "bread, whole-wheat", "pasta, dry",
+    "beans, black", "lentils", "bananas",
+]
+# Offered in the first tier whatever their count: ordinary foods the recalls
+# rarely name.
+allowlist = ["game meat, bison", "cereals, cream of rice"]
 
 # Family -> family, read by the participant counts alone: a cooked or parallel
 # key whose count belongs to the family a swap can offer. One hop: the target
@@ -332,3 +349,14 @@ water_families = ["beverages, water", "water, bottled"]
 "peas, split" = "peas, green"
 "sweet potatoes, orange flesh" = "sweet potato"
 "bison, ground" = "game meat, bison"
+
+# Family -> WWEIA food category, a sanity check on the link rule and not a
+# validation: beside the family's count, the committed table holds how many
+# participants reported any food NHANES files under the category. `data build`
+# refuses a line whose family the table lacks or whose category no survey food
+# is filed under.
+[popularity.crosswalk]
+"chicken, breast" = "Chicken, whole pieces"
+"beef, ground" = "Ground beef"
+"rice, white" = "Rice"
+"egg, whole" = "Eggs and omelets"

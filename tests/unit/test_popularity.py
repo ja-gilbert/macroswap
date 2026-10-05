@@ -1,8 +1,17 @@
 from __future__ import annotations
 
+from dataclasses import replace
+
 import pytest
 
-from macroswap.nhanes.popularity import Attribution, Popularity, attribute, count
+from macroswap.config import load_config
+from macroswap.nhanes.popularity import (
+    Attribution,
+    Popularity,
+    attribute,
+    count,
+    file_left_out,
+)
 from macroswap.usda.table import BuildError, Row
 
 WATER = ("beverages, water",)
@@ -27,13 +36,19 @@ RECIPES = {
 }
 
 
-def row(ndb: str, family: str, variant: str = "", reason: str | None = None) -> Row:
+def row(
+    ndb: str,
+    family: str,
+    variant: str = "",
+    reason: str | None = None,
+    category: str = "test",
+) -> Row:
     return Row(
         id=f"sr:{ndb}",
         source="sr",
         ndb=ndb,
         description=family,
-        category="test",
+        category=category,
         family=family,
         variant=variant or family,
         lean_pct=None,
@@ -179,3 +194,63 @@ def test_a_participant_counts_once_per_family_and_per_variant() -> None:
     ]
     counts = {CHICKEN: 2, RICE: 2}
     assert count(reports, attributions) == Popularity(3, counts, counts)
+
+
+# Two categories left out on purpose and no word rules, whatever the packaged
+# lists hold.
+USDA = replace(
+    load_config().usda,
+    excluded_categories=("Snacks", "Sweets"),
+    allow_words={},
+    deny_words={},
+)
+LEFT_OUT = "excluded-category"
+
+
+@pytest.mark.parametrize(
+    ("reported", "by_design", "not_reachable"),
+    [
+        pytest.param(
+            [
+                row("1", "ham", reason=LEFT_OUT, category="Sweets"),
+                row("2", "ham", reason="cooked-with-raw-sibling", category="Pork"),
+            ],
+            {},
+            {"ham"},
+            id="one-row-left-out-for-its-key-alone",
+        ),
+        pytest.param(
+            [
+                row("1", "leather", reason=LEFT_OUT, category="Sweets"),
+                row("2", "leather", reason=LEFT_OUT, category="Sweets"),
+                row("3", "leather", reason=LEFT_OUT, category="Snacks"),
+            ],
+            {"leather": "Sweets"},
+            set(),
+            id="the-category-with-the-most-rows",
+        ),
+        pytest.param(
+            [
+                row("1", "leather", reason=LEFT_OUT, category="Sweets"),
+                row("2", "leather", reason=LEFT_OUT, category="Snacks"),
+            ],
+            {"leather": "Snacks"},
+            set(),
+            id="the-first-by-name-on-a-tie",
+        ),
+        pytest.param(
+            [row("1", "twin", reason="analytical-duplicate", category="Pork")],
+            {},
+            {"twin"},
+            id="a-duplicate-is-a-key-reason",
+        ),
+    ],
+)
+def test_a_family_no_swap_offers_is_filed_by_the_rows_given(
+    reported: list[Row], by_design: dict[str, str], not_reachable: set[str]
+) -> None:
+    """Left out by design takes every row: the ham's one cooked row in a
+    category that leaves nothing out makes it not reachable. The category shown
+    is the one with the most rows, Sweets over Snacks at two to one, and the
+    first by name when they tie."""
+    assert file_left_out(reported, USDA) == (by_design, not_reachable)

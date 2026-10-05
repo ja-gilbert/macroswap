@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import shutil
 import sqlite3
 from collections.abc import Callable, Sequence
@@ -14,6 +15,7 @@ from macroswap.match.diary import check_fingerprint
 from macroswap.match.evaluate import read_expected
 from macroswap.match.label import NO_MATCH, Label, write_labels
 from macroswap.match.matcher import Encoder
+from macroswap.nhanes.popularity import LINK_RULE
 from macroswap.pull import release_dirs
 from macroswap.store import connect, write_usda
 from macroswap.usda.table import Row
@@ -156,23 +158,47 @@ def test_diary_stats_without_database_is_exit_two(
 
 
 # FNDDS foods by food code, each ingredient an NDB number of the USDA fixture
-# with its grams: rice boiled in more water than rice, a plate that is mostly
-# chicken, and a baked sweet potato, a cooked key that counts as the raw family.
-SURVEY = """fdc_id,food_code,start_date,end_date
-1,100,2021-01-01,2023-12-31
-2,200,2021-01-01,2023-12-31
-3,300,2021-01-01,2023-12-31
+# with its grams: rice boiled in more water than rice; a plate that is mostly
+# chicken, a tenth of it an ingredient the table lacks, filed under rice; a
+# baked sweet potato, a cooked key that counts as the raw family; tap water,
+# left out by its category; sauteed onions, a cooked key nothing claims; and
+# olive oil, a row without all its macros.
+SURVEY = """fdc_id,food_code,wweia_category_number,start_date,end_date
+1,100,4002,2021-01-01,2023-12-31
+2,200,4002,2021-01-01,2023-12-31
+3,300,6410,2021-01-01,2023-12-31
+4,400,7702,2021-01-01,2023-12-31
+5,500,6410,2021-01-01,2023-12-31
+6,600,8012,2021-01-01,2023-12-31
+"""
+CATEGORIES = """wweia_food_category,wweia_food_category_description
+4002,Rice
+6410,Other red and orange vegetables
+7702,Tap water
+8012,Fats and oils
 """
 INGREDIENTS = """fdc_id,sr_code,gram_weight
 1,14411,60.0
 1,20345,40.0
 2,20345,30.0
-2,5064,70.0
+2,5064,60.0
+2,99999,10.0
 3,11508,100.0
+4,14411,100.0
+5,11286,100.0
+6,4063,100.0
 """
 # Recall rows: participant, recall status (1 is reliable), food code.
 DAY_ONE = [(1, 1, 100), (1, 1, 200), (2, 2, 100)]
-DAY_TWO = [(2, 1, 200), (3, 1, 300), (3, 1, 100), (4, 1, 100)]
+DAY_TWO = [
+    (2, 1, 200),
+    (3, 1, 300),
+    (3, 1, 100),
+    (4, 1, 100),
+    (5, 1, 400),
+    (5, 1, 500),
+    (5, 1, 600),
+]
 
 
 def _whole(number: int) -> str:
@@ -205,6 +231,7 @@ def _pull_recalls(
     dirs["fndds"].mkdir()
     (dirs["fndds"] / "survey_fndds_food.csv").write_text(survey, encoding="utf-8")
     (dirs["fndds"] / "input_food.csv").write_text(INGREDIENTS, encoding="utf-8")
+    (dirs["fndds"] / "wweia_food_category.csv").write_text(CATEGORIES, encoding="utf-8")
     for day, reports in ((1, DAY_ONE), (2, day_two)):
         columns = ["SEQN", f"DR{day}DRSTZ", f"DR{day}IFDCD"]
         rows = [" ".join(map(_whole, report)) for report in reports]
@@ -222,27 +249,65 @@ def test_data_build_then_report(
     """The counts are distinct participants over both days: participant 2's
     first day is not a reliable recall, so its rice is not counted, and their
     second day is. Water is set aside, the plate is chicken by weight, and the
-    baked sweet potato counts as sweet potato under its own variant. Participant
-    4 reports only rice, so participants are not families. A second build
-    replaces the counts."""
+    baked sweet potato counts as sweet potato under its own variant.
+    Five participants report six families, so neither count can pass for
+    the other. A build writes the store and nothing else; a second build
+    replaces the counts and, asked to, writes the table to commit: the plate is
+    filed under rice, so the rice category holds one participant more than the
+    rice family; the sweet potato had no count of its own before the cooked
+    key's was added; and a tenth of the plate, reported twice among nine
+    reports, reaches no row. Of the three families no swap offers, water is
+    left out by design, the onions are not reachable, and the oil is neither."""
     _pull_recalls(_repo_layout(tmp_path, usda_dir), transport)
     monkeypatch.chdir(tmp_path)
     assert main(["--db", "db.sqlite", "data", "build"]) == 0
-    assert main(["--db", "db.sqlite", "data", "build"]) == 0
+    assert not Path("data/popularity").exists()
+    assert main(["--db", "db.sqlite", "data", "build", "--write-popularity"]) == 0
     out = capsys.readouterr().out
     assert "usda_foods: 208 rows" in out
-    assert "popularity: NHANES 2021-2023, 4 participants, 3 families reported" in out
+    assert "popularity: NHANES 2021-2023, 5 participants, 6 families reported" in out
     with sqlite3.connect("db.sqlite") as conn:
         counts = set(conn.execute("SELECT * FROM popularity"))
         meta = conn.execute("SELECT * FROM popularity_meta").fetchall()
-    assert meta == [("2021-2023", 4)]
+    assert meta == [("2021-2023", 5)]
+    families = {
+        "beverages, water": 1,
+        "chicken, breast": 2,
+        "oil, olive": 1,
+        "onions, yellow": 1,
+        "rice, white": 3,
+        "sweet potato": 1,
+    }
+    variants = {
+        "beverages, water, tap, drinking": 1,
+        "chicken, breast, meat only": 2,
+        "oil, olive, extra virgin": 1,
+        "onions, yellow": 1,
+        "rice, white, long-grain, regular": 3,
+        "sweet potato, flesh": 1,
+    }
     assert counts == {
-        ("family", "rice, white", 3),
-        ("family", "chicken, breast", 2),
-        ("family", "sweet potato", 1),
-        ("variant", "rice, white, long-grain, regular", 3),
-        ("variant", "chicken, breast, meat only", 2),
-        ("variant", "sweet potato, flesh", 1),
+        *(("family", family, n) for family, n in families.items()),
+        *(("variant", variant, n) for variant, n in variants.items()),
+    }
+    table = json.loads(Path("data/popularity/popularity.json").read_text("utf-8"))
+    assert table == {
+        "cycle": "2021-2023",
+        "participants": 5,
+        "link_rule": LINK_RULE,
+        "unattributed": 0.022222,
+        "offered_families": 97,
+        "crosswalk": {"rice, white": ["Rice", 3, 4]},
+        "families": families,
+        "variants": variants,
+        "before_count_as": {"sweet potato": 0, "sweet potato, flesh": 1},
+        "not_offered": {
+            "beverages, water": "excluded-category",
+            "oil, olive": "incomplete-macros",
+            "onions, yellow": "cooked-with-raw-sibling",
+        },
+        "by_design": {"beverages, water": "Beverages"},
+        "not_reachable": ["onions, yellow"],
     }
     assert main(["--db", "db.sqlite", "data", "report"]) == 0
     assert "families:" in capsys.readouterr().out
@@ -257,15 +322,17 @@ def test_data_report_before_build_is_exit_two(
     assert "run `data build` first" in capsys.readouterr().err
 
 
-@pytest.mark.usefixtures("pinned_config")
 @pytest.mark.parametrize(
-    ("pulled", "survey", "day_two", "says"),
+    ("pulled", "survey", "day_two", "crosswalk", "says"),
     [
-        pytest.param(False, SURVEY, DAY_TWO, "data pull", id="only-the-usda-releases"),
+        pytest.param(
+            False, SURVEY, DAY_TWO, {}, "data pull", id="only-the-usda-releases"
+        ),
         pytest.param(
             True,
-            SURVEY.replace("300,2021-01-01,2023-12-31", "300,2023-01-01,2025-12-31"),
+            SURVEY.replace("6410,2021-01-01,2023-12-31", "6410,2023-01-01,2025-12-31"),
             DAY_TWO,
+            {},
             "covers 2021-2023, 2023-2025, not 2021-2023",
             id="a-survey-food-of-another-cycle",
         ),
@@ -273,8 +340,25 @@ def test_data_report_before_build_is_exit_two(
             True,
             SURVEY,
             [*DAY_TWO, (3, 1, 999)],
+            {},
             "lacks 1 of the food codes the recall files report, 999",
             id="recall-files-of-another-cycle",
+        ),
+        pytest.param(
+            True,
+            SURVEY,
+            DAY_TWO,
+            {"rice, whit": "Rice"},
+            "crosswalk no longer fits the data: ['rice, whit -> Rice']",
+            id="a-crosswalk-family-the-table-lacks",
+        ),
+        pytest.param(
+            True,
+            SURVEY,
+            DAY_TWO,
+            {"rice, white": "Rices"},
+            "crosswalk no longer fits the data: ['rice, white -> Rices']",
+            id="a-crosswalk-category-the-survey-foods-lack",
         ),
     ],
 )
@@ -282,19 +366,27 @@ def test_data_build_refused_is_exit_two_and_writes_nothing(
     tmp_path: Path,
     usda_dir: Path,
     transport: Callable[[list[str], list[str]], bytes],
+    pinned_config: Config,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
     pulled: bool,
     survey: str,
     day_two: Sequence[tuple[int, int, int]],
+    crosswalk: dict[str, str],
     says: str,
 ) -> None:
     """With only the two USDA releases pulled, the build stops for the pull.
-    One survey food dated to another cycle, or a reported food code the survey
-    foods lack, stops it before the USDA table is written."""
+    One survey food dated to another cycle, a reported food code the survey
+    foods lack, or a crosswalk line with a misspelt family or category stops it
+    before the USDA table is written."""
     dirs = _repo_layout(tmp_path, usda_dir)
     if pulled:
         _pull_recalls(dirs, transport, survey, day_two)
+    popularity = replace(pinned_config.popularity, crosswalk=crosswalk)
+    monkeypatch.setattr(
+        "macroswap.cli.load_config",
+        lambda path=None: replace(pinned_config, popularity=popularity),
+    )
     monkeypatch.chdir(tmp_path)
     assert main(["--db", "db.sqlite", "data", "build"]) == 2
     assert says in capsys.readouterr().err

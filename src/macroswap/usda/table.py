@@ -131,7 +131,7 @@ def _reason(k: _Keyed, usda: UsdaConfig, sr_variants: set[str]) -> str | None:
         return "analytical-duplicate"
     if k.cooked_sibling:
         return "cooked-with-raw-sibling"
-    if _category_excluded(f, usda):
+    if category_excluded(f, usda):
         return "excluded-category"
     macros = (f.protein, f.carbs, f.fat)
     if macros == (0.0, 0.0, 0.0):
@@ -141,7 +141,9 @@ def _reason(k: _Keyed, usda: UsdaConfig, sr_variants: set[str]) -> str | None:
     return None
 
 
-def _category_excluded(food: Food, usda: UsdaConfig) -> bool:
+def category_excluded(food: Food | Row, usda: UsdaConfig) -> bool:
+    """Whether the food's category, or a word its category denies, leaves it
+    out; an allow word clears it."""
     text = plain(food.description.lower())
     if any(_has(w, text) for w in usda.allow_words.get(food.category, [])):
         return False
