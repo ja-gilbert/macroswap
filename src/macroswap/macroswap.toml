@@ -286,3 +286,45 @@ interval = 0.95
 # CI compares the eval with the committed expected table: exactly for lexical,
 # within this many flipped names per cell otherwise (CPU and GPU float noise).
 tolerated_flips = { lexical = 0, embed = 1, hybrid = 1 }
+
+[popularity]
+# Water is never the food: an FNDDS food counts toward the family of its
+# largest ingredient outside these families, and toward water only when it is
+# all water, so oatmeal made with water counts as oats.
+water_families = ["beverages, water", "water, bottled"]
+
+# Family -> family, read by the participant counts alone: a cooked or parallel
+# key whose count belongs to the family a swap can offer. One hop: the target
+# is a candidate family and never itself a source. Each line was confirmed from
+# the measured counts. A product form the table keeps out of a family (french
+# fries, sweet potato fries) stays out here too.
+[popularity.count_as]
+"peanuts, all types" = "peanuts"
+"broccoli, chopped" = "broccoli"
+"cauliflower, drained" = "cauliflower"
+"quinoa" = "quinoa, uncooked"
+"rice noodles" = "rice noodles, dry"
+"chicken patty" = "chicken patty, uncooked"
+"brussels sprouts, drained" = "brussels sprouts"
+"couscous" = "couscous, dry"
+"okra, drained" = "okra"
+"buckwheat groats" = "buckwheat groats, dry"
+"collards, chopped" = "collards"
+"bulgur" = "bulgur, dry"
+"lotus root, drained" = "lotus root"
+"kale, drained" = "kale"
+"pumpkin flowers, drained" = "pumpkin flowers"
+"parsnips, drained" = "parsnips"
+"pasta" = "pasta, dry"
+"potatoes, flesh" = "potatoes"
+"potatoes, flesh and skin" = "potatoes"
+"spinach, chopped or leaf" = "spinach"
+"turnip greens, drained" = "turnip greens"
+"onions, whole" = "onions"
+"onions, drained" = "onions"
+"asparagus, drained" = "asparagus"
+"carrots, drained" = "carrots"
+"cowpeas, immature seeds" = "cowpeas"
+"peas, split" = "peas, green"
+"sweet potatoes, orange flesh" = "sweet potato"
+"bison, ground" = "game meat, bison"
