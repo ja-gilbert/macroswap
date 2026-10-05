@@ -9,6 +9,7 @@ import pytest
 
 from macroswap.config import load_config
 from macroswap.match.embed import Embedder, EmbedUnavailable
+from macroswap.nhanes.popularity import Table, measure
 from macroswap.usda.load import load_release, merge
 from macroswap.usda.table import Row, build_table
 
@@ -23,6 +24,14 @@ def real_rows(releases: dict[str, Path]) -> list[Row]:
         CONFIG.usda.dry_basis_marker,
     )
     return build_table(loaded.foods, CONFIG.usda)
+
+
+@pytest.fixture(scope="session")
+def popularity(releases: dict[str, Path], real_rows: list[Row]) -> Table:
+    recalls = (releases["nhanes_day1"], releases["nhanes_day2"])
+    return measure(
+        releases["fndds"], recalls, real_rows, CONFIG.popularity, CONFIG.usda
+    )
 
 
 def _pinned_embedder(cache: Path) -> Embedder:

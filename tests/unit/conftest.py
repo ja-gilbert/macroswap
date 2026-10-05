@@ -77,7 +77,8 @@ def transport() -> Callable[[list[str], list[str]], bytes]:
 def pinned_config(monkeypatch: pytest.MonkeyPatch) -> Config:
     """The packaged config with its tuned values pinned: lexical by default and
     no threshold, so no test changes when a tuned value does; and the cycle, and
-    count_as pinned to one line the fixture table fits. The CLI loads it too."""
+    count_as and the crosswalk pinned to one line each that the fixture table
+    fits. The CLI loads it too."""
     config = load_config()
     match = replace(
         config.match,
@@ -88,6 +89,7 @@ def pinned_config(monkeypatch: pytest.MonkeyPatch) -> Config:
         config.popularity,
         cycle="2021-2023",
         count_as={"sweet potato, flesh": "sweet potato"},
+        crosswalk={"rice, white": "Rice"},
     )
     pinned = replace(config, match=match, popularity=popularity)
     monkeypatch.setattr("macroswap.cli.load_config", lambda path=None: pinned)

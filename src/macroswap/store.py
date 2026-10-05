@@ -5,7 +5,7 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
-from macroswap.nhanes.popularity import Popularity
+from macroswap.nhanes.popularity import Table
 from macroswap.usda.table import Row
 
 _SCHEMA = """
@@ -146,21 +146,16 @@ def write_usda(conn: sqlite3.Connection, rows: list[tuple[object, ...]]) -> None
         conn.executemany(f"INSERT INTO usda_foods({columns}) VALUES ({marks})", rows)
 
 
-def write_popularity(
-    conn: sqlite3.Connection, cycle: str, popularity: Popularity
-) -> None:
+def write_popularity(conn: sqlite3.Connection, table: Table) -> None:
     """Replace the participant counts whole, with the cycle they were counted
     in and how many participants had a reliable recall."""
     conn.executescript(_POPULARITY_SCHEMA)
     with conn:
         conn.execute(
             "INSERT INTO popularity_meta VALUES (?, ?)",
-            (cycle, popularity.participants),
+            (table.cycle, table.participants),
         )
-        for kind, counts in (
-            ("family", popularity.families),
-            ("variant", popularity.variants),
-        ):
+        for kind, counts in (("family", table.families), ("variant", table.variants)):
             conn.executemany(
                 "INSERT INTO popularity VALUES (?, ?, ?)",
                 [(kind, key, n) for key, n in counts.items()],

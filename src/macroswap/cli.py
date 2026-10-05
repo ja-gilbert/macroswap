@@ -27,7 +27,7 @@ from macroswap.match.evaluate import (
 )
 from macroswap.match.label import draw_sample, label_session, read_labels, write_labels
 from macroswap.match.matcher import Matcher
-from macroswap.nhanes.popularity import measure
+from macroswap.nhanes.popularity import measure, write_table
 from macroswap.pull import PullError, pull, release_dirs
 from macroswap.store import connect, read_usda, write_popularity, write_usda
 from macroswap.swap.logged import (
@@ -75,10 +75,16 @@ def build_parser() -> argparse.ArgumentParser:
     data_commands.add_parser(
         "pull", help="download the pinned sources, verifying checksums"
     ).set_defaults(run=_data_pull)
-    data_commands.add_parser(
+    build = data_commands.add_parser(
         "build",
         help="build the USDA food table and count who reported each food family",
-    ).set_defaults(run=_data_build)
+    )
+    build.add_argument(
+        "--write-popularity",
+        action="store_true",
+        help="also rewrite the committed popularity table from the counts",
+    )
+    build.set_defaults(run=_data_build)
     data_commands.add_parser(
         "report", help="families, exclusion reasons, and override candidates"
     ).set_defaults(run=_data_report)
@@ -229,10 +235,10 @@ def _data_build(config: Config, db: Path, args: argparse.Namespace) -> int:
     rows = build_table(loaded.foods, config.usda)
     # Counted before anything is written, so a refusal leaves the store as it was.
     recalls = (dirs["nhanes_day1"], dirs["nhanes_day2"])
-    popularity = measure(dirs["fndds"], recalls, rows, config.popularity)
+    popularity = measure(dirs["fndds"], recalls, rows, config.popularity, config.usda)
     with connect(db) as conn:
         write_usda(conn, [astuple(r) for r in rows])
-        write_popularity(conn, config.popularity.cycle, popularity)
+        write_popularity(conn, popularity)
     candidates = sum(r.exclusion_reason is None for r in rows)
     print(f"usda_foods: {len(rows)} rows, {candidates} candidates")
     dropped = loaded.dry_basis_dropped
@@ -244,10 +250,14 @@ def _data_build(config: Config, db: Path, args: argparse.Namespace) -> int:
     for description in distinct:
         print(f"  {description}")
     print(
-        f"popularity: NHANES {config.popularity.cycle}, "
+        f"popularity: NHANES {popularity.cycle}, "
         f"{popularity.participants} participants, "
         f"{len(popularity.families)} families reported"
     )
+    if args.write_popularity:
+        committed = Path(config.paths.popularity)
+        write_table(committed, popularity)
+        print(f"{committed}: written")
     return 0
 
 

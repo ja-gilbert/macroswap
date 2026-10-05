@@ -36,6 +36,7 @@ class PathsConfig:
     manifest: str
     labels: str
     eval_expected: str
+    popularity: str
 
 
 @dataclass(frozen=True)
@@ -114,7 +115,10 @@ class EvalConfig:
 class PopularityConfig:
     cycle: str
     water_families: tuple[str, ...]
+    must_pass: tuple[str, ...]
+    allowlist: tuple[str, ...]
     count_as: dict[str, str]
+    crosswalk: dict[str, str]
 
 
 @dataclass(frozen=True)
