@@ -14,6 +14,7 @@ from collections.abc import Collection, Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
+from macroswap.config import PopularityConfig
 from macroswap.nhanes.xpt import read_xpt
 from macroswap.usda.table import BuildError, Row
 
@@ -43,11 +44,41 @@ class Popularity:
     variants: dict[str, int]
 
 
-def load_recipes(folder: Path) -> dict[str, list[tuple[str, float]]]:
+def measure(
+    fndds: Path, recalls: Sequence[Path], rows: Sequence[Row], config: PopularityConfig
+) -> Popularity:
+    """The counts from a pulled FNDDS release and the recall files of its
+    cycle, day one first. A reported food code the release lacks is refused:
+    the recall files and the release are not one cycle."""
+    recipes = load_recipes(fndds, config.cycle)
+    attributions = attribute(recipes, rows, config.water_families, config.count_as)
+    reports = [
+        report
+        for day, path in enumerate(recalls, start=1)
+        for report in reliable_reports(path, day)
+    ]
+    if unknown := {code for _, code in reports} - attributions.keys():
+        raise BuildError(
+            f"{fndds.name} lacks {len(unknown)} of the food codes the recall files "
+            f"report, {min(unknown)} among them: the recall files are not of its cycle"
+        )
+    return count(reports, attributions)
+
+
+def load_recipes(folder: Path, cycle: str) -> dict[str, list[tuple[str, float]]]:
     """Each FNDDS food code with its ingredients as (code, grams); an
-    ingredient's code is an NDB number or another FNDDS food's code."""
+    ingredient's code is an NDB number or another FNDDS food's code. A release
+    whose foods are dated to other survey years than the cycle's is refused."""
     with (folder / "survey_fndds_food.csv").open(newline="", encoding="utf-8") as f:
-        codes = {r["fdc_id"]: r["food_code"] for r in csv.DictReader(f)}
+        survey = list(csv.DictReader(f))
+    years = {f"{r['start_date'][:4]}-{r['end_date'][:4]}" for r in survey}
+    if years != {cycle}:
+        raise BuildError(
+            f"{folder.name} covers {', '.join(sorted(years))}, not {cycle}, the "
+            "[popularity] cycle in macroswap.toml that the popularity floor and the "
+            "common threshold were read from"
+        )
+    codes = {r["fdc_id"]: r["food_code"] for r in survey}
     recipes: dict[str, list[tuple[str, float]]] = {c: [] for c in codes.values()}
     with (folder / "input_food.csv").open(newline="", encoding="utf-8") as f:
         for r in csv.DictReader(f):
