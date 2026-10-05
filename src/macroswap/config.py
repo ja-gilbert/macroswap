@@ -112,6 +112,7 @@ class EvalConfig:
 
 @dataclass(frozen=True)
 class PopularityConfig:
+    cycle: str
     water_families: tuple[str, ...]
     count_as: dict[str, str]
 

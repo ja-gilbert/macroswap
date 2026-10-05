@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from itertools import chain
 from pathlib import Path
 
 from macroswap.config import load_config
-from macroswap.nhanes.popularity import attribute, count, load_recipes, reliable_reports
+from macroswap.nhanes.popularity import measure
 from macroswap.usda.table import Row
 
 CONFIG = load_config().popularity
@@ -18,17 +17,8 @@ def test_both_days_are_counted_on_the_real_table(
     the orange-flesh sweet potato as sweet potato, the families a swap can
     offer. Rib eye counts whoever reported a steak that FNDDS blends equally
     from four cuts: 96 if one cut had to win the tie."""
-    attributions = attribute(
-        load_recipes(releases["fndds"]),
-        real_rows,
-        CONFIG.water_families,
-        CONFIG.count_as,
-    )
-    reports = chain(
-        reliable_reports(releases["nhanes_day1"], 1),
-        reliable_reports(releases["nhanes_day2"], 2),
-    )
-    popularity = count(reports, attributions)
+    recalls = (releases["nhanes_day1"], releases["nhanes_day2"])
+    popularity = measure(releases["fndds"], recalls, real_rows, CONFIG)
     families = {
         "cereals, oats": 1335,
         "potatoes": 1701,

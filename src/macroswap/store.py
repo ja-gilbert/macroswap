@@ -5,6 +5,7 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
+from macroswap.nhanes.popularity import Popularity
 from macroswap.usda.table import Row
 
 _SCHEMA = """
@@ -106,6 +107,20 @@ CREATE TABLE usda_foods (
     exclusion_reason TEXT
 );
 """
+_POPULARITY_SCHEMA = """
+DROP TABLE IF EXISTS popularity;
+CREATE TABLE popularity (
+    kind         TEXT NOT NULL CHECK (kind IN ('family', 'variant')),
+    key          TEXT NOT NULL,
+    participants INTEGER NOT NULL,
+    PRIMARY KEY (kind, key)
+);
+DROP TABLE IF EXISTS popularity_meta;
+CREATE TABLE popularity_meta (
+    cycle        TEXT NOT NULL,
+    participants INTEGER NOT NULL
+);
+"""
 
 
 def connect(path: Path) -> sqlite3.Connection:
@@ -129,6 +144,27 @@ def write_usda(conn: sqlite3.Connection, rows: list[tuple[object, ...]]) -> None
     conn.executescript(_USDA_SCHEMA)
     with conn:
         conn.executemany(f"INSERT INTO usda_foods({columns}) VALUES ({marks})", rows)
+
+
+def write_popularity(
+    conn: sqlite3.Connection, cycle: str, popularity: Popularity
+) -> None:
+    """Replace the participant counts whole, with the cycle they were counted
+    in and how many participants had a reliable recall."""
+    conn.executescript(_POPULARITY_SCHEMA)
+    with conn:
+        conn.execute(
+            "INSERT INTO popularity_meta VALUES (?, ?)",
+            (cycle, popularity.participants),
+        )
+        for kind, counts in (
+            ("family", popularity.families),
+            ("variant", popularity.variants),
+        ):
+            conn.executemany(
+                "INSERT INTO popularity VALUES (?, ?, ?)",
+                [(kind, key, n) for key, n in counts.items()],
+            )
 
 
 def read_usda(conn: sqlite3.Connection) -> list[Row]:

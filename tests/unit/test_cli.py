@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import shutil
+import sqlite3
+from collections.abc import Callable, Sequence
 from dataclasses import astuple, replace
 from pathlib import Path
 
@@ -12,6 +14,7 @@ from macroswap.match.diary import check_fingerprint
 from macroswap.match.evaluate import read_expected
 from macroswap.match.label import NO_MATCH, Label, write_labels
 from macroswap.match.matcher import Encoder
+from macroswap.pull import release_dirs
 from macroswap.store import connect, write_usda
 from macroswap.usda.table import Row
 
@@ -152,25 +155,95 @@ def test_diary_stats_without_database_is_exit_two(
     assert "diary import" in capsys.readouterr().err
 
 
-def _repo_layout(tmp_path: Path, usda_dir: Path, pulled: bool) -> None:
-    """The packaged config's relative paths, rooted at tmp_path."""
+# FNDDS foods by food code, each ingredient an NDB number of the USDA fixture
+# with its grams: rice boiled in more water than rice, a plate that is mostly
+# chicken, and a baked sweet potato, a cooked key that counts as the raw family.
+SURVEY = """fdc_id,food_code,start_date,end_date
+1,100,2021-01-01,2023-12-31
+2,200,2021-01-01,2023-12-31
+3,300,2021-01-01,2023-12-31
+"""
+INGREDIENTS = """fdc_id,sr_code,gram_weight
+1,14411,60.0
+1,20345,40.0
+2,20345,30.0
+2,5064,70.0
+3,11508,100.0
+"""
+# Recall rows: participant, recall status (1 is reliable), food code.
+DAY_ONE = [(1, 1, 100), (1, 1, 200), (2, 2, 100)]
+DAY_TWO = [(2, 1, 200), (3, 1, 300), (3, 1, 100), (4, 1, 100)]
+
+
+def _whole(number: int) -> str:
+    """A whole number above zero as an IBM float in hex: its hex digits as the
+    fraction, behind an exponent that counts them."""
+    digits = f"{number:x}"
+    return f"{64 + len(digits):02x}{digits.ljust(14, '0')}"
+
+
+def _repo_layout(tmp_path: Path, usda_dir: Path) -> dict[str, Path]:
+    """The packaged config's relative paths, rooted at tmp_path, with the two
+    USDA releases pulled; where each source of the manifest lands."""
     data = tmp_path / "data"
-    (data / "raw").mkdir(parents=True)
+    (data / "raw" / "usda").mkdir(parents=True)
     shutil.copy(Path(__file__).resolve().parents[2] / "data" / "manifest.toml", data)
-    if pulled:
-        (data / "raw" / "usda").symlink_to(usda_dir, target_is_directory=True)
+    dirs = release_dirs(data / "manifest.toml", data / "raw")
+    for release in (dirs["sr_legacy"], dirs["foundation"]):
+        release.symlink_to(usda_dir / release.name, target_is_directory=True)
+    return dirs
 
 
+def _pull_recalls(
+    dirs: dict[str, Path],
+    transport: Callable[[list[str], list[str]], bytes],
+    survey: str = SURVEY,
+    day_two: Sequence[tuple[int, int, int]] = DAY_TWO,
+) -> None:
+    """The hand-made survey foods and both days' recall files, where the pull
+    would have put them."""
+    dirs["fndds"].mkdir()
+    (dirs["fndds"] / "survey_fndds_food.csv").write_text(survey, encoding="utf-8")
+    (dirs["fndds"] / "input_food.csv").write_text(INGREDIENTS, encoding="utf-8")
+    for day, reports in ((1, DAY_ONE), (2, day_two)):
+        columns = ["SEQN", f"DR{day}DRSTZ", f"DR{day}IFDCD"]
+        rows = [" ".join(map(_whole, report)) for report in reports]
+        dirs[f"nhanes_day{day}"].write_bytes(transport(columns, rows))
+
+
+@pytest.mark.usefixtures("pinned_config")
 def test_data_build_then_report(
     tmp_path: Path,
     usda_dir: Path,
+    transport: Callable[[list[str], list[str]], bytes],
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    _repo_layout(tmp_path, usda_dir, pulled=True)
+    """The counts are distinct participants over both days: participant 2's
+    first day is not a reliable recall, so its rice is not counted, and their
+    second day is. Water is set aside, the plate is chicken by weight, and the
+    baked sweet potato counts as sweet potato under its own variant. Participant
+    4 reports only rice, so participants are not families. A second build
+    replaces the counts."""
+    _pull_recalls(_repo_layout(tmp_path, usda_dir), transport)
     monkeypatch.chdir(tmp_path)
     assert main(["--db", "db.sqlite", "data", "build"]) == 0
-    assert "usda_foods: 208 rows" in capsys.readouterr().out
+    assert main(["--db", "db.sqlite", "data", "build"]) == 0
+    out = capsys.readouterr().out
+    assert "usda_foods: 208 rows" in out
+    assert "popularity: NHANES 2021-2023, 4 participants, 3 families reported" in out
+    with sqlite3.connect("db.sqlite") as conn:
+        counts = set(conn.execute("SELECT * FROM popularity"))
+        meta = conn.execute("SELECT * FROM popularity_meta").fetchall()
+    assert meta == [("2021-2023", 4)]
+    assert counts == {
+        ("family", "rice, white", 3),
+        ("family", "chicken, breast", 2),
+        ("family", "sweet potato", 1),
+        ("variant", "rice, white, long-grain, regular", 3),
+        ("variant", "chicken, breast, meat only", 2),
+        ("variant", "sweet potato, flesh", 1),
+    }
     assert main(["--db", "db.sqlite", "data", "report"]) == 0
     assert "families:" in capsys.readouterr().out
 
@@ -184,16 +257,48 @@ def test_data_report_before_build_is_exit_two(
     assert "run `data build` first" in capsys.readouterr().err
 
 
-def test_data_build_before_pull_is_exit_two(
+@pytest.mark.usefixtures("pinned_config")
+@pytest.mark.parametrize(
+    ("pulled", "survey", "day_two", "says"),
+    [
+        pytest.param(False, SURVEY, DAY_TWO, "data pull", id="only-the-usda-releases"),
+        pytest.param(
+            True,
+            SURVEY.replace("300,2021-01-01,2023-12-31", "300,2023-01-01,2025-12-31"),
+            DAY_TWO,
+            "covers 2021-2023, 2023-2025, not 2021-2023",
+            id="a-survey-food-of-another-cycle",
+        ),
+        pytest.param(
+            True,
+            SURVEY,
+            [*DAY_TWO, (3, 1, 999)],
+            "lacks 1 of the food codes the recall files report, 999",
+            id="recall-files-of-another-cycle",
+        ),
+    ],
+)
+def test_data_build_refused_is_exit_two_and_writes_nothing(
     tmp_path: Path,
     usda_dir: Path,
+    transport: Callable[[list[str], list[str]], bytes],
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
+    pulled: bool,
+    survey: str,
+    day_two: Sequence[tuple[int, int, int]],
+    says: str,
 ) -> None:
-    _repo_layout(tmp_path, usda_dir, pulled=False)
+    """With only the two USDA releases pulled, the build stops for the pull.
+    One survey food dated to another cycle, or a reported food code the survey
+    foods lack, stops it before the USDA table is written."""
+    dirs = _repo_layout(tmp_path, usda_dir)
+    if pulled:
+        _pull_recalls(dirs, transport, survey, day_two)
     monkeypatch.chdir(tmp_path)
     assert main(["--db", "db.sqlite", "data", "build"]) == 2
-    assert "data pull" in capsys.readouterr().err
+    assert says in capsys.readouterr().err
+    assert not Path("db.sqlite").exists()
 
 
 @pytest.mark.usefixtures("pinned_config")

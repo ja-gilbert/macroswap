@@ -288,6 +288,10 @@ interval = 0.95
 tolerated_flips = { lexical = 0, embed = 1, hybrid = 1 }
 
 [popularity]
+# The NHANES cycle the participants are counted in. `data build` refuses survey
+# foods dated to any other: the popularity floor and the common threshold are
+# absolute counts, and mean what they do in this cycle's counts alone.
+cycle = "2021-2023"
 # Water is never the food: an FNDDS food counts toward the family of its
 # largest ingredient outside these families, and toward water only when it is
 # all water, so oatmeal made with water counts as oats.
