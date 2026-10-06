@@ -31,7 +31,7 @@ estimate of how many Americans eat a food. That is all a floor and a tie-break
 need.
 
 <!-- counts:totals -->
-NHANES 2021-2023: 6,694 participants reported 934 families and 1,370 variants, 135,448 participant-family pairs in all.
+NHANES 2021-2023: 6,694 participants reported 911 families and 1,369 variants, 134,411 participant-family pairs in all.
 <!-- counts:end -->
 
 ## How a reported food reaches a family
@@ -75,6 +75,31 @@ recipe order or spelling decide, so every tied family counts:
 | chicken, breast | 775 | 798 | 814 |
 | potatoes | 1,692 | 1,665 | 1,701 |
 | participant-family pairs | 131,317 | 131,347 | 135,448 |
+
+One bread family, measured on 2026-10-06 against the table of commit
+`a382034`, where every kind of bread was its own family. Since that day every
+bread row bought as bread, not cooked or dried, is one family, `bread`, its
+kinds the variants. The merge changed more than the key. FNDDS builds a
+sandwich's bread as a blend of several bread rows, so before the merge no
+single kind outweighed the filling and the filling won the rule above; as one
+family the bread wins. `bread` went from 3,181 participants, the union of the
+32 kinds that merged, to 3,709, and 44 FNDDS foods moved to it from their
+fillings, 41 of them reported: the ham, turkey and peanut butter sandwiches,
+the grilled cheese. The ten families that lost the most, before and after:
+`ham, sliced` 369 to 132; `turkey breast, sliced` 344 to 123; `peanut butter`
+728 to 512; `egg, whole` 2,381 to 2,326; `cheese, cheddar` 1,195 to 1,148;
+`salami, dry or hard` 126 to 84; `beef, ground` 1,126 to 1,086; `bologna, meat
+and poultry` 46 to 16; `roast beef, deli style` 30 to 4; `pepperoni, beef and
+pork` 62 to 47. One offered family changed tier: `nuts, almond butter`, from
+50 to 40, below the common threshold. `roast beef, deli style` fell below the
+floor, but its category is left out by design, so no swap offered it at
+either count. Nothing was added to the rule to put the numbers back: the
+counts after the merge are the honest ones. A deli meat's count now means
+the people who reported it outside a sandwich, or in one where the filling
+outweighs the bread. Two sweet breads, pan dulce and the Salvadoran pound-cake
+bread, key as `bread` and are denied as kinds by their own second field, so no
+swap offers them; their reports still count toward `bread`, since counts follow
+keys.
 
 ## Weight that reaches no table row
 
@@ -139,9 +164,10 @@ reports came through; a row no report came through decides nothing.
   excludes on purpose, or carries a word its category denies in the family
   key: drinks, sweets, snacks, cakes, cookies, pies and pastries, fast food
   and restaurant dishes, mixed dishes, soups and sauces, sausages and lunch
-  meats, spices, baby food; and fruit juices, soy sauce, catsup, garlic and
-  ginger, because condiments and juices are drinks and seasonings, not food
-  swaps. These were never meant to be swaps, whatever their key says.
+  meats, spices, baby food; fruit juices, soy sauce, catsup, garlic, ginger
+  and salad dressings, because condiments, dressings and juices are drinks
+  and seasonings, not food swaps; and flour, an ingredient and not a food on
+  a plate. These were never meant to be swaps, whatever their key says.
 - **Not reachable.** At least one of those rows is left out for its key alone,
   a cooked key no `count_as` line names or a duplicate of another row: a food
   a swap could offer if the key were fixed. This is the second gap in the
@@ -156,30 +182,31 @@ fried chicken is a cooked key in the table and left out by design here.
 <!-- counts:not_offered -->
 | Why no swap offers the family | Families | Pairs | Share of all pairs |
 | --- | --- | --- | --- |
-| left out by design | 408 | 56,138 | 41.4% |
+| left out by design | 428 | 58,919 | 43.8% |
 | not reachable | 8 | 573 | 0.4% |
 | other | 0 | 0 | 0.0% |
 <!-- counts:end -->
 
-What is left out by design is mostly drinks and sweets; its meat and grain come
-as sausage, fast food and boxed dishes, not as a cut or a bag of rice. Its ten
+What is left out by design is mostly drinks and sweets; its meat comes as
+sausage, fast food and boxed dishes, not as a cut, and the grain it holds as a
+bag is flour, left out as an ingredient. Its ten
 largest categories, by pairs, a family counted under the category with the
 most of the rows its reports came through and the first by name on a tie:
 
 <!-- counts:by_design -->
 | Category left out by design | Families | Pairs | Share of all pairs |
 | --- | --- | --- | --- |
-| Beverages | 65 | 20,363 | 15.0% |
-| Sweets | 72 | 10,148 | 7.5% |
+| Beverages | 65 | 20,363 | 15.1% |
+| Sweets | 72 | 10,134 | 7.5% |
 | Snacks | 42 | 5,711 | 4.2% |
-| Baked Products | 63 | 4,174 | 3.1% |
+| Baked Products | 62 | 4,082 | 3.0% |
 | Fast Foods | 23 | 3,665 | 2.7% |
 | Soups, Sauces, and Gravies | 30 | 2,669 | 2.0% |
-| Fruits and Fruit Juices | 20 | 2,363 | 1.7% |
-| Sausages and Luncheon Meats | 30 | 1,870 | 1.4% |
+| Fruits and Fruit Juices | 20 | 2,363 | 1.8% |
+| Fats and Oils | 17 | 1,861 | 1.4% |
+| Sausages and Luncheon Meats | 30 | 1,516 | 1.1% |
 | Meals, Entrees, and Side Dishes | 25 | 1,393 | 1.0% |
-| Vegetables and Vegetable Products | 4 | 1,236 | 0.9% |
-| all others | 34 | 2,546 | 1.9% |
+| all others | 42 | 5,162 | 3.8% |
 <!-- counts:end -->
 
 Of the families not reachable, three I considered as `count_as` lines and
@@ -241,17 +268,17 @@ the counts order:
   234 families fall below the line.
 - **Denied words.** The words named under "left out by design", matched in
   the family key within their categories; an allow word in the description
-  still wins.
+  still wins, as `mayonnaise` does against `dressing` in Fats and Oils.
 
 <!-- counts:tiers -->
 | Reported by at least | Families a swap can offer |
 | --- | --- |
-| any number | 1,428 |
-| 1 | 518 |
-| 10 (the floor) | 351 |
-| 20 | 287 |
-| 50 (the common tier) | 204 |
-| 100 | 152 |
+| any number | 1,353 |
+| 1 | 475 |
+| 10 (the floor) | 322 |
+| 20 | 261 |
+| 50 (the common tier) | 185 |
+| 100 | 142 |
 <!-- counts:end -->
 
 The threshold was set so that no staple falls out of the first tier, and a
@@ -271,18 +298,18 @@ test holds each of these at or above it:
 | beans, black | 249 |
 | fish, tuna | 296 |
 | crustaceans, shrimp | 310 |
-| bread, whole-wheat | 331 |
 | fish, salmon | 378 |
 | pork, loin | 415 |
 | yogurt, greek | 505 |
 | chicken, breast | 814 |
-| beef, ground | 1,126 |
+| beef, ground | 1,086 |
 | cereals, oats | 1,335 |
 | pasta, dry | 1,339 |
 | bananas | 1,570 |
 | rice, white | 1,609 |
 | potatoes | 1,701 |
-| egg, whole | 2,381 |
+| egg, whole | 2,326 |
+| bread | 3,709 |
 <!-- counts:end -->
 
 These families are offered in the first tier whatever their count, ordinary
@@ -305,9 +332,9 @@ two are not meant to be equal, and each ratio has a reason.
 | Family | Participants | WWEIA category | Participants | Ratio |
 | --- | --- | --- | --- | --- |
 | chicken, breast | 814 | Chicken, whole pieces | 1,840 | 0.44 |
-| beef, ground | 1,126 | Ground beef | 178 | 6.33 |
+| beef, ground | 1,086 | Ground beef | 178 | 6.10 |
 | rice, white | 1,609 | Rice | 1,268 | 1.27 |
-| egg, whole | 2,381 | Eggs and omelets | 2,237 | 1.06 |
+| egg, whole | 2,326 | Eggs and omelets | 2,237 | 1.04 |
 <!-- counts:end -->
 
 - `chicken, breast` is under half of its category: the family is breast only,

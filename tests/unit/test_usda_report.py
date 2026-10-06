@@ -29,7 +29,7 @@ def test_report_counts_and_measured_candidates(
         text = family_report(
             conn, config.swap.rank_weights, config.usda.varietal_threshold
         )
-    assert "rows in the matcher index: 208" in text
+    assert "rows in the matcher index: 211" in text
     assert "varietal override candidates (raw families within 15): 2" in text
     assert (
         "  fish: 3 of 8 raw families: fish, halibut; fish, mahimahi; fish, snapper"

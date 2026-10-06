@@ -186,7 +186,7 @@ def test_the_dev_objective_at_the_threshold_and_at_the_dev_optimal_cut(
         "method lexical: 4 of 8 dev names right end to end at its threshold",
         "method embed: 6 of 8 dev names right end to end at its threshold",
         "method hybrid: 6 of 8 dev names right end to end at both thresholds",
-        "lexical = 3.966069548219856  # dev-optimal: 6 of 8 right; "
+        "lexical = 3.9821142162855585  # dev-optimal: 6 of 8 right; "
         "2 dev names labeled NO_MATCH",
         "embed = 0.7400474846363068  # dev-optimal: 6 of 8 right; "
         "2 dev names labeled NO_MATCH",

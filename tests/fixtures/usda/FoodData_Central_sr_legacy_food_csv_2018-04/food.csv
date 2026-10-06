@@ -6,6 +6,7 @@ fdc_id,data_type,description,food_category_id,publication_date
 167787,sr_legacy_food,"Pomegranate juice, bottled",9,2019-04-01
 167793,sr_legacy_food,"Apples, raw, fuji, with skin (Includes foods for USDA's Food Distribution Program)",9,2019-04-01
 167807,sr_legacy_food,"Cherry juice, tart",9,2019-04-01
+167935,sr_legacy_food,"Bread, pan dulce, sweet yeast bread",18,2019-04-01
 168204,sr_legacy_food,"Apples, raw, gala, with skin (Includes foods for USDA's Food Distribution Program)",9,2019-04-01
 168249,sr_legacy_food,"Pork, fresh, loin, tenderloin, separable lean only, raw",10,2019-04-01
 168263,sr_legacy_food,"Pork, fresh, loin, center loin (chops), boneless, separable lean only, raw",10,2019-04-01
@@ -31,6 +32,7 @@ fdc_id,data_type,description,food_category_id,publication_date
 169383,sr_legacy_food,"Peppers, sweet, yellow, raw",11,2019-04-01
 169599,sr_legacy_food,"Gelatins, dry powder, unsweetened",19,2019-04-01
 169640,sr_legacy_food,Honey,19,2019-04-01
+169705,sr_legacy_food,Oats (Includes foods for USDA's Food Distribution Program),20,2019-04-01
 169715,sr_legacy_food,"Semolina, enriched",20,2019-04-01
 169716,sr_legacy_food,Sorghum grain,20,2019-04-01
 169736,sr_legacy_food,"Pasta, dry, enriched",20,2019-04-01
@@ -100,6 +102,7 @@ fdc_id,data_type,description,food_category_id,publication_date
 173180,sr_legacy_food,"Beverages, Protein powder whey based",14,2019-04-01
 173380,sr_legacy_food,"Beef, rib eye steak, boneless, lip off, separable lean only, trimmed to 0"" fat, choice, raw",13,2019-04-01
 173430,sr_legacy_food,"Butter, without salt",1,2019-04-01
+173592,sr_legacy_food,"Salad dressing, ranch dressing, regular",4,2019-04-01
 173647,sr_legacy_food,"Beverages, water, tap, drinking",14,2019-04-01
 173698,sr_legacy_food,"Fish, snapper, mixed species, raw",15,2019-04-01
 173703,sr_legacy_food,"Fish, swordfish, raw",15,2019-04-01

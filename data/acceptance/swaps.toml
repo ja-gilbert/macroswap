@@ -326,7 +326,7 @@ absurd = [
 [[general]]
 text = "oats"
 grams = 40
-accept = ["bread, wheat", "quinoa, uncooked", "bread, whole-wheat"]
+accept = ["bread", "quinoa, uncooked"]
 absurd = ["cucumber"]
 
 [[general]]
@@ -355,7 +355,7 @@ absurd = [
 [[general]]
 text = "bread"
 grams = 60
-accept = ["quinoa, uncooked", "oats"]
+accept = ["quinoa, uncooked", "cereals, oats"]
 absurd = []
 
 [[general]]

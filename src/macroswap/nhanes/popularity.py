@@ -281,7 +281,11 @@ def file_left_out(
     spared: set[str] = set()
     keyed: set[str] = set()
     for row in reported:
-        if category_excluded(row, row.family, usda):
+        # The table's own verdict, or the category rule on the family a row of
+        # another reason belongs to: a duplicate of a denied food is by design.
+        if row.exclusion_reason == "excluded-category" or category_excluded(
+            row, row.family, usda
+        ):
             filed[row.family][row.category] += 1
         else:
             spared.add(row.family)

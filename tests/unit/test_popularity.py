@@ -245,6 +245,12 @@ LEFT_OUT = "excluded-category"
             {"twin"},
             id="a-duplicate-is-a-key-reason",
         ),
+        pytest.param(
+            [row("1", "bread", reason=LEFT_OUT, category="Baked Products")],
+            {"bread": "Baked Products"},
+            set(),
+            id="a-kind-the-table-denied-inside-its-family",
+        ),
     ],
 )
 def test_a_family_no_swap_offers_is_filed_by_the_rows_given(
@@ -253,5 +259,6 @@ def test_a_family_no_swap_offers_is_filed_by_the_rows_given(
     """Left out by design takes every row: the ham's one cooked row in a
     category that leaves nothing out makes it not reachable. The category shown
     is the one with the most rows, Sweets over Snacks at two to one, and the
-    first by name when they tie."""
+    first by name when they tie. A row the table denied by its own name is by
+    design though its family's name, bread, carries no denied word."""
     assert file_left_out(reported, USDA) == (by_design, not_reachable)
