@@ -7,7 +7,9 @@ import pytest
 
 from macroswap.cli import main
 from macroswap.config import Config
-from macroswap.store import connect, write_usda
+from macroswap.nhanes.popularity import Table
+from macroswap.store import connect, write_popularity, write_usda
+from macroswap.swap.show import DIVIDER
 from macroswap.usda.table import Row
 
 # The swap rows of the exit-code table; the other commands' rows are in
@@ -99,9 +101,24 @@ def db(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     return path
 
 
-def build(db: Path, rows: list[Row]) -> None:
+def build(
+    db: Path,
+    rows: list[Row],
+    families: dict[str, int] | None = None,
+    variants: dict[str, int] | None = None,
+) -> None:
+    """The table and the counts: of 6,694 participants, 100 reported each
+    family unless families says who did, and nobody any one variant unless
+    variants does. They were counted in a cycle the config does not name, so
+    a header that shows it has read the store."""
+    if families is None:
+        families = {row.family: 100 for row in rows}
+    counts = Table(
+        "2017-2018", 6694, "", 0.0, 0, {}, families, variants or {}, {}, {}, {}, ()
+    )
     with connect(db) as conn:
         write_usda(conn, [astuple(r) for r in rows])
+        write_popularity(conn, counts)
 
 
 @pytest.mark.usefixtures("pinned_config")
@@ -128,9 +145,9 @@ def test_exit_code(
 def test_swap_prints_the_header_then_one_line_per_family(
     db: Path, usda_rows: list[Row], capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """A typed food at its grams, on a store with no diary: the header, the
-    popularity note, then --top families, none of them the target's own. The
-    twelfth, ground turkey at 99/1, adds its default level."""
+    """A typed food at its grams, on a store with no diary: the header, where
+    the counts come from, then --top families, none of them the target's own.
+    The twelfth, ground turkey at 99/1, adds its default level."""
     build(db, usda_rows)
     args = ["swap", "Egg", "Whites", "--grams", "165", "--top", "12"]
     assert main(["--db", str(db), *args]) == 0
@@ -140,13 +157,76 @@ def test_swap_prints_the_header_then_one_line_per_family(
         "row: sr:172183 Egg, white, raw, fresh",
         "method: lexical",
         "macros: protein 18.0 g, carbs 1.2 g, fat 0.3 g",
-        "popularity: not built; every family counts as common",
+        "popularity: NHANES 2017-2018, 6694 participants; count is how many "
+        "reported the family",
     ]
     assert len([line for line in lines[5:] if not line.startswith(" ")]) == 12
     assert lines[-1].startswith(
         "    default level (config default): 90 g  turkey, ground, 93/7"
     )
     assert "egg, white" not in "".join(lines[5:])
+
+
+def test_swap_reads_the_counts(
+    db: Path,
+    usda_rows: list[Row],
+    pinned_config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Tuna leads the near-ties as the most reported family, and shows its
+    canned variant, the one reported, not its closest. Crab, reported by 4, is
+    on the allowlist and says so in the first tier. Haddock, by 49, is under
+    the divider, and lobster, which nobody reported, is below the floor and
+    gone."""
+    listed = replace(pinned_config.popularity, allowlist=("crustaceans, crab",))
+    config = replace(pinned_config, popularity=listed)
+    monkeypatch.setattr("macroswap.cli.load_config", lambda path=None: config)
+    families = {row.family: 100 for row in usda_rows} | {
+        "fish, tuna": 296,
+        "crustaceans, crab": 4,
+        "fish, haddock": 49,
+    }
+    del families["crustaceans, lobster"]
+    canned = "fish, tuna, light, canned in water, drained solids"
+    build(db, usda_rows, families, {canned: 276})
+    args = ["swap", "egg whites", "--grams", "165", "--top", "200"]
+    assert main(["--db", str(db), *args]) == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert lines[5] == (
+        f"92 g canned  {canned}  protein +0.0  carbs -1.2  fat +0.6  kcal +1"
+        "  count 296  sr-analytical"
+    )
+    assert (
+        "116 g  crustaceans, crab  protein +0.0  carbs +0.1  fat +0.1  kcal +1"
+        "  count 4 allowlist  foundation"
+    ) in lines[: lines.index(DIVIDER)]
+    assert lines[-2:] == [
+        DIVIDER,
+        "110 g  fish, haddock  protein +0.0  carbs -1.2  fat +0.2  kcal -3"
+        "  count 49  sr-analytical",
+    ]
+    assert "lobster" not in "".join(lines)
+
+
+@pytest.mark.usefixtures("pinned_config")
+@pytest.mark.parametrize(
+    "lost",
+    [
+        pytest.param("DROP TABLE popularity_meta", id="built-before-the-counts"),
+        pytest.param("DELETE FROM popularity_meta", id="a-build-cut-short"),
+    ],
+)
+def test_swap_on_a_store_without_the_counts_asks_for_a_rebuild(
+    db: Path, usda_rows: list[Row], capsys: pytest.CaptureFixture[str], lost: str
+) -> None:
+    """A store built before the build counted participants has no table for
+    their cycle; a build cut short leaves it empty."""
+    build(db, usda_rows)
+    with connect(db) as conn:
+        conn.execute(lost)
+    assert main(["--db", str(db), "swap", "egg whites", "--grams", "165"]) == 2
+    assert "run `data build` again" in capsys.readouterr().err
 
 
 def test_swap_lists_the_nearest_rows_when_the_method_abstains(
