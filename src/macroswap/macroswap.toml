@@ -36,6 +36,16 @@ rank_weights = { protein = 48.0, carbs = 16.0, fat = 81.0 }
 # A candidate whose serving falls outside these grams is not offered, so three
 # kilograms of cucumber never answer a bowl of rice.
 serving_bounds_g = [5.0, 1000.0]
+# Nor is one whose serving is more than this many times the target's grams:
+# the largest serving an accepted swap needs is 5.1 times (potatoes for white
+# rice). A diary food matched to no row has no grams, and no ratio.
+serving_ratio = 6.0
+# A family of this group whose candidate rows' median calories per 100 g fall
+# under this line is not offered, whatever macro it is nearest: the dietary
+# guidelines' line between starchy and non-starchy vegetables, measured instead
+# of listed. The rule is off for a target that is itself such a vegetable.
+non_starchy_group = "Vegetables and Vegetable Products"
+starchy_kcal_per_100g = 50.0
 # Families whose rank scores sit within this of the best of their cluster are
 # ordered by popularity instead, and a family shows its most reported variant
 # among those within this of its closest, when at least the floor reported
@@ -63,6 +73,7 @@ top = 10
 "potatoes" = "potatoes, flesh and skin / raw"
 "greek yogurt" = "yogurt, greek, plain, nonfat / raw"
 "salmon" = "fish, salmon, atlantic, farmed / raw"
+"rice" = "rice, white, long-grain, regular / raw"
 
 [usda]
 # A USDA description is comma-separated fields, split outside parentheses and
@@ -119,6 +130,10 @@ depth_one_families = [
 product_fields = ["skin", "hash brown.*", "mashed.*", "o'brien", "french fried.*", "kimchi"]
 # A family joins every macro pool whose calorie share any candidate reaches.
 role_share_threshold = 0.25
+# Its carbs count as sugar at or above this share of sugars in carbs, summed
+# over its candidate rows that carry a sugars value, and as starch below it or
+# with no value: a bowl of rice is answered with potatoes, not with grapes.
+sugar_pool_share = 0.5
 # `data report` flags field-one groups whose raw families sit closer than this,
 # in rank-score units per 100 g, as varietal override candidates.
 varietal_threshold = 15.0
@@ -135,17 +150,21 @@ canned = ['canned.*']
 dry = ['dry( mix| form| powder.*| packet mix)?', '(sun-|air-|freeze-)?dried(-frozen)?', 'dehydrated.*']
 cooked = ['rotisserie.*']
 
-# Whole words or phrases, per category, that clear an excluded category.
+# Whole words or phrases, per category, matched anywhere in the description
+# with parentheticals removed, that clear an excluded category or a denied word.
 [usda.allow_words]
 "Beverages" = ["whey protein", "protein powder"]
 "Sausages and Luncheon Meats" = ["turkey breast", "turkey, breast", "chicken breast"]
 "Snacks" = ["jerky"]
 "Baked Products" = ["english muffins", "muffins, english"]
 
-# Whole words or phrases, per category, matched anywhere in the description
-# with parentheticals removed; an allow entry wins.
+# Whole words or phrases, per category, matched in the family key; an allow
+# entry wins. Condiments and juices are drinks and seasonings, not food swaps.
 [usda.deny_words]
 "Baked Products" = ["cookies", "cookie", "cake", "pie", "muffins", "muffin", "doughnuts", "pastry", "pastries", "croissants", "sweet rolls", "cream puff", "cinnamon buns", "pan dulce"]
+"Fruits and Fruit Juices" = ["juice"]
+"Legumes and Legume Products" = ["soy sauce"]
+"Vegetables and Vegetable Products" = ["catsup", "garlic", "ginger"]
 
 # Family -> family, for a parallel spelling of one food, confirmed from
 # `macroswap data report`. Applied after the keys are derived and before the

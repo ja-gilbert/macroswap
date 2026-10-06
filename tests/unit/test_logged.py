@@ -180,7 +180,7 @@ def test_like_log_pools_by_what_the_text_resolved_to(
             None,
             "",
             None,
-            frozenset({"protein", "carbs"}),
+            frozenset({"protein", "starch"}),
             None,
             id="unmatched-and-older-than-the-window",
         ),
@@ -189,7 +189,7 @@ def test_like_log_pools_by_what_the_text_resolved_to(
             None,
             "",
             None,
-            frozenset({"protein", "carbs"}),
+            frozenset({"protein", "starch"}),
             WINDOW,
             id="a-capital-outside-ascii",
         ),
@@ -207,12 +207,14 @@ def test_entry_is_the_named_diary_food_as_logged(
     pools: frozenset[str],
     window: tuple[str, str] | None,
 ) -> None:
-    """A matched name takes its family, variant and pools from its row: the
-    chicken breast as logged reaches protein alone, and its family fat too. The
-    trail bar, logged in January and matched to nothing, is read from the whole
-    diary, has no family, and reaches the pools its macros do: fat gives 24% of
-    its calories, under the 25% a pool takes. The store lower-cases ASCII
-    letters only, so the bar logged as "Épi Bar" is kept as "Épi bar"."""
+    """A matched name takes its family, variant and pools from its row, and is
+    weighed by that row: the chicken breast as logged reaches protein alone,
+    and its family fat too. The trail bar, logged in January and matched to
+    nothing, is read from the whole diary, has no family and no weight, and
+    reaches the pools its macros do: fat gives 24% of its calories, under the
+    25% a pool takes, and carbs with no sugars value are starch. The store
+    lower-cases ASCII letters only, so the bar logged as "Épi Bar" is kept as
+    "Épi bar"."""
     log(conn, "2026-01-10", "Bobs - Trail Bar", (30, 40, 10))
     log(conn, "2026-08-03", "Épi Bar", (30, 40, 10))
     got = entry(name, matched(conn, config, matcher), usda_rows, config)
@@ -223,7 +225,8 @@ def test_entry_is_the_named_diary_food_as_logged(
         target.variant,
         target.pools,
         got.window,
-    ) == (row_id, family, variant, pools, window)
+        target.grams is not None,
+    ) == (row_id, family, variant, pools, window, row_id is not None)
 
 
 @pytest.mark.parametrize(

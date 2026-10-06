@@ -44,6 +44,9 @@ class SwapConfig:
     fit_weights: Macros
     rank_weights: Macros
     serving_bounds_g: tuple[float, float]
+    serving_ratio: float
+    non_starchy_group: str
+    starchy_kcal_per_100g: float
     tie_epsilon: float
     popularity_floor: int
     common_threshold: int
@@ -73,6 +76,7 @@ class UsdaConfig:
     depth_one_families: tuple[str, ...]
     product_fields: tuple[str, ...]
     role_share_threshold: float
+    sugar_pool_share: float
     varietal_threshold: float
     as_bought: dict[str, list[str]]
     allow_words: dict[str, list[str]]

@@ -81,6 +81,7 @@ _USDA_COLUMNS = (
     "carbs",
     "fat",
     "fiber",
+    "sugars",
     "kcal",
     "roles",
     "exclusion_reason",
@@ -102,6 +103,7 @@ CREATE TABLE usda_foods (
     carbs            REAL,
     fat              REAL,
     fiber            REAL,
+    sugars           REAL,
     kcal             REAL,
     roles            TEXT NOT NULL,
     exclusion_reason TEXT
@@ -180,7 +182,13 @@ def read_popularity(conn: sqlite3.Connection) -> tuple[str, Popularity] | None:
 
 
 def read_usda(conn: sqlite3.Connection) -> list[Row]:
-    """Every row of the USDA table, as build_table made it."""
+    """Every row of the USDA table, as build_table made it; a table an older
+    build wrote without a column the rows now carry is refused."""
+    have = {column[1] for column in conn.execute("PRAGMA table_info(usda_foods)")}
+    if missing := [c for c in _USDA_COLUMNS if c not in have]:
+        raise FileNotFoundError(
+            f"the USDA table lacks {', '.join(missing)}; run `data build` again"
+        )
     columns = ", ".join(_USDA_COLUMNS)
     return [Row(*r) for r in conn.execute(f"SELECT {columns} FROM usda_foods")]
 

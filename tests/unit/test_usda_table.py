@@ -33,7 +33,9 @@ EXCLUSION_CASES = {
     "tortilla": ("sr:167535", None),
     "muffin-denied": ("sr:172765", "excluded-category"),
     "cookies-denied": ("sr:172715", "excluded-category"),
-    "deny-word-in-field-three": ("sr:175084", "excluded-category"),
+    "deny-word-in-the-description-not-the-key": ("sr:175084", None),
+    "juice-denied-on-the-key": ("sr:173041", "excluded-category"),
+    "catsup-denied": ("sr:168556", "excluded-category"),
     "deny-word-only-inside-a-parenthetical": ("sr:174908", None),
     "gelatin-in-sweets": ("sr:169599", "excluded-category"),
     "whey-allowed": ("sr:173177", None),
@@ -83,7 +85,7 @@ def test_depth_one_keeps_products_out_and_pools_come_from_candidates(
     fat reaches no pool."""
     assert rows["sr:170027"].family == "potatoes"
     assert rows["sr:170032"].family == "potatoes, skin"
-    assert rows["sr:170027"].roles == "carbs"
+    assert rows["sr:170027"].roles == "starch"
     assert rows["sr:170004"].family == "onions, yellow"
     assert rows["sr:170004"].roles == ""
 
@@ -142,14 +144,32 @@ def test_roles_are_family_level_and_absent_without_usable_macros(
     foods: list[Food], rows: dict[str, Row]
 ) -> None:
     assert rows["sr:168652"].roles == "protein,fat", "70/30 joins protein via 97/3"
-    assert rows["sr:172420"].roles == "protein,carbs", "27% protein clears 0.25"
-    assert rows["sr:171265"].roles == "carbs,fat", "fat leads only at 9 kcal/g"
+    assert rows["sr:172420"].roles == "protein,starch", "27% protein clears 0.25"
+    assert rows["sr:171265"].roles == "sugar,fat", "fat leads only at 9 kcal/g"
     assert rows["sr:173430"].roles == "fat"
     cod = next(f for f in foods if f.id == "sr:171955")
     blank = replace(cod, id="sr:0", protein=None)
     with_blank = {r.id: r for r in build_table([*foods, blank], USDA)}
     assert with_blank["sr:171955"].roles == "protein"
     assert with_blank["sr:0"].roles == "", "no macro, no roles, whatever the family"
+
+
+def test_a_familys_carbs_are_sugar_by_one_summed_share(foods: list[Food]) -> None:
+    """Whole milk's 5.05 g of sugars in 4.8 g of carbs make it sugar; with no
+    sugars value it is starch. Potatoes' four rows are 5% sugar; one of them
+    made a 100 g all-sugar row carries the family past the cut when the shares
+    are summed over grams, where a mean of the rows' own shares, 29%, would
+    not; and a row with no sugars value, the white potato made 1,000 g of
+    carbs, adds nothing to either sum."""
+    by_id = {f.id: f for f in foods}
+    changed = {
+        "sr:171265": replace(by_id["sr:171265"], sugars=None),
+        "sr:170027": replace(by_id["sr:170027"], carbs=100.0, sugars=100.0),
+        "sr:170028": replace(by_id["sr:170028"], carbs=1000.0, sugars=None),
+    }
+    rows = {r.id: r for r in build_table([changed.get(f.id, f) for f in foods], USDA)}
+    assert rows["sr:171265"].roles == "starch,fat"
+    assert rows["sr:170026"].roles == "sugar"
 
 
 def test_aliases_apply_to_any_source_and_stale_config_is_refused(

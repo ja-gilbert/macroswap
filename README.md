@@ -165,11 +165,13 @@ carries a single distance.
     uv run macroswap swap "ground beef 93/7" --grams 150 --variants
     uv run macroswap swap --entry "kirkland - chicken breast"
 
-A typed name is looked up first in a table of four everyday names
-(`[swap.staples]` in `macroswap.toml`: white rice, potatoes, greek yogurt and
-salmon), compared exactly after the matcher's own normalization of the text, and
-only then given to the matcher. The table is a curated synonym layer kept out of
-the matcher, so every number in the eval block above is for the matcher alone.
+A typed name is looked up first in a table of five everyday names
+(`[swap.staples]` in `macroswap.toml`: white rice, rice, potatoes, greek yogurt
+and salmon), compared exactly after the matcher's own normalization of the text,
+and only then given to the matcher. The table is a curated synonym layer kept
+out of the matcher, so every number in the eval block above is for the matcher
+alone. The bare name `rice` is white rice; a stranger types `wild rice` or
+`black rice` to reach those.
 
 Until the popularity table is built, every family counts as common, the header
 says so, and the rows are the closest macro matches whatever the food: chicken

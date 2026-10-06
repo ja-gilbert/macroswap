@@ -12,9 +12,20 @@ _PROTEIN = "1003"
 _FAT = "1004"
 _CARBS = "1005"  # carbohydrate by difference
 _FIBER = "1079"
+_SUGARS = "2000"  # total sugars
+_SUGARS_NLEA = "1063"  # total sugars as labelled, where 2000 is not given
 _ENERGY = "1008"
 _ATWATER = "2047"  # energy from Atwater general factors
-NUTRIENT_IDS = {_PROTEIN, _FAT, _CARBS, _FIBER, _ENERGY, _ATWATER}
+NUTRIENT_IDS = {
+    _PROTEIN,
+    _FAT,
+    _CARBS,
+    _FIBER,
+    _SUGARS,
+    _SUGARS_NLEA,
+    _ENERGY,
+    _ATWATER,
+}
 # Each release's data type, which also names its NDB file.
 _DATA_TYPES = {"sr": "sr_legacy_food", "foundation": "foundation_food"}
 
@@ -30,6 +41,7 @@ class Food:
     carbs: float | None
     fat: float | None
     fiber: float | None
+    sugars: float | None
     kcal: float | None
 
 
@@ -41,7 +53,7 @@ class Loaded:
 
 
 def load_release(folder: Path, source: str) -> list[Food]:
-    """Every food of one release with the six nutrients the table uses."""
+    """Every food of one release with the nutrients the table uses."""
     data_type = _DATA_TYPES[source]
     categories = {
         r["id"]: r["description"] for r in _rows(folder / "food_category.csv")
@@ -105,6 +117,7 @@ def _food(
         carbs=carbs,
         fat=fat,
         fiber=amounts.get(_FIBER),
+        sugars=amounts.get(_SUGARS, amounts.get(_SUGARS_NLEA)),
         kcal=kcal,
     )
 

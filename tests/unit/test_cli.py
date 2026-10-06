@@ -296,7 +296,7 @@ def test_data_build_then_report(
         "participants": 5,
         "link_rule": LINK_RULE,
         "unattributed": 0.022222,
-        "offered_families": 97,
+        "offered_families": 93,
         "crosswalk": {"rice, white": ["Rice", 3, 4]},
         "families": families,
         "variants": variants,

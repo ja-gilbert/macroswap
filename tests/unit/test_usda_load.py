@@ -47,6 +47,17 @@ def test_energy_fallbacks_and_carb_clamp(
     assert food.carbs == carbs
 
 
+def test_sugars_come_from_total_sugars_or_the_labelled_total(
+    usda_dir: Path, foundation: dict[str, Food]
+) -> None:
+    """SR reports total sugars (2000); Foundation's canned tomatoes report only
+    the labelled total (1063); SR's mahimahi reports neither."""
+    sr = {f.id: f for f in load_release(usda_dir / SR, "sr")}
+    assert sr["sr:170894"].sugars == 3.24
+    assert foundation["foundation:333281"].sugars == 2.99
+    assert sr["sr:171959"].sugars is None
+
+
 def test_energy_formula_when_a_release_reports_no_energy(tmp_path: Path) -> None:
     """No pinned row needs 4P + 4C + 9F, so a one-row release exercises it."""
     files = {

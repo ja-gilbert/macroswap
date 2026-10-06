@@ -109,13 +109,14 @@ def like_log(
     days = config.swap.diary_window_days
     macros, window, counts = _medians(diary, names, days, food.key)
     food = replace(food, level=None)
-    return resolved(food, macros, config.usda.role_share_threshold, window, counts)
+    return resolved(food, macros, config, window=window, names=counts)
 
 
 def entry(name: str, diary: Diary, rows: Sequence[Row], config: Config) -> Resolved:
     """The diary food of that name at the medians of its logged rows. A name
-    nothing matched has no family to leave out, and its pools are the ones its
-    medians reach."""
+    nothing matched has no family to leave out and the pools its medians reach;
+    it and a name matched at its family alone stand on no row, so neither has a
+    weight for the serving ratio."""
     # The store lower-cases ASCII letters only, so compare names lowered here.
     typed = name_key(name)
     stored = {n.lower(): n for n in diary.matches}
@@ -131,8 +132,7 @@ def entry(name: str, diary: Diary, rows: Sequence[Row], config: Config) -> Resol
     family = match["family"] or ""
     row = next((r for r in rows if r.id == match["usda_id"]), None)
     roles = next((r.roles for r in rows if r.family == family and r.roles), "")
-    threshold = config.usda.role_share_threshold
-    target = target_at(key, macros, family, match["variant"], roles, threshold)
+    target = target_at(key, macros, family, match["variant"], roles, config, row)
     return Resolved(target, row, key, "diary", None, (), window, counts)
 
 

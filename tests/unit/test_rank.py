@@ -14,6 +14,9 @@ CONFIG = SwapConfig(
     fit_weights=Macros(3, 1, 1),
     rank_weights=Macros(48, 16, 81),
     serving_bounds_g=(5.0, 1000.0),
+    serving_ratio=6.0,
+    non_starchy_group="Vegetables and Vegetable Products",
+    starchy_kcal_per_100g=50.0,
     tie_epsilon=10.0,
     popularity_floor=20,
     common_threshold=50,
@@ -28,6 +31,7 @@ SALMON = Target(
     Macros(20.42, 0.0, 13.42), "salmon", None, frozenset({"protein", "fat"})
 )
 TOFU = frozenset({"tofu"})
+VEG = "Vegetables and Vegetable Products"
 
 
 def row(
@@ -38,13 +42,15 @@ def row(
     lean_pct: int | None = None,
     roles: str = "protein",
     row_id: str = "",
+    category: str = "test",
+    kcal: float = 0.0,
 ) -> Row:
     return Row(
         id=row_id or family,
         source="sr",
         ndb=None,
         description=family,
-        category="test",
+        category=category,
         family=family,
         variant=variant or family,
         lean_pct=lean_pct,
@@ -54,7 +60,8 @@ def row(
         carbs=per_100g.carbs,
         fat=per_100g.fat,
         fiber=0.0,
-        kcal=0.0,
+        sugars=None,
+        kcal=kcal,
         roles=roles,
         exclusion_reason=None,
     )
@@ -92,12 +99,12 @@ def test_fit_weights_fit_the_serving_and_rank_weights_score_it() -> None:
 
 def test_a_family_is_offered_when_its_roles_share_a_pool_with_the_target() -> None:
     """A protein and fat target reaches a fat family, and a family whose roles
-    reach protein though this row of it is nearly all carbs; rice, in carbs
+    reach protein though this row of it is nearly all carbs; rice, in starch
     alone, is left out and counted."""
     candidates = [
         Candidate(row("olive oil", Macros(0.0, 0.0, 100.0), roles="fat")),
-        Candidate(row("beans", Macros(5.0, 60.0, 0.5), roles="protein,carbs")),
-        Candidate(row("rice", Macros(7.13, 79.95, 0.66), roles="carbs")),
+        Candidate(row("beans", Macros(5.0, 60.0, 0.5), roles="protein,starch")),
+        Candidate(row("rice", Macros(7.13, 79.95, 0.66), roles="starch")),
     ]
     ranking = rank(SALMON, candidates, CONFIG)
     assert (sorted(families(ranking.common)), ranking.filtered) == (
@@ -343,8 +350,91 @@ def test_top_counts_family_rows_in_output_order(
     assert (families(ranking.common), families(ranking.rest)) == (common, rest)
 
 
-def test_a_row_left_out_for_several_reasons_counts_once_under_the_first() -> None:
+@pytest.mark.parametrize(
+    ("candidate", "reason"),
+    [
+        pytest.param(
+            Candidate(row("walnut oil", Macros(0, 0, 100), roles="fat"), 5),
+            "no-shared-pool",
+            id="no-pool-before-the-floor-and-the-bounds",
+        ),
+        pytest.param(
+            Candidate(row("cress", Macros(3, 0, 0), category=VEG, kcal=11), 5),
+            "below-floor",
+            id="the-floor-before-the-vegetable-rule",
+        ),
+        pytest.param(
+            Candidate(row("cress", Macros(3, 0, 0), category=VEG, kcal=11), 50),
+            "non-starchy-vegetable",
+            id="the-vegetable-rule-before-the-serving",
+        ),
+    ],
+)
+def test_a_row_left_out_for_several_reasons_counts_once_under_the_first(
+    candidate: Candidate, reason: str
+) -> None:
     """An obscure oil for a protein target shares no pool, is below the floor
-    and fits at 0 g; it counts once, as sharing no pool."""
-    oil = Candidate(row("walnut oil", Macros(0, 0, 100), roles="fat"), popularity=5)
-    assert rank(TARGET, [oil], CONFIG).filtered == {"no-shared-pool": 1}
+    and fits at 0 g; it counts once, as sharing no pool. Cress at 11 kcal is a
+    non-starchy vegetable needing 667 g, over six times the target's 100 g: it
+    counts under the floor when few reported it, else under the vegetable
+    rule."""
+    target = Target(LEAN, "egg white", None, TARGET.pools, 100.0)
+    assert rank(target, [candidate], CONFIG).filtered == {reason: 1}
+
+
+@pytest.mark.parametrize(
+    ("grams", "filtered"),
+    [
+        pytest.param(100.0, {"serving-ratio": 1}, id="over-the-ratio"),
+        pytest.param(None, {}, id="a-target-with-no-weight-has-no-ratio"),
+    ],
+)
+def test_a_serving_over_the_ratio_times_the_targets_grams_is_left_out(
+    grams: float | None, filtered: dict[str, int]
+) -> None:
+    """20 g of protein from 100 g of a food takes 667 g of one at 3 g per 100
+    g, more than six times the target's grams; a diary food on no row has no
+    grams, and the ratio does not apply."""
+    target = Target(LEAN, "egg white", None, TARGET.pools, grams)
+    broth = Candidate(row("broth", Macros(3, 0, 0)))
+    assert rank(target, [broth], CONFIG).filtered == filtered
+
+
+@pytest.mark.parametrize(
+    ("non_starchy", "offered", "filtered"),
+    [
+        pytest.param(
+            False,
+            ["peas", "potatoes", "squash"],
+            {"non-starchy-vegetable": 3},
+            id="under-the-kcal-line",
+        ),
+        pytest.param(
+            True,
+            ["lettuce", "peas", "potatoes", "squash"],
+            {},
+            id="a-non-starchy-target-lifts-the-rule",
+        ),
+    ],
+)
+def test_a_non_starchy_vegetable_family_is_left_out_unless_the_target_is_one(
+    non_starchy: bool, offered: list[str], filtered: dict[str, int]
+) -> None:
+    """Lettuce's three rows have a median of 20 kcal, under the line of 50,
+    where their mean, 55, is not; squash's two rows have a median of exactly
+    50 and stay; peas have a row filed under Legumes, so the rule does not
+    reach them; potatoes are 77. A target that is itself a non-starchy
+    vegetable, boiled carrots say, turns the rule off for the swap."""
+    kcal = {"lettuce": (15, 20, 130), "squash": (40, 60), "potatoes": (77,)}
+    candidates = [
+        Candidate(row(f, variant=f"{f} {k}", category=VEG, kcal=k))
+        for f, kcals in kcal.items()
+        for k in kcals
+    ]
+    for category in (VEG, "Legumes and Legume Products"):
+        candidates.append(
+            Candidate(row("peas", variant=category, category=category, kcal=42))
+        )
+    target = Target(LEAN, "carrots, drained", None, TARGET.pools, None, non_starchy)
+    ranking = rank(target, candidates, CONFIG)
+    assert (sorted(families(ranking.common)), ranking.filtered) == (offered, filtered)

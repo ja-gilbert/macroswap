@@ -58,6 +58,7 @@ def row(
         carbs=0.0,
         fat=0.0,
         fiber=0.0,
+        sugars=None,
         kcal=0.0,
         roles="",
         exclusion_reason=reason,

@@ -30,7 +30,7 @@ REASONS = (
     "zero-macro",
     "incomplete-macros",
 )
-_POOLS = ("protein", "carbs", "fat")
+_POOLS = ("protein", "starch", "sugar", "fat")
 
 
 class BuildError(ValueError):
@@ -53,6 +53,7 @@ class Row:
     carbs: float | None
     fat: float | None
     fiber: float | None
+    sugars: float | None
     kcal: float | None
     roles: str
     exclusion_reason: str | None
@@ -87,7 +88,7 @@ def build_table(foods: list[Food], usda: UsdaConfig) -> list[Row]:
         _row(k, _reason(k, usda, sr_variants), leanness.get(k.family)) for k in keyed
     ]
     rows += [d for lean in usda.leanness for d in _derived(lean, rows)]
-    return _with_roles(rows, usda.role_share_threshold)
+    return _with_roles(rows, usda.role_share_threshold, usda.sugar_pool_share)
 
 
 def _key(
@@ -131,7 +132,7 @@ def _reason(k: _Keyed, usda: UsdaConfig, sr_variants: set[str]) -> str | None:
         return "analytical-duplicate"
     if k.cooked_sibling:
         return "cooked-with-raw-sibling"
-    if category_excluded(f, usda):
+    if category_excluded(f, k.family, usda):
         return "excluded-category"
     macros = (f.protein, f.carbs, f.fat)
     if macros == (0.0, 0.0, 0.0):
@@ -141,14 +142,14 @@ def _reason(k: _Keyed, usda: UsdaConfig, sr_variants: set[str]) -> str | None:
     return None
 
 
-def category_excluded(food: Food | Row, usda: UsdaConfig) -> bool:
-    """Whether the food's category, or a word its category denies, leaves it
-    out; an allow word clears it."""
+def category_excluded(food: Food | Row, family: str, usda: UsdaConfig) -> bool:
+    """Whether the food's category, or a word its category denies in the
+    family key, leaves it out; an allow word in the description clears it."""
     text = plain(food.description.lower())
     if any(_has(w, text) for w in usda.allow_words.get(food.category, [])):
         return False
     return food.category in usda.excluded_categories or any(
-        _has(w, text) for w in usda.deny_words.get(food.category, [])
+        _has(w, family) for w in usda.deny_words.get(food.category, [])
     )
 
 
@@ -179,6 +180,7 @@ def _row(k: _Keyed, reason: str | None, lean: Leanness | None) -> Row:
         carbs=f.carbs,
         fat=f.fat,
         fiber=f.fiber,
+        sugars=f.sugars,
         kcal=f.kcal,
         roles="",
         exclusion_reason=reason,
@@ -219,6 +221,7 @@ def _derived(lean: Leanness, rows: list[Row]) -> list[Row]:
                 carbs=_lerp(a.carbs, b.carbs, t),
                 fat=_lerp(a.fat, b.fat, t),
                 fiber=_lerp(a.fiber, b.fiber, t),
+                sugars=_lerp(a.sugars, b.sugars, t),
                 kcal=_lerp(a.kcal, b.kcal, t),
                 roles="",
                 exclusion_reason=None,
@@ -227,19 +230,29 @@ def _derived(lean: Leanness, rows: list[Row]) -> list[Row]:
     return out
 
 
-def _with_roles(rows: list[Row], threshold: float) -> list[Row]:
+def _with_roles(rows: list[Row], threshold: float, sugar_cut: float) -> list[Row]:
     """A family joins every pool any of its candidates reaches, and every row
-    of the family with usable macros carries the family's roles.
+    of the family with usable macros carries the family's roles. Its carbs
+    are sugar or starch by one share: the summed sugars of its candidates that
+    carry a sugars value over those candidates' summed carbs.
 
     Rows without all three macros, or with all three at zero, get no roles
     whatever reason they record.
     """
     pools: dict[str, set[str]] = defaultdict(set)
+    sugars: dict[str, float] = defaultdict(float)
+    carbs: dict[str, float] = defaultdict(float)
     for r in rows:
         if r.exclusion_reason is None and _macros_usable(r):
             pools[r.family] |= pools_of(
                 r.protein or 0.0, r.carbs or 0.0, r.fat or 0.0, threshold
             )
+            if r.sugars is not None:
+                sugars[r.family] += r.sugars
+                carbs[r.family] += r.carbs or 0.0
+    for family, found in pools.items():
+        share = sugars[family] / carbs[family] if carbs[family] else None
+        pools[family] = split_carbs(found, share, sugar_cut)
     return [
         replace(r, roles=",".join(p for p in _POOLS if p in pools[r.family]))
         if _macros_usable(r)
@@ -260,6 +273,15 @@ def pools_of(protein: float, carbs: float, fat: float, threshold: float) -> set[
     total = sum(kcal.values())
     dominant = max(kcal, key=lambda p: kcal[p])
     return {dominant} | {p for p, v in kcal.items() if v / total >= threshold}
+
+
+def split_carbs(pools: set[str], sugar_share: float | None, cut: float) -> set[str]:
+    """The carb pool as sugar or starch: sugar at or above the cut, starch
+    below it or where no sugars value is known."""
+    if "carbs" not in pools:
+        return pools
+    pool = "sugar" if sugar_share is not None and sugar_share >= cut else "starch"
+    return pools - {"carbs"} | {pool}
 
 
 def _check_aliases(keyed: list[_Keyed], aliases: dict[str, str]) -> None:

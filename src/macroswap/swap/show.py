@@ -32,6 +32,8 @@ def header(resolved: Resolved, amount: str, fallback: str = "") -> list[str]:
     ]
     if level:
         lines.append(f"level: {level.lean_pct}/{100 - level.lean_pct}, {level.source}")
+    if target.grams is None:
+        lines.append("serving ratio: not applied; no row with macros weighs the food")
     lines += resolved.notes
     if resolved.names:
         days = " to ".join(resolved.window) if resolved.window else "the whole diary"

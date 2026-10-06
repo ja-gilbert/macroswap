@@ -21,10 +21,15 @@ def test_packaged_config_loads_with_expected_values() -> None:
     assert config.swap.fit_weights == Macros(3.0, 1.0, 1.0)
     assert config.swap.rank_weights == Macros(48.0, 16.0, 81.0)
     assert config.swap.serving_bounds_g == (5.0, 1000.0)
+    assert config.swap.serving_ratio == 6.0
+    assert config.swap.non_starchy_group == "Vegetables and Vegetable Products"
+    assert config.swap.starchy_kcal_per_100g == 50.0
+    assert config.usda.sugar_pool_share == 0.5
     assert config.swap.tie_epsilon == 5.0
     assert (config.swap.popularity_floor, config.swap.common_threshold) == (10, 50)
     assert config.swap.diary_window_days == 90
     assert config.swap.top == 10
+    assert config.swap.staples["rice"] == config.swap.staples["white rice"]
     assert {lean.family: lean.default for lean in config.usda.leanness} == {
         "beef, ground": "85/15",
         "turkey, ground": "93/7",
