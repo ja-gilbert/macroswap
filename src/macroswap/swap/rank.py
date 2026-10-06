@@ -10,9 +10,10 @@ a lean one.
 from __future__ import annotations
 
 import math
-from collections import Counter
+from collections import Counter, defaultdict
 from collections.abc import Collection, Mapping, Sequence
 from dataclasses import astuple, dataclass
+from statistics import median
 
 from macroswap.config import SwapConfig
 from macroswap.swap.fit import Fit, Macros, fit
@@ -22,12 +23,16 @@ from macroswap.usda.table import Row
 @dataclass(frozen=True)
 class Target:
     """Grams of protein, carbs and fat to match, and the food they came from:
-    its family, its variant when one row was resolved, and its family's pools."""
+    its family, its variant when one row was resolved, its family's pools, how
+    much of it there is, None when no row gives the food a weight, and whether
+    the food is itself a non-starchy vegetable, which turns that rule off."""
 
     macros: Macros
     family: str
     variant: str | None
     pools: frozenset[str]
+    grams: float | None = None
+    non_starchy: bool = False
 
 
 @dataclass(frozen=True)
@@ -111,7 +116,9 @@ def rank(
     the target's (under variants only the target's own variant is), it shares
     no pool with the target, new_only and its family is in the diary, its count
     is below the floor (a diary family, an allowlisted one and include_obscure
-    are exempt), or its serving falls outside the bounds. A family shows the
+    are exempt), its family is a non-starchy vegetable (unless the target is
+    one), its serving falls outside the bounds, or its serving is more than the
+    ratio times the target's grams, when the target has any. A family shows the
     variant most participants reported among those within the tie epsilon of
     its closest, the closer of two reported alike, when at least the floor
     reported it; otherwise, and for a leanness family always, it shows its
@@ -128,6 +135,7 @@ def rank(
         return "allowlist" if family in allowlist else ""
 
     low, high = config.serving_bounds_g
+    non_starchy = _non_starchy(candidates, config)
     filtered: Counter[str] = Counter()
     families: dict[str, dict[str, Offer]] = {}
     for candidate in candidates:
@@ -146,11 +154,16 @@ def rank(
             and not include_obscure
         ):
             filtered["below-floor"] += 1
+        elif row.family in non_starchy and not target.non_starchy:
+            filtered["non-starchy-vegetable"] += 1
         else:
             per_100g = Macros(row.protein or 0.0, row.carbs or 0.0, row.fat or 0.0)
             fitted = fit(target.macros, per_100g, config.fit_weights)
             if not low <= fitted.grams <= high:
                 filtered["serving-bounds"] += 1
+                continue
+            if target.grams and fitted.grams > config.serving_ratio * target.grams:
+                filtered["serving-ratio"] += 1
                 continue
             offer = Offer(
                 candidate, fitted, score(fitted.delta, config.rank_weights), own
@@ -188,6 +201,21 @@ def rank(
     first = _clustered(common, config.tie_epsilon)[:limit]
     second = _clustered(rest, config.tie_epsilon)[: limit - len(first)]
     return Ranking(tuple(first), tuple(second), dict(filtered))
+
+
+def _non_starchy(candidates: Sequence[Candidate], config: SwapConfig) -> frozenset[str]:
+    """The families of the vegetable group whose candidate rows, every one in
+    that group, have a median under the kcal line per 100 g: the dietary
+    guidelines' non-starchy vegetables, measured rather than listed."""
+    by_family: dict[str, list[Row]] = defaultdict(list)
+    for candidate in candidates:
+        by_family[candidate.row.family].append(candidate.row)
+    return frozenset(
+        family
+        for family, rows in by_family.items()
+        if all(r.category == config.non_starchy_group for r in rows)
+        and median(r.kcal or 0.0 for r in rows) < config.starchy_kcal_per_100g
+    )
 
 
 def _clustered(rows: list[tuple[float, FamilyRow]], epsilon: float) -> list[FamilyRow]:

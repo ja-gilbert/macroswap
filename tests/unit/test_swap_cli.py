@@ -25,8 +25,8 @@ EXIT_CODES = {
         ["swap", "egg whites", "--grams", "0.5"],
         True,
         1,
-        "no swap: every candidate was left out (no-shared-pool 83; serving-bounds 82; "
-        "own-family 1)",
+        "no swap: every candidate was left out (no-shared-pool 78; serving-bounds 79; "
+        "non-starchy-vegetable 3; own-family 1)",
     ),
     "swap-target-with-all-macros-zero": (
         ["swap", "tap water", "--grams", "500"],
@@ -215,13 +215,17 @@ def test_swap_reads_the_counts(
     [
         pytest.param("DROP TABLE popularity_meta", id="built-before-the-counts"),
         pytest.param("DELETE FROM popularity_meta", id="a-build-cut-short"),
+        pytest.param(
+            "ALTER TABLE usda_foods DROP COLUMN sugars", id="built-before-the-sugars"
+        ),
     ],
 )
-def test_swap_on_a_store_without_the_counts_asks_for_a_rebuild(
+def test_swap_on_a_store_from_an_older_build_asks_for_a_rebuild(
     db: Path, usda_rows: list[Row], capsys: pytest.CaptureFixture[str], lost: str
 ) -> None:
     """A store built before the build counted participants has no table for
-    their cycle; a build cut short leaves it empty."""
+    their cycle; a build cut short leaves it empty; a table written before the
+    rows carried sugars lacks the column."""
     build(db, usda_rows)
     with connect(db) as conn:
         conn.execute(lost)

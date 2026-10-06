@@ -243,7 +243,7 @@ def test_no_hit_below_the_threshold_stands_in(
 
 
 @pytest.mark.parametrize(
-    ("text", "grams", "macros", "family", "pools"),
+    ("text", "grams", "macros", "family", "pools", "non_starchy"),
     [
         pytest.param(
             "chicken breast",
@@ -251,6 +251,7 @@ def test_no_hit_below_the_threshold_stands_in(
             Macros(45.0, 0.0, 5.24),
             "chicken, breast",
             {"protein", "fat"},
+            False,
             id="pools-of-its-family",
         ),
         pytest.param(
@@ -258,8 +259,45 @@ def test_no_hit_below_the_threshold_stands_in(
             50,
             Macros(2.985, 33.745, 8.955),
             "cookies, chocolate chip",
-            {"carbs", "fat"},
+            {"starch", "fat"},
+            False,
             id="pools-of-its-macros-when-no-swap-offers-its-family",
+        ),
+        pytest.param(
+            "grape juice canned or bottled",
+            100,
+            Macros(0.37, 14.77, 0.13),
+            "grape juice, canned or bottled",
+            {"sugar"},
+            False,
+            id="a-sugar-pool-by-the-rows-own-share",
+        ),
+        pytest.param(
+            "gelatin dry powder",
+            100,
+            Macros(85.6, 0.0, 0.1),
+            "gelatins, dry powder",
+            {"protein"},
+            False,
+            id="a-sugars-value-over-no-carbs",
+        ),
+        pytest.param(
+            "broccoli",
+            100,
+            Macros(2.82, 6.64, 0.37),
+            "broccoli",
+            {"protein", "starch"},
+            True,
+            id="a-non-starchy-vegetable",
+        ),
+        pytest.param(
+            "potatoes flesh and skin",
+            100,
+            Macros(2.05, 17.49, 0.09),
+            "potatoes",
+            {"starch"},
+            False,
+            id="a-starchy-vegetable",
         ),
     ],
 )
@@ -272,15 +310,22 @@ def test_a_typed_target_is_the_row_at_its_grams(
     macros: Macros,
     family: str,
     pools: set[str],
+    non_starchy: bool,
 ) -> None:
     """Chicken breast, meat only, is 22.5, 0 and 2.62 per 100 g: on its own
     macros it would reach protein alone, and its family reaches fat too.
     Cookies are an excluded category, so their family has no roles; protein
-    gives 5% of their calories."""
+    gives 5% of their calories, and their sugars, 32.8 g in 67.5 g of carbs,
+    fall under the half that makes a sugar pool, where grape juice, denied and
+    without roles too, is 14.2 g of sugars in 14.8 g of carbs. Gelatin
+    reports a sugars value over no carbs at all. Raw broccoli, 34 kcal in the
+    vegetable group, is itself a non-starchy vegetable; potatoes, 77 kcal in
+    the same group, are not. The grams typed are the target's weight."""
     target = typed(text, grams, usda_rows, matcher, "lexical", config, {}).target
     assert (*astuple(target.macros), target.family, target.pools) == pytest.approx(
         (*astuple(macros), family, pools)
     )
+    assert (target.grams, target.non_starchy) == (grams, non_starchy)
 
 
 @pytest.mark.parametrize(

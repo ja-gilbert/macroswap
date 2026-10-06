@@ -136,10 +136,12 @@ up to one number that means anything. A family is filed by the rows its
 reports came through; a row no report came through decides nothing.
 
 - **Left out by design.** Every one of those rows is in a category the table
-  excludes on purpose, or carries a word its category denies: drinks, sweets,
-  snacks, cakes, cookies, pies and pastries, fast food and restaurant dishes,
-  mixed dishes, soups and sauces, sausages and lunch meats, spices, baby food.
-  These were never meant to be swaps, whatever their key says.
+  excludes on purpose, or carries a word its category denies in the family
+  key: drinks, sweets, snacks, cakes, cookies, pies and pastries, fast food
+  and restaurant dishes, mixed dishes, soups and sauces, sausages and lunch
+  meats, spices, baby food; and fruit juices, soy sauce, catsup, garlic and
+  ginger, because condiments and juices are drinks and seasonings, not food
+  swaps. These were never meant to be swaps, whatever their key says.
 - **Not reachable.** At least one of those rows is left out for its key alone,
   a cooked key no `count_as` line names or a duplicate of another row: a food
   a swap could offer if the key were fixed. This is the second gap in the
@@ -154,7 +156,7 @@ fried chicken is a cooked key in the table and left out by design here.
 <!-- counts:not_offered -->
 | Why no swap offers the family | Families | Pairs | Share of all pairs |
 | --- | --- | --- | --- |
-| left out by design | 383 | 52,275 | 38.6% |
+| left out by design | 408 | 56,138 | 41.4% |
 | not reachable | 8 | 573 | 0.4% |
 | other | 0 | 0 | 0.0% |
 <!-- counts:end -->
@@ -173,11 +175,11 @@ most of the rows its reports came through and the first by name on a tie:
 | Baked Products | 63 | 4,174 | 3.1% |
 | Fast Foods | 23 | 3,665 | 2.7% |
 | Soups, Sauces, and Gravies | 30 | 2,669 | 2.0% |
+| Fruits and Fruit Juices | 20 | 2,363 | 1.7% |
 | Sausages and Luncheon Meats | 30 | 1,870 | 1.4% |
 | Meals, Entrees, and Side Dishes | 25 | 1,393 | 1.0% |
-| Restaurant Foods | 5 | 989 | 0.7% |
-| Spices and Herbs | 4 | 936 | 0.7% |
-| all others | 24 | 357 | 0.3% |
+| Vegetables and Vegetable Products | 4 | 1,236 | 0.9% |
+| all others | 34 | 2,546 | 1.9% |
 <!-- counts:end -->
 
 Of the families not reachable, three I considered as `count_as` lines and
@@ -206,15 +208,50 @@ threshold is listed in the first tier. Both are absolute counts, frozen in
 `macroswap.toml` for this cycle: `data build` refuses survey foods of another
 cycle, so the two numbers never silently come to mean something else.
 
+Four more rules decide what a swap offers, none of them a count, all of them
+in `macroswap.toml`, and this page records them because they shape the lists
+the counts order:
+
+- **Starch and sugar are two pools.** A family's carbs are sugar when its
+  candidate rows' sugars, summed over the rows that carry a sugars value, are
+  at least half those rows' carbs, summed, and starch below that, so a bowl of
+  rice is answered with potatoes and not with grapes. A family whose
+  candidate rows carry no sugars value is starch.
+  Measured on 2026-10-05 at commit `eb0943b`: 224 of the 894 carb-pool
+  families have no sugars value, six of them at or above the floor, all
+  starch in fact: chia seeds (64 participants), quinoa (50), gluten-free
+  pasta (36), dry couscous (21), large lima beans (12) and yellow beans (10);
+  the other 218 sit below the floor.
+- **A serving is at most six times the target's grams.** The largest serving
+  an accepted swap needs, measured on 2026-10-05 at commit `eb0943b` over the
+  acceptance file, is 5.1 times (potatoes for white rice). A diary food
+  matched to no USDA row has no grams, so it gets no serving cap, and the
+  swap's header says so.
+- **Non-starchy vegetables are not swaps.** A family of the Vegetables group
+  whose candidate rows' median calories per 100 g fall below 50 is not
+  offered for any target, whatever macro it is nearest, unless the target is
+  itself such a family. The 50 is the dietary guidelines' line between
+  starchy and non-starchy vegetables, measured on the table instead of
+  listed. Measured on 2026-10-05 at commit `eb0943b`, medians of the family's
+  candidate rows as bought: potatoes 76, sweet corn 76.5, sweet potato 91,
+  yam 118, cassava 160 and taro 112 stay; carrots 36, onions 34, beets 43,
+  winter squash 40 and mixed vegetables 49 drop; canned potatoes, at 60,
+  stay; plantains sit in the Fruits group and are untouched; green peas have
+  a row filed under Legumes and are outside the rule. 142 of the group's
+  234 families fall below the line.
+- **Denied words.** The words named under "left out by design", matched in
+  the family key within their categories; an allow word in the description
+  still wins.
+
 <!-- counts:tiers -->
 | Reported by at least | Families a swap can offer |
 | --- | --- |
-| any number | 1,468 |
-| 1 | 543 |
-| 10 (the floor) | 369 |
-| 20 | 300 |
-| 50 (the common tier) | 213 |
-| 100 | 159 |
+| any number | 1,428 |
+| 1 | 518 |
+| 10 (the floor) | 351 |
+| 20 | 287 |
+| 50 (the common tier) | 204 |
+| 100 | 152 |
 <!-- counts:end -->
 
 The threshold was set so that no staple falls out of the first tier, and a

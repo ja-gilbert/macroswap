@@ -13,9 +13,9 @@ from dataclasses import astuple, dataclass
 from macroswap.config import Config
 from macroswap.diary.normalize import name_key, parse_leanness, strip_leanness, tokens
 from macroswap.match.matcher import Hit, Matcher
-from macroswap.swap.fit import Macros
+from macroswap.swap.fit import Macros, fit
 from macroswap.swap.rank import DefaultLevel, Target
-from macroswap.usda.table import Row, pools_of
+from macroswap.usda.table import Row, pools_of, split_carbs
 
 
 class NoTarget(ValueError):
@@ -82,7 +82,7 @@ def typed(
         )
     per_100g = (row.protein, row.carbs, row.fat)
     macros = Macros(*((m or 0.0) * grams / 100 for m in per_100g))
-    return resolved(found, macros, config.usda.role_share_threshold)
+    return resolved(found, macros, config, grams)
 
 
 def find(
@@ -173,14 +173,15 @@ def _missing(row: Row) -> list[str]:
 def resolved(
     found: Found,
     macros: Macros,
-    threshold: float,
+    config: Config,
+    grams: float | None = None,
     window: tuple[str, str] | None = None,
     names: tuple[tuple[str, int], ...] = (),
 ) -> Resolved:
     """The found food as a target at those macros."""
     row = found.row
     target = target_at(
-        found.key, macros, row.family, found.variant, row.roles, threshold
+        found.key, macros, row.family, found.variant, row.roles, config, row, grams
     )
     return Resolved(
         target, row, found.key, found.source, found.level, found.notes, window, names
@@ -193,14 +194,37 @@ def target_at(
     family: str,
     variant: str | None,
     roles: str,
-    threshold: float,
+    config: Config,
+    row: Row | None = None,
+    grams: float | None = None,
 ) -> Target:
     """The target at those macros, refused when all are zero. Its pools are its
     family's roles; a family no swap offers has none, and then the pools the
-    macros themselves reach, by the table's rule and threshold."""
+    macros themselves reach, by the table's rule and threshold, the carbs sugar
+    or starch by the row's own share and starch with no share known. Without
+    grams, the row's fit to the macros weighs the food, and a food on no row
+    with all three macros has no weight. A row of the non-starchy vegetable
+    group under its kcal line makes the target one of those."""
     if not any(astuple(macros)):
         raise TargetError(f"{key} has no protein, carbs or fat to match")
+    swap, usda = config.swap, config.usda
+    share: float | None = None
+    non_starchy = False
+    if row is not None:
+        if grams is None and not _missing(row):
+            per_100g = Macros(row.protein or 0.0, row.carbs or 0.0, row.fat or 0.0)
+            grams = fit(macros, per_100g, swap.fit_weights).grams
+        if row.sugars is not None and row.carbs:
+            share = row.sugars / row.carbs
+        non_starchy = (
+            row.category == swap.non_starchy_group
+            and (row.kcal or 0.0) < swap.starchy_kcal_per_100g
+        )
     if roles:
-        return Target(macros, family, variant, frozenset(roles.split(",")))
-    pools = pools_of(macros.protein, macros.carbs, macros.fat, threshold)
-    return Target(macros, family, variant, frozenset(pools))
+        pools = set(roles.split(","))
+    else:
+        reached = pools_of(
+            macros.protein, macros.carbs, macros.fat, usda.role_share_threshold
+        )
+        pools = split_carbs(reached, share, usda.sugar_pool_share)
+    return Target(macros, family, variant, frozenset(pools), grams, non_starchy)

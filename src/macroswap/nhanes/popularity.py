@@ -281,7 +281,7 @@ def file_left_out(
     spared: set[str] = set()
     keyed: set[str] = set()
     for row in reported:
-        if category_excluded(row, usda):
+        if category_excluded(row, row.family, usda):
             filed[row.family][row.category] += 1
         else:
             spared.add(row.family)

@@ -36,6 +36,7 @@ def row(
         carbs=0.0,
         fat=0.0,
         fiber=0.0,
+        sugars=None,
         kcal=0.0,
         roles="",
         exclusion_reason=None,
@@ -102,8 +103,9 @@ def test_a_table_with_one_tier_has_no_divider() -> None:
 def test_a_typed_header_names_the_row_the_method_and_the_level() -> None:
     """Ground beef typed at 91/9, a level it has no row at, names the default
     level it was read at and where that came from, then the note on the level
-    asked for as it stands; the method line says why lexical ran."""
-    beef = Target(Macros(27.885, 0.0, 22.5), "beef, ground", None, frozenset())
+    asked for as it stands; the method line says why lexical ran. A typed food
+    has its grams, so no line says the serving ratio is off."""
+    beef = Target(Macros(27.885, 0.0, 22.5), "beef, ground", None, frozenset(), 150.0)
     usual = row("beef, ground, 85/15")
     notes = ("level asked for: 91/9, which beef, ground has no row at",)
     typed = Resolved(beef, usual, "beef, ground", "lexical", LEVEL, notes, None, ())
@@ -129,6 +131,8 @@ def test_a_typed_header_names_the_row_the_method_and_the_level() -> None:
 def test_a_diary_header_names_the_days_and_the_rows_behind_the_medians(
     family: str, row_line: str
 ) -> None:
+    """A diary food on no row has no weight, and the header says the serving
+    ratio is not applied."""
     bar = Target(Macros(30, 40, 10), family, None, frozenset())
     names = (("bobs - trail bar", 3), ("trail bar", 1))
     window = ("2026-05-08", "2026-08-05")
@@ -138,6 +142,7 @@ def test_a_diary_header_names_the_days_and_the_rows_behind_the_medians(
         row_line,
         "method: diary",
         "macros: protein 30.0 g, carbs 40.0 g, fat 10.0 g",
+        "serving ratio: not applied; no row with macros weighs the food",
         "logged: 2026-05-08 to 2026-08-05; rows per name: bobs - trail bar (3); "
         "trail bar (1)",
     ]
