@@ -185,9 +185,9 @@ def test_fusion_adds_each_methods_reciprocal_rank(
 @pytest.mark.parametrize(
     ("text", "lexical", "embed", "abstains"),
     [
-        pytest.param("oats", 3.6, 0.45, True, id="below-both-at-its-top-row"),
-        pytest.param("oats", 3.6, -math.inf, False, id="embed-alone-keeps-it"),
-        pytest.param("oats", -math.inf, 0.45, False, id="lexical-alone-keeps-it"),
+        pytest.param("oats", 6.0, 1.1, True, id="below-both"),
+        pytest.param("oats", 6.0, -math.inf, False, id="embed-alone-keeps-it"),
+        pytest.param("oats", -math.inf, 1.1, False, id="lexical-alone-keeps-it"),
         pytest.param("zzzz", -math.inf, 0.9, True, id="unscored-counts-as-below"),
         pytest.param("potato red", 6.5, 0.7, True, id="top-row-by-the-tie-order"),
     ],
@@ -202,10 +202,12 @@ def test_hybrid_abstains_only_below_both_thresholds(
 ) -> None:
     """A fused score is a function of ranks alone, so its top row is judged on
     each method's threshold, a row a method does not score being below it. For
-    oats that row, the dry oats, is second under both, at 3.36 and 0.438, below
-    each method's own top, 3.69 and 0.456. That top row is the first by fused
-    score and tie order: for "potato red", red potatoes and the sweet potato
-    fuse equal and red potatoes lead, so hybrid abstains at cuts above both."""
+    oats the plain oats row leads both methods, at 5.78 and 1.0 (the stand-in
+    scores a text 1 against itself), so hybrid abstains only at cuts above
+    both. That the row judged is the first by fused score and tie order, not
+    each method's own top, rests on "potato red": red potatoes and the sweet
+    potato fuse equal and red potatoes lead, so hybrid abstains at cuts above
+    both of its scores."""
     config = replace(CONFIG.match, no_match={"lexical": lexical, "embed": embed})
     matcher = Matcher(usda_rows, config, RULES, fake_embedder)
     assert (matcher.run(text, "hybrid") is None) is abstains

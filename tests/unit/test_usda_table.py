@@ -34,8 +34,13 @@ EXCLUSION_CASES = {
     "muffin-denied": ("sr:172765", "excluded-category"),
     "cookies-denied": ("sr:172715", "excluded-category"),
     "deny-word-in-the-description-not-the-key": ("sr:175084", None),
+    "deny-word-in-field-two-under-depth-one": ("sr:167935", "excluded-category"),
+    "aliased-spelling-of-an-undenied-food": ("foundation:2003589", None),
     "juice-denied-on-the-key": ("sr:173041", "excluded-category"),
     "catsup-denied": ("sr:168556", "excluded-category"),
+    "flour-denied": ("sr:169761", "excluded-category"),
+    "dressing-denied": ("sr:173592", "excluded-category"),
+    "mayonnaise-allowed-past-dressing": ("sr:171009", None),
     "deny-word-only-inside-a-parenthetical": ("sr:174908", None),
     "gelatin-in-sweets": ("sr:169599", "excluded-category"),
     "whey-allowed": ("sr:173177", None),
@@ -80,12 +85,14 @@ def test_cooked_candidates_key_as_first_field_plus_the_cooking_field(
 def test_depth_one_keeps_products_out_and_pools_come_from_candidates(
     rows: dict[str, Row],
 ) -> None:
-    """A raw variety collapses into potatoes and potato skin does not; the
-    sauteed onion keys as `onions, yellow`, a family with no candidate, so its
-    fat reaches no pool."""
+    """A raw variety collapses into potatoes and potato skin does not; every
+    kind of bread bought as bread is one family and a dry cornbread mix keeps
+    its two fields; the sauteed onion keys as `onions, yellow`, a family with
+    no candidate, so its fat reaches no pool."""
     assert rows["sr:170027"].family == "potatoes"
     assert rows["sr:170032"].family == "potatoes, skin"
     assert rows["sr:170027"].roles == "starch"
+    assert rows["sr:174908"].family == "bread, cornbread"
     assert rows["sr:170004"].family == "onions, yellow"
     assert rows["sr:170004"].roles == ""
 
@@ -182,6 +189,7 @@ def test_aliases_apply_to_any_source_and_stale_config_is_refused(
         "foundation:790774": "bananas",
         "foundation:790991": "bananas",
         "foundation:2346397": "cereals, oats",
+        "sr:169705": "cereals, oats",
     }
     assert {i: rows[i].family for i in aliased} == aliased
     assert rows["sr:173723"].family == "fish, salmon"

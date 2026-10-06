@@ -25,7 +25,7 @@ EXIT_CODES = {
         ["swap", "egg whites", "--grams", "0.5"],
         True,
         1,
-        "no swap: every candidate was left out (no-shared-pool 78; serving-bounds 79; "
+        "no swap: every candidate was left out (no-shared-pool 71; serving-bounds 79; "
         "non-starchy-vegetable 3; own-family 1)",
     ),
     "swap-target-with-all-macros-zero": (

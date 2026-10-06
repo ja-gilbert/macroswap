@@ -340,13 +340,14 @@ def test_the_diary_gives_its_families_and_counts_the_unmatched_names(
     assert (sorted(families), unmatched) == (
         [
             "beef, ground",
+            "cereals, oats",
             "chicken, breast",
             "egg, white",
             "sweet potato",
             "turkey, ground",
             "yogurt, greek",
         ],
-        4,
+        3,
     )
 
 

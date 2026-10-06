@@ -116,7 +116,7 @@ excluded_categories = [
 # Families whose field two names a variety of one food, not a different food:
 # keyed on field one alone. `data report` lists the measured candidates.
 depth_one_families = [
-    "potatoes", "apples", "onions", "lettuce", "grapes", "tomatoes", "arugula",
+    "bread", "potatoes", "apples", "onions", "lettuce", "grapes", "tomatoes", "arugula",
     "asparagus", "avocados", "blueberries", "broccoli", "cabbage", "carrots",
     "cauliflower", "collards", "corn flour", "corn grain", "cornmeal", "cowpeas",
     "cucumber", "currants", "dates", "grapefruit", "grapefruit juice", "kiwifruit",
@@ -157,11 +157,17 @@ cooked = ['rotisserie.*']
 "Sausages and Luncheon Meats" = ["turkey breast", "turkey, breast", "chicken breast"]
 "Snacks" = ["jerky"]
 "Baked Products" = ["english muffins", "muffins, english"]
+"Fats and Oils" = ["mayonnaise"]
 
-# Whole words or phrases, per category, matched in the family key; an allow
-# entry wins. Condiments and juices are drinks and seasonings, not food swaps.
+# Whole words or phrases, per category, matched in a row's own two-field key,
+# under an alias where one names it, before any depth-one cut, so a denied
+# kind stays denied inside the family it is folded into; an allow entry wins.
+# Condiments, dressings and juices are drinks and seasonings, not food swaps,
+# and flour is an ingredient, not a food on a plate.
 [usda.deny_words]
 "Baked Products" = ["cookies", "cookie", "cake", "pie", "muffins", "muffin", "doughnuts", "pastry", "pastries", "croissants", "sweet rolls", "cream puff", "cinnamon buns", "pan dulce"]
+"Cereal Grains and Pasta" = ["flour", "flours"]
+"Fats and Oils" = ["dressing"]
 "Fruits and Fruit Juices" = ["juice"]
 "Legumes and Legume Products" = ["soy sauce"]
 "Vegetables and Vegetable Products" = ["catsup", "garlic", "ginger"]
@@ -177,6 +183,7 @@ cooked = ['rotisserie.*']
 "bananas, overripe" = "bananas"
 "bananas, ripe and slightly ripe" = "bananas"
 "oats, whole grain" = "cereals, oats"
+"oats" = "cereals, oats"
 "salmon, sockeye" = "fish, salmon"
 "mushroom" = "mushrooms"
 "beverages, whey protein powder isolate" = "beverages, protein powder whey based"
@@ -328,7 +335,7 @@ must_pass = [
     "fish, tilapia", "fish, cod", "crustaceans, shrimp", "fish, tuna",
     "fish, salmon", "egg, whole", "egg, white", "yogurt, greek", "cheese, cottage",
     "beverages, protein powder whey based", "rice, white", "potatoes",
-    "sweet potato", "cereals, oats", "bread, whole-wheat", "pasta, dry",
+    "sweet potato", "cereals, oats", "bread", "pasta, dry",
     "beans, black", "lentils", "bananas",
 ]
 # Offered in the first tier whatever their count: ordinary foods the recalls

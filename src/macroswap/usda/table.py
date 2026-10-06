@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
+from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from itertools import pairwise
 
@@ -132,7 +133,7 @@ def _reason(k: _Keyed, usda: UsdaConfig, sr_variants: set[str]) -> str | None:
         return "analytical-duplicate"
     if k.cooked_sibling:
         return "cooked-with-raw-sibling"
-    if category_excluded(f, k.family, usda):
+    if category_excluded(f, deny_key(k.fields, usda.family_aliases), usda):
         return "excluded-category"
     macros = (f.protein, f.carbs, f.fat)
     if macros == (0.0, 0.0, 0.0):
@@ -142,15 +143,25 @@ def _reason(k: _Keyed, usda: UsdaConfig, sr_variants: set[str]) -> str | None:
     return None
 
 
-def category_excluded(food: Food | Row, family: str, usda: UsdaConfig) -> bool:
-    """Whether the food's category, or a word its category denies in the
-    family key, leaves it out; an allow word in the description clears it."""
+def category_excluded(food: Food | Row, key: str, usda: UsdaConfig) -> bool:
+    """Whether the food's category, or a word its category denies in the key
+    given, leaves it out; an allow word in the description clears it."""
     text = plain(food.description.lower())
     if any(_has(w, text) for w in usda.allow_words.get(food.category, [])):
         return False
     return food.category in usda.excluded_categories or any(
-        _has(w, family) for w in usda.deny_words.get(food.category, [])
+        _has(w, key) for w in usda.deny_words.get(food.category, [])
     )
+
+
+def deny_key(fields: Fields, aliases: Mapping[str, str]) -> str:
+    """The key a deny word is matched against: the row's own two fields, under
+    an alias where one names them, before any depth-one cut. A deny word is
+    about the row's own name, not the family it is folded into, so a denied
+    kind stays denied inside that family; an alias is the same food under
+    another spelling, so both spellings are judged alike."""
+    key = family_key(fields, 2)
+    return aliases.get(key, key)
 
 
 def _has(phrase: str, text: str) -> bool:

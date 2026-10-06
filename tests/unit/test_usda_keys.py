@@ -118,7 +118,7 @@ RULES = FieldRules(load_config().usda)
         pytest.param(
             "Bread, whole-wheat, commercially prepared",
             None,
-            ("bread, whole-wheat", "bread, whole-wheat", "raw"),
+            ("bread", "bread, whole-wheat", "raw"),
             id="commercially-prepared-is-a-state",
         ),
         pytest.param(
