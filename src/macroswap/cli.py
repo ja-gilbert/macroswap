@@ -29,7 +29,13 @@ from macroswap.match.label import draw_sample, label_session, read_labels, write
 from macroswap.match.matcher import Matcher
 from macroswap.nhanes.popularity import measure, write_table
 from macroswap.pull import PullError, pull, release_dirs
-from macroswap.store import connect, read_usda, write_popularity, write_usda
+from macroswap.store import (
+    connect,
+    read_popularity,
+    read_usda,
+    write_popularity,
+    write_usda,
+)
 from macroswap.swap.logged import (
     default_levels,
     diary_families,
@@ -366,7 +372,13 @@ def _swap(config: Config, db: Path, args: argparse.Namespace) -> int:
         raise TargetError("--grams must be above zero and --top at least 1")
     with _built(db) as conn:
         rows = read_usda(conn)
+        counted = read_popularity(conn)
+        if counted is None:
+            raise FileNotFoundError(
+                f"no participant counts in {db}; run `data build` again"
+            )
         diary = read_diary(conn, config)
+    cycle, counts = counted
     levels = default_levels(diary, rows, config)
     fallback = ""
     if args.entry:
@@ -398,10 +410,19 @@ def _swap(config: Config, db: Path, args: argparse.Namespace) -> int:
     families, unmatched = diary_families(diary)
     ranking = rank(
         resolved.target,
-        [Candidate(row) for row in rows if row.exclusion_reason is None],
+        [
+            Candidate(
+                row,
+                counts.families.get(row.family, 0),
+                counts.variants.get(row.variant, 0),
+            )
+            for row in rows
+            if row.exclusion_reason is None
+        ],
         config.swap,
         default_levels=levels,
         diary_families=families,
+        allowlist=config.popularity.allowlist,
         variants=args.variants,
         new_only=args.new_only,
         include_obscure=args.include_obscure,
@@ -414,8 +435,10 @@ def _swap(config: Config, db: Path, args: argparse.Namespace) -> int:
             f"new only: {len(families)} diary families left out; "
             f"{unmatched} diary names matched nothing"
         )
-    # Every candidate's count is unknown until the popularity table is built.
-    print("popularity: not built; every family counts as common")
+    print(
+        f"popularity: NHANES {cycle}, {counts.participants} participants; "
+        "count is how many reported the family"
+    )
     if not ranking.common and not ranking.rest:
         reasons = "; ".join(f"{reason} {n}" for reason, n in ranking.filtered.items())
         print(f"no swap: every candidate was left out ({reasons})")

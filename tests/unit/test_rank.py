@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from typing import Any
 
 import pytest
 
@@ -26,6 +27,7 @@ TARGET = Target(LEAN, "egg white", None, frozenset({"protein"}))
 SALMON = Target(
     Macros(20.42, 0.0, 13.42), "salmon", None, frozenset({"protein", "fat"})
 )
+TOFU = frozenset({"tofu"})
 
 
 def row(
@@ -200,6 +202,53 @@ def test_default_level_is_offered_beside_a_best_at_another_level(
     assert (None if level is None else level.candidate.row.lean_pct) == lean_pct
 
 
+@pytest.mark.parametrize(
+    ("default_levels", "reported", "shown"),
+    [
+        pytest.param({}, (0, 20), "near", id="the-most-reported-near-tie"),
+        pytest.param({}, (0, 19), "closest", id="reported-by-fewer-than-the-floor"),
+        pytest.param({}, (20, 20), "closest", id="reported-alike"),
+        pytest.param(
+            {"fish": DefaultLevel(90, "test")},
+            (0, 20),
+            "closest",
+            id="a-leanness-family",
+        ),
+    ],
+)
+def test_a_family_shows_its_most_reported_variant_and_keeps_its_place(
+    default_levels: dict[str, DefaultLevel], reported: tuple[int, int], shown: str
+) -> None:
+    """Fish's variants score 0, 10 and 11.0 and were reported by the two numbers
+    given and by 900 participants. Near is shown when the floor, 20, reported
+    it and fewer reported the closest, being exactly the epsilon, 10, from the
+    closest; far is past it. Below the floor, reported alike, and for a
+    leanness family always, the closest is shown. Either way fish keeps the
+    place its closest gives it, so tofu, at 11.0, starts a second cluster;
+    placed by near's 10, fish would tie with tofu and follow it, the less
+    reported."""
+    target = Target(Macros(20, 2.5, 0), "egg white", None, TARGET.pools)
+    fatty = Macros(20, 0, 0.5)
+    closest_reported, near_reported = reported
+    fish = {
+        "closest": (target.macros, closest_reported),
+        "near": (LEAN, near_reported),
+        "far": (fatty, 900),
+    }
+    candidates = [
+        Candidate(row("fish", per_100g, variant=variant), 60, reported)
+        for variant, (per_100g, reported) in fish.items()
+    ]
+    candidates.append(Candidate(row("tofu", fatty), 90))
+    ranking = rank(
+        target, candidates, CONFIG, default_levels=default_levels, variants=True
+    )
+    first, second = ranking.common
+    got = [o.candidate.row.variant for o in (first.best, *first.others)]
+    assert got == [shown, *(v for v in fish if v != shown)]
+    assert second.best.candidate.row.family == "tofu"
+
+
 def test_ties_cluster_on_their_first_score_and_order_by_popularity() -> None:
     """a to e score 0, 4.5, 8.1, 16.2 and 18.0. A family joins a cluster within
     epsilon, 10, of the cluster's first score, so d starts one though it is
@@ -229,39 +278,50 @@ def test_a_score_exactly_epsilon_past_the_first_joins_its_cluster() -> None:
 
 
 @pytest.mark.parametrize(
-    ("popularity", "diary", "include_obscure", "new_only", "outcome"),
+    ("popularity", "asked", "outcome"),
     [
         pytest.param(
-            None, False, False, True, "common", id="new-only-keeps-a-new-family"
+            None, {"new_only": True}, "common", id="new-only-keeps-a-new-family"
         ),
-        pytest.param(50, False, False, False, "common", id="at-the-common-threshold"),
-        pytest.param(20, False, False, False, "rest", id="at-the-floor"),
-        pytest.param(19, False, False, False, "below-floor", id="below-the-floor"),
-        pytest.param(19, True, False, False, "common", id="diary-family-is-common"),
-        pytest.param(19, False, True, False, "rest", id="include-obscure"),
-        pytest.param(60, True, False, True, "diary-family", id="new-only"),
+        pytest.param(50, {}, "common", id="at-the-common-threshold"),
+        pytest.param(20, {}, "rest", id="at-the-floor"),
+        pytest.param(19, {}, "below-floor", id="below-the-floor"),
+        pytest.param(
+            19, {"diary_families": TOFU}, "common diary", id="diary-family-is-common"
+        ),
+        pytest.param(
+            50, {"diary_families": TOFU}, "common", id="a-diary-family-on-its-count"
+        ),
+        pytest.param(
+            19, {"allowlist": TOFU}, "common allowlist", id="allowlisted-is-common"
+        ),
+        pytest.param(
+            19,
+            {"diary_families": TOFU, "allowlist": TOFU},
+            "common diary",
+            id="the-diary-before-the-allowlist",
+        ),
+        pytest.param(19, {"include_obscure": True}, "rest", id="include-obscure"),
+        pytest.param(
+            60,
+            {"diary_families": TOFU, "new_only": True},
+            "diary-family",
+            id="new-only",
+        ),
     ],
 )
 def test_where_a_family_lands(
-    popularity: int | None,
-    diary: bool,
-    include_obscure: bool,
-    new_only: bool,
-    outcome: str,
+    popularity: int | None, asked: dict[str, Any], outcome: str
 ) -> None:
     """A lone family lands in a tier or under the one reason it is left out. The
-    floor and the common threshold each belong to the tier above them, and a
-    diary family is common at any popularity unless new_only leaves it out."""
-    ranking = rank(
-        TARGET,
-        [Candidate(row("tofu"), popularity)],
-        CONFIG,
-        diary_families=frozenset({"tofu"} if diary else ()),
-        include_obscure=include_obscure,
-        new_only=new_only,
-    )
+    floor and the common threshold each belong to the tier above them. A diary
+    family is common at any popularity unless new_only leaves it out, and says
+    so when its count alone would not make it; so is a family on the
+    allowlist, and one in both says diary."""
+    ranking = rank(TARGET, [Candidate(row("tofu"), popularity)], CONFIG, **asked)
     tiers = {"common": ranking.common, "rest": ranking.rest}
-    assert [t for t, rows in tiers.items() if rows] + [*ranking.filtered] == [outcome]
+    landed = [f"{t} {r.common_by}".strip() for t, rows in tiers.items() for r in rows]
+    assert [*landed, *ranking.filtered] == [outcome]
 
 
 @pytest.mark.parametrize(

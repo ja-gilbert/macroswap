@@ -57,22 +57,24 @@ def test_a_table_lists_the_common_tier_then_the_rest() -> None:
     """A canned serving says so beside its grams, and a delta that rounds to
     zero prints without a minus. Under the best offer of the target's own
     family come its other variants; the one at the default level prints once,
-    on the default line."""
+    on the default line. A family the diary makes common says so beside the
+    count on each of its lines."""
     tuna = row("fish, tuna, light, canned in water", "fish, tuna", "canned")
     lean = row("beef, ground, 96/4", "beef, ground", provenance="derived(95/5, 97/3)")
     fatty = row("beef, ground, 70/30", "beef, ground", provenance="sr-formula")
     usual = row("beef, ground, 85/15", "beef, ground", provenance="sr-formula")
-    at_default = offer(usual, 103.2, Macros(-3.4, 0.0, 12.8), 101.6, None, True)
+    at_default = offer(usual, 103.2, Macros(-3.4, 0.0, 12.8), 101.6, 7, True)
     ranking = Ranking(
         common=(
-            FamilyRow(offer(tuna, 119.6, Macros(-0.04, 0.0, 0.31), 2.6, 250)),
+            FamilyRow(offer(tuna, 119.6, Macros(-0.04, 0.0, 0.31), 2.6)),
             FamilyRow(
-                offer(lean, 103.3, Macros(-0.1, 0.0, 1.5), 13.1, None, True),
+                offer(lean, 103.3, Macros(-0.1, 0.0, 1.5), 13.1, 7, True),
                 others=(
                     at_default,
-                    offer(fatty, 90.0, Macros(1.0, 0.0, 14.0), 130.0, None, True),
+                    offer(fatty, 90.0, Macros(1.0, 0.0, 14.0), 130.0, 7, True),
                 ),
                 default_level=at_default,
+                common_by="diary",
             ),
         ),
         rest=(FamilyRow(offer(row("tofu"), 250.4, Macros(2.0, 4.5, -1.0), 17.0, 12)),),
@@ -80,13 +82,13 @@ def test_a_table_lists_the_common_tier_then_the_rest() -> None:
     )
     assert table(ranking, {"beef, ground": LEVEL}) == [
         "120 g canned  fish, tuna, light, canned in water  protein +0.0  carbs +0.0"
-        "  fat +0.3  kcal +3  count 250  sr",
+        "  fat +0.3  kcal +3  count n/a  sr",
         "103 g  beef, ground, 96/4 (same food)  protein -0.1  carbs +0.0  fat +1.5"
-        "  kcal +13  count n/a  derived(95/5, 97/3)",
+        "  kcal +13  count 7 diary  derived(95/5, 97/3)",
         "    90 g  beef, ground, 70/30 (same food)  protein +1.0  carbs +0.0  fat +14.0"
-        "  kcal +130  count n/a  sr-formula",
+        "  kcal +130  count 7 diary  sr-formula",
         "    default level (config default): 103 g  beef, ground, 85/15 (same food)"
-        "  protein -3.4  carbs +0.0  fat +12.8  kcal +102  count n/a  sr-formula",
+        "  protein -3.4  carbs +0.0  fat +12.8  kcal +102  count 7 diary  sr-formula",
         "-- less common --",
         "250 g  tofu  protein +2.0  carbs +4.5  fat -1.0  kcal +17  count 12  sr",
     ]

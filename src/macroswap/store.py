@@ -5,7 +5,7 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
-from macroswap.nhanes.popularity import Table
+from macroswap.nhanes.popularity import Popularity, Table
 from macroswap.usda.table import Row
 
 _SCHEMA = """
@@ -160,6 +160,23 @@ def write_popularity(conn: sqlite3.Connection, table: Table) -> None:
                 "INSERT INTO popularity VALUES (?, ?, ?)",
                 [(kind, key, n) for key, n in counts.items()],
             )
+
+
+def read_popularity(conn: sqlite3.Connection) -> tuple[str, Popularity] | None:
+    """The cycle and the participant counts as write_popularity stored them;
+    None from a store built before the build counted participants, or by a
+    build cut short before it stored them."""
+    built = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE name = 'popularity_meta'"
+    ).fetchone()
+    meta = built and conn.execute("SELECT * FROM popularity_meta").fetchone()
+    if not meta:
+        return None
+    cycle, participants = meta
+    counts: dict[str, dict[str, int]] = {"family": {}, "variant": {}}
+    for kind, key, n in conn.execute("SELECT * FROM popularity"):
+        counts[kind][key] = n
+    return cycle, Popularity(participants, counts["family"], counts["variant"])
 
 
 def read_usda(conn: sqlite3.Connection) -> list[Row]:

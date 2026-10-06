@@ -37,13 +37,15 @@ rank_weights = { protein = 48.0, carbs = 16.0, fat = 81.0 }
 # kilograms of cucumber never answer a bowl of rice.
 serving_bounds_g = [5.0, 1000.0]
 # Families whose rank scores sit within this of the best of their cluster are
-# ordered by popularity instead: about ten kcal of weighted miss.
-tie_epsilon = 10.0
-# Participant counts: a family below the floor is not offered, and a family at
-# or above the common threshold is listed in the first tier. Both were read
-# from the committed counts of the cycle [popularity] names and are frozen.
-# Until a swap reads the counts no candidate carries one, so every family
-# passes and counts as common.
+# ordered by popularity instead, and a family shows its most reported variant
+# among those within this of its closest, when at least the floor reported
+# it: about five kcal of weighted miss.
+tie_epsilon = 5.0
+# Participant counts: a family below the floor is not offered, nor is a
+# variant fewer than the floor reported shown in place of the closest, and a
+# family at or above the common threshold is listed in the first tier. Both
+# were read from the committed counts of the cycle [popularity] names and are
+# frozen.
 popularity_floor = 10
 common_threshold = 50
 # A diary target's macros and a leanness family's default level come from the

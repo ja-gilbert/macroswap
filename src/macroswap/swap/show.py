@@ -41,34 +41,38 @@ def header(resolved: Resolved, amount: str, fallback: str = "") -> list[str]:
 
 
 def table(ranking: Ranking, levels: Mapping[str, DefaultLevel]) -> list[str]:
-    """The common tier, a divider, then the rest. Under a family's best offer
-    come its other variants when asked for, and for a leanness family whose
-    best is at another level, its default level and where that came from."""
+    """The common tier, a divider, then the rest. Under the offer a family
+    shows come its other variants when asked for, and for a leanness family
+    whose best is at another level, its default level and where that came
+    from. A family the diary or the allowlist puts in the common tier says
+    which beside its count."""
     lines = []
     for tier in (ranking.common, ranking.rest):
         if tier and tier is ranking.rest:
             lines.append(DIVIDER)
         for family in tier:
-            lines.append(_offer(family.best))
+            by = family.common_by
+            lines.append(_offer(family.best, by))
             lines += [
-                f"    {_offer(other)}"
+                f"    {_offer(other, by)}"
                 for other in family.others
                 if other is not family.default_level
             ]
             if family.default_level:
                 source = levels[family.best.candidate.row.family].source
-                default = _offer(family.default_level)
+                default = _offer(family.default_level, by)
                 lines.append(f"    default level ({source}): {default}")
     return lines
 
 
-def _offer(offer: Offer) -> str:
+def _offer(offer: Offer, common_by: str) -> str:
     """One offer as a line; a cooked, canned or dry serving names its state
     beside the grams so it is not read as raw weight."""
     row, delta = offer.candidate.row, offer.fit.delta
     state = "" if row.as_bought == "raw" else f" {row.as_bought}"
     same_food = " (same food)" if offer.same_food else ""
     count = offer.candidate.popularity
+    reported = "n/a" if count is None else str(count)
     return "  ".join(
         [
             f"{offer.fit.grams:.0f} g{state}",
@@ -77,7 +81,7 @@ def _offer(offer: Offer) -> str:
             f"carbs {delta.carbs:+z.1f}",
             f"fat {delta.fat:+z.1f}",
             f"kcal {offer.fit.kcal_delta:+z.0f}",
-            f"count {'n/a' if count is None else count}",
+            f"count {reported} {common_by}".rstrip(),
             row.provenance,
         ]
     )
