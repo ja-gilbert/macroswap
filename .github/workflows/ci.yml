@@ -30,6 +30,8 @@ jobs:
         run: uv run python scripts/render_eval.py && git diff --exit-code README.md
       - name: The popularity page is the committed table
         run: uv run python scripts/render_popularity.py && git diff --exit-code docs/popularity.md
+      - name: The README's known misses are the acceptance file
+        run: uv run python scripts/render_misses.py && git diff --exit-code README.md
       - name: Config ships inside the wheel
         run: |
           uv build --wheel --out-dir dist

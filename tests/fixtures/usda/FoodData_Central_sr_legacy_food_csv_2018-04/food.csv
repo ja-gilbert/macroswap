@@ -1,6 +1,7 @@
 fdc_id,data_type,description,food_category_id,publication_date
 167535,sr_legacy_food,"Tortillas, ready-to-bake or -fry, flour, shelf stable",18,2019-04-01
 167536,sr_legacy_food,"Snacks, beef jerky, chopped and formed",23,2019-04-01
+167713,sr_legacy_food,"Turkey, light or dark meat, smoked, cooked, skin and bone removed",5,2019-04-01
 167753,sr_legacy_food,"Prune juice, canned",9,2019-04-01
 167772,sr_legacy_food,"Applesauce, canned, unsweetened, with added ascorbic acid",9,2019-04-01
 167787,sr_legacy_food,"Pomegranate juice, bottled",9,2019-04-01
@@ -19,6 +20,7 @@ fdc_id,data_type,description,food_category_id,publication_date
 168566,sr_legacy_food,"Tomatillos, raw",11,2019-04-01
 168604,sr_legacy_food,"Seeds, sesame butter, tahini, type of kernels unspecified",12,2019-04-01
 168652,sr_legacy_food,"Beef, ground, 70% lean meat / 30% fat, raw",13,2019-04-01
+168719,sr_legacy_food,"Beef, loin, top loin, separable lean and fat, trimmed to 1/8"" fat, select, raw",13,2019-04-01
 168877,sr_legacy_food,"Rice, white, long-grain, regular, raw, enriched",20,2019-04-01
 168886,sr_legacy_food,"Rye flour, medium",20,2019-04-01
 169074,sr_legacy_food,"Tomato sauce, canned, no salt added",11,2019-04-01
@@ -58,20 +60,29 @@ fdc_id,data_type,description,food_category_id,publication_date
 170460,sr_legacy_food,"Tomato products, canned, puree, without salt added",11,2019-04-01
 170499,sr_legacy_food,"Shallots, raw",11,2019-04-01
 170567,sr_legacy_food,"Nuts, almonds",12,2019-04-01
+170838,sr_legacy_food,"Beef, rib eye steak/roast, bone-in, lip-on, separable lean only, trimmed to 1/8"" fat, select, raw",13,2019-04-01
 170844,sr_legacy_food,"Cheese, monterey",1,2019-04-01
 170894,sr_legacy_food,"Yogurt, Greek, plain, nonfat (Includes foods for USDA's Food Distribution Program)",1,2019-04-01
 170898,sr_legacy_food,"Cheese, mexican, queso cotija",1,2019-04-01
 170901,sr_legacy_food,"Yogurt, Greek, strawberry, nonfat",1,2019-04-01
 171009,sr_legacy_food,"Salad dressing, mayonnaise, regular",4,2019-04-01
+171067,sr_legacy_food,"Chicken, broilers or fryers, dark meat, meat only, raw",5,2019-04-01
 171077,sr_legacy_food,"Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw",5,2019-04-01
 171116,sr_legacy_food,"Chicken, ground, raw",5,2019-04-01
+171129,sr_legacy_food,"Turkey, thigh, from whole bird, meat only, with added solution, raw",5,2019-04-01
+171130,sr_legacy_food,"Turkey, retail parts, breast, meat and skin, with added solution, raw",5,2019-04-01
+171136,sr_legacy_food,"Turkey, drumstick, from whole bird, meat only, raw",5,2019-04-01
 171265,sr_legacy_food,"Milk, whole, 3.25% milkfat, with added vitamin D",1,2019-04-01
 171269,sr_legacy_food,"Milk, nonfat, fluid, with added vitamin A and vitamin D (fat free or skim)",1,2019-04-01
 171287,sr_legacy_food,"Egg, whole, raw, fresh",1,2019-04-01
 171445,sr_legacy_food,"Chicken, broiler, rotisserie, BBQ, breast, meat only",5,2019-04-01
 171474,sr_legacy_food,"Chicken, broilers or fryers, breast, meat and skin, raw",5,2019-04-01
 171477,sr_legacy_food,"Chicken, broilers or fryers, breast, meat only, cooked, roasted",5,2019-04-01
+171482,sr_legacy_food,"Turkey, whole, skin (light and dark), raw",5,2019-04-01
+171484,sr_legacy_food,"Turkey, all classes, heart, raw",5,2019-04-01
+171488,sr_legacy_food,"Turkey, dark meat, meat and skin, raw",5,2019-04-01
 171519,sr_legacy_food,"Chicken, broilers or fryers, drumstick, rotisserie, original seasoning, meat only, cooked",5,2019-04-01
+171526,sr_legacy_food,"Turkey, wing, from whole bird, meat only, with added solution, raw",5,2019-04-01
 171705,sr_legacy_food,"Avocados, raw, all commercial varieties",9,2019-04-01
 171711,sr_legacy_food,"Blueberries, raw",9,2019-04-01
 171790,sr_legacy_food,"Beef, ground, 95% lean meat / 5% fat, raw",13,2019-04-01
@@ -93,6 +104,7 @@ fdc_id,data_type,description,food_category_id,publication_date
 172765,sr_legacy_food,"Muffins, blueberry, commercially prepared (Includes mini-muffins)",18,2019-04-01
 172847,sr_legacy_food,"Turkey, ground, fat free, raw",5,2019-04-01
 172850,sr_legacy_food,"Turkey, ground, 93% lean, 7% fat, raw",5,2019-04-01
+172864,sr_legacy_food,"Turkey from whole, light meat, meat only, with added solution, raw",5,2019-04-01
 172938,sr_legacy_food,"Salami, dry or hard, pork",7,2019-04-01
 172941,sr_legacy_food,"Turkey breast, sliced, prepackaged",7,2019-04-01
 173041,sr_legacy_food,"Grape juice, canned or bottled, unsweetened, with added ascorbic acid",9,2019-04-01
@@ -125,6 +137,7 @@ fdc_id,data_type,description,food_category_id,publication_date
 174223,sr_legacy_food,"Mollusks, squid, mixed species, raw",15,2019-04-01
 174421,sr_legacy_food,"Game meat , bison, ground, raw",17,2019-04-01
 174493,sr_legacy_food,"Turkey, ground, 85% lean, 15% fat, raw",5,2019-04-01
+174507,sr_legacy_food,"Turkey, dark meat from whole, meat only, with added solution, raw",5,2019-04-01
 174612,sr_legacy_food,"Turkey, breast, smoked, lemon pepper flavor, 97% fat-free",7,2019-04-01
 174763,sr_legacy_food,"Beef, top sirloin, steak, separable lean only, trimmed to 1/8"" fat, choice, raw",13,2019-04-01
 174832,sr_legacy_food,"Beverages, almond milk, unsweetened, shelf stable",14,2019-04-01

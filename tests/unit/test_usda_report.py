@@ -15,7 +15,8 @@ def test_report_counts_and_measured_candidates(
 ) -> None:
     """The report sizes the table and lists override and alias candidates from
     the data: three lean fish link within the threshold while canned sardines
-    and anchovies have no raw row to compare, every alias in the packaged
+    and anchovies have no raw row to compare, and the loin cuts are one family
+    since the tenderloin and top sirloin aliases; every alias in the packaged
     config targets an SR family and applies, and orange-flesh sweet potatoes'
     nearest SR families with candidates are ranked by shared words, plurals
     folded, then distance."""
@@ -29,8 +30,8 @@ def test_report_counts_and_measured_candidates(
         text = family_report(
             conn, config.swap.rank_weights, config.usda.varietal_threshold
         )
-    assert "rows in the matcher index: 211" in text
-    assert "varietal override candidates (raw families within 15): 2" in text
+    assert "rows in the matcher index: 224" in text
+    assert "varietal override candidates (raw families within 15): 1" in text
     assert (
         "  fish: 3 of 8 raw families: fish, halibut; fish, mahimahi; fish, snapper"
         in text

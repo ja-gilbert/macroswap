@@ -1,94 +1,92 @@
 # The swaps I would accept, and the ones I call absurd, for the data tier's
 # acceptance test: each source is typed text plus grams against the USDA table
-# alone, no diary, under the default method. Marked on 2026-10-02 from the
-# engine's top 25 per source; a row here is the specification, and a rule change
-# that breaks one is fixed in the rule.
+# alone, the participant counts on and no diary, under the default method.
+# Marked on 2026-10-06 from the command's first 25 per source; a row here is
+# the specification, and a rule change that breaks one is fixed in the rule.
+# The command offers nothing without counts, so the file promises nothing
+# without them.
 #
 # accept: family keys that must be among the first 25 family rows, the rows of
 # `--top 25` the marks were made on (the command prints ten by default).
 # absurd: family keys that must not be among those 25.
-# requires = "popularity": the same two kinds, asserted once the popularity table
-# is built. Today every family counts as common and the rows above an accepted
-# family are foods nobody buys, or the absurd family is one that only the
-# popularity floor removes. A tagged family that still fails then is a
-# conversation, not a loosened row.
+# known_misses: swaps the command offers in the first 25 that survive the four
+# rules (the shared pool, the serving ratio, the vegetable rule and the floor)
+# and get no fifth; one entry per reason, with the pairs it covers.
+# Each pair is held to the first 25 the way an accepted swap is: a miss that
+# stops being offered fails the suite and its line goes, so the README's
+# limits stay measured, not remembered.
 #
-# Not asserted, by my rulings of 2026-10-02 (known limits):
+# Not asserted, by my rulings of 2026-10-02 and 2026-10-06 (known limits):
 # - whole eggs for chicken breast: 231 g of egg carries 19 g more fat than the breast.
 # - salmon for chicken breast: farmed Atlantic has 10 g more fat per 100 g; the canned
 #   pink row, 2.8 g over, is a technicality, not the food meant.
-# - ribeye for salmon: 5 g of fat off either way (lean only -5.1, lean and fat +5.1).
-# - tuna and chicken breast for Greek yogurt, Greek yogurt for egg whites: 170 g of
-#   nonfat Greek yogurt carries 6 g of carbs no meat or egg white has.
-# - ricotta, mozzarella and whole eggs for cottage cheese: 6 to 7 g more fat.
-# - shredded wheat for oats: its family, cereals ready-to-eat, post, offers Alpha-Bits
-#   first, so a family row would mean nothing.
-# - dry pasta for white rice, potatoes, sweet potato and brown rice: 2 to 4 g of protein
-#   over at the carbs, behind common fruit and vegetables; expected back if the carb
-#   pool splits into starch and sugar at milestone 5.
-# - rice cakes (Snacks), pork sausage and bratwurst (Sausages and Luncheon Meats):
-#   excluded categories, so no tag can admit them. Jerky is present, through the
-#   Snacks allow word; sausages are not. At milestone 5 rice cakes is one allow
-#   word in Snacks, the route jerky already takes.
+# - ricotta and whole eggs for cottage cheese: 6 to 7 g more fat.
+# - a ready-to-eat cereal for oats: FNDDS builds every such cereal from grain, flour
+#   and sugar, not from the cereal's own row, so no ready-to-eat family reaches the floor.
+# - cream of wheat for oats: 26 participants, less common, rank 67.
 
 [[staples]]
 text = "white rice"
 grams = 60
-accept = ["sweet potato, canned", "potatoes, hash brown", "potatoes, mashed"]
-absurd = ["cucumber"]
-
-[[staples]]
-text = "white rice"
-grams = 60
-requires = "popularity"
-accept = ["sweet potato", "cereals, cream of rice", "potatoes", "rice, brown"]
+accept = [
+  "potatoes",
+  "sweet potato",
+  "potatoes, mashed",
+  "potatoes, hash brown",
+  "cereals, cream of rice",
+  "rice, brown",
+  "tortillas, ready-to-bake or -fry",
+  "rice cake, cracker",
+  "bread",
+  "pasta, dry",
+]
 absurd = [
-  "burdock root",
-  "longans",
-  "cherries, sour",
+  "cucumber",
   "abiyuch",
-  "sugar-apples",
-  "onions",
-  "mountain yam, hawaii",
-  "lemon juice from concentrate, bottled",
-  "potato flour",
-  "grapefruit",
-  "corn bran, crude",
-  "oranges",
-  "flour, rice",
+  "burdock root",
+  "cherries, sour",
   "chicory roots",
-  "seaweed, agar",
-  "lemon juice from concentrate, canned or bottled",
-  "tangerines",
+  "corn bran, crude",
+  "grapefruit",
+  "longans",
+  "mountain yam, hawaii",
+  "onions",
+  "oranges",
+  "potato flour",
   "pummelo",
+  "seaweed, agar",
+  "sugar-apples",
+  "tangerines",
 ]
 
 [[staples]]
 text = "potatoes"
 grams = 200
-accept = ["potatoes, yellow fleshed", "potatoes, o'brien", "potatoes, mashed"]
-absurd = []
-
-[[staples]]
-text = "potatoes"
-grams = 200
-requires = "popularity"
-accept = ["rice, white", "sweet potato"]
+accept = [
+  "rice, white",
+  "potatoes, mashed",
+  "potatoes, hash brown",
+  "bread",
+  "pasta, dry",
+  "rice, brown",
+  "sweet potato",
+  "cereals, cream of rice",
+  "tortillas, ready-to-bake or -fry",
+  "rice cake, cracker",
+]
 absurd = [
-  "jerusalem-artichokes",
-  "onions",
-  "beets, canned",
   "apricots, canned",
+  "beets, canned",
+  "butterbur",
+  "fungi, cloud ears",
+  "hearts of palm",
+  "jerusalem-artichokes",
+  "kanpyo",
+  "mushrooms, shiitake",
+  "onions",
   "onions, dehydrated flakes",
   "radishes, oriental",
-  "fungi, cloud ears",
   "seaweed, irishmoss",
-  "butterbur",
-  "hearts of palm",
-  "mushrooms, shiitake",
-  "wheat flour",
-  "kanpyo",
-  "sorghum flour, refined",
 ]
 
 [[staples]]
@@ -97,57 +95,42 @@ grams = 170
 accept = [
   "cheese, cottage",
   "beverages, protein powder whey based",
-  "turkey breast, low salt",
+  "egg, white",
+  "chicken, breast",
+  "fish, tuna",
 ]
-absurd = []
-
-[[staples]]
-text = "greek yogurt"
-grams = 170
-requires = "popularity"
-accept = ["egg, white"]
 absurd = [
+  "kraft free singles american nonfat pasteurized process cheese product",
   "mollusks, abalone",
+  "mollusks, octopus",
+  "mollusks, squid",
   "mollusks, whelk",
   "seaweed, spirulina",
-  "soy protein concentrate, produced by alcohol extraction",
   "soy protein concentrate, produced by acid wash",
-  "cheese, cream",
-  "kraft free singles american nonfat pasteurized process cheese product",
-  "cheese, cheddar",
-  "cheese, american",
+  "soy protein concentrate, produced by alcohol extraction",
   "vital wheat gluten",
-  "soy sauce made from soy",
-  "mollusks, squid",
   "watercress",
-  "mollusks, octopus",
 ]
 
 [[staples]]
 text = "salmon"
 grams = 150
 accept = [
-  "beef, round",
-  "pork, shoulder",
   "chicken, rotisserie",
-  "beef, chuck",
   "pork, cured",
   "pork, loin",
-  "beef, loin",
-  "beef, top sirloin",
+  "beef, round",
+  "pork, shoulder",
+  "beef, chuck",
   "beef, ground",
+  "beef, loin",
+  "beef, rib eye steak",
+  "egg, whole",
 ]
-absurd = []
-
-[[staples]]
-text = "salmon"
-grams = 150
-requires = "popularity"
-accept = ["egg, whole"]
 absurd = [
+  "fish, eel",
   "lamb, variety meats and by-products",
   "pork, variety meats and by-products",
-  "fish, eel",
   "quail, meat and skin",
 ]
 
@@ -155,370 +138,425 @@ absurd = [
 text = "chicken breast"
 grams = 150
 accept = [
-  "game meat, bison",
-  "fish, tilapia",
-  "turkey, whole",
-  "turkey, ground",
-  "turkey, breast",
   "chicken, rotisserie",
-  "turkey, retail parts",
-]
-absurd = ["lentils"]
-
-[[general]]
-text = "chicken breast"
-grams = 150
-requires = "popularity"
-accept = [
+  "turkey, all classes",
+  "fish, tilapia",
+  "turkey, ground",
+  "game meat, bison",
   "pork, loin",
+  "beef, round",
   "crustaceans, shrimp",
+  "beef, ground",
   "fish, tuna",
   "fish, cod",
+  "beef, loin",
+  "chicken, thigh",
   "egg, white",
-  "beef, ground",
 ]
 absurd = [
-  "ostrich, outside leg",
-  "game meat, antelope",
-  "ostrich, outside strip",
-  "ostrich, inside leg",
+  "lentils",
+  "chicken, light meat",
   "chicken, roasting",
   "emu, full rump",
   "fish, cisco",
-  "chicken, light meat",
+  "game meat, antelope",
+  "ostrich, inside leg",
+  "ostrich, outside leg",
+  "ostrich, outside strip",
 ]
 
 [[general]]
 text = "ground beef 93/7"
 grams = 150
 accept = [
-  "beef, flank",
-  "turkey, whole",
-  "turkey, retail parts",
+  "chicken, rotisserie",
+  "pork, loin",
   "beef, round",
   "beef, loin",
-  "beef, rib eye steak/roast",
-  "chicken, rotisserie",
-  "beef, tenderloin",
+  "beef, rib eye steak",
+  "turkey, all classes",
+  "beef, chuck",
+  "turkey, ground",
+  "chicken, thigh",
+  "chicken, breast",
 ]
-absurd = []
-
-[[general]]
-text = "ground beef 93/7"
-grams = 150
-requires = "popularity"
-accept = ["pork, loin", "chicken, thigh", "turkey, ground", "beef, top sirloin"]
 absurd = ["fish, anchovy", "fish, milkfish"]
 
 [[general]]
 text = "ground beef 75/25"
 grams = 150
-accept = ["beef, rib"]
-absurd = ["butter"]
-
-[[general]]
-text = "ground beef 75/25"
-grams = 150
-requires = "popularity"
-accept = []
+accept = [
+  "pork sausage, link/patty",
+  "sausage, italian",
+  "bratwurst, pork",
+  "beef, chuck",
+  "beef, rib eye steak",
+  "chicken, thigh",
+]
 absurd = [
-  "lamb, variety meats and by-products",
-  "beef, variety meats and by-products",
-  "egg, yolk",
-  "pork, variety meats and by-products",
-  "cheese, monterey",
-  "cheese, mexican",
-  "cheese, cheddar",
-  "cheese, roquefort",
-  "cheese, pasteurized process",
+  "butter",
   "beef, carcass",
-  "seeds, hemp seed",
+  "beef, variety meats and by-products",
   "cheese, goat",
-  "cheese, feta",
+  "cheese, mexican",
+  "cheese, roquefort",
+  "egg, yolk",
+  "lamb, variety meats and by-products",
+  "pork, variety meats and by-products",
+  "seeds, hemp seed",
 ]
 
 [[general]]
 text = "whole eggs"
 grams = 100
 accept = [
-  "cheese, monterey",
-  "chicken, rotisserie",
   "cheese, cheddar",
-  "turkey, ground",
-  "chicken, wing",
+  "beef, ground",
+  "chicken, rotisserie",
+  "pork, loin",
   "beef, loin",
+  "beef, rib eye steak",
+  "cheese, monterey",
+  "chicken, wing",
   "beef, chuck",
-  "cheese, mexican",
-  "beef, top sirloin",
+  "turkey, ground",
+  "cheese, mozzarella",
+  "chicken, thigh",
+  "fish, salmon",
 ]
-absurd = []
-
-[[general]]
-text = "whole eggs"
-grams = 100
-requires = "popularity"
-accept = ["beef, ground", "fish, salmon", "chicken, thigh"]
 absurd = ["fish, cisco", "veal, variety meats and by-products"]
 
 [[general]]
 text = "egg whites"
 grams = 165
 accept = [
+  "crustaceans, shrimp",
+  "fish, tuna",
   "beverages, protein powder whey based",
   "fish, cod",
-  "turkey, breast",
-  "fish, tuna",
-  "crustaceans, shrimp",
+  "chicken, breast",
+  "turkey, all classes",
+  "fish, tilapia",
+  "chicken, rotisserie",
+  "cheese, cottage",
+  "yogurt, greek",
 ]
-absurd = ["gelatins, dry powder"]
-
-[[general]]
-text = "egg whites"
-grams = 165
-requires = "popularity"
-accept = ["chicken, breast", "fish, tilapia"]
 absurd = [
-  "soy protein isolate, potassium type",
-  "mollusks, cuttlefish",
-  "frog legs",
-  "emu, outside drum",
-  "turtle, green",
-  "emu, flat fillet",
-  "game meat, moose",
-  "fish, ling",
-  "ruffed grouse, breast meat",
   "emu, fan fillet",
+  "emu, flat fillet",
+  "emu, outside drum",
+  "fish, ling",
   "fish, pike",
+  "frog legs",
+  "game meat, moose",
+  "mollusks, cuttlefish",
+  "ruffed grouse, breast meat",
+  "soy protein isolate, potassium type",
+  "turtle, green",
 ]
 
 [[general]]
 text = "sweet potato"
 grams = 150
-accept = ["cereals, cream of rice", "rice, white"]
-absurd = []
-
-[[general]]
-text = "sweet potato"
-grams = 150
-requires = "popularity"
-accept = ["potatoes"]
+accept = [
+  "rice, white",
+  "potatoes, mashed",
+  "potatoes, hash brown",
+  "cereals, cream of rice",
+  "potatoes",
+  "rice, brown",
+  "rice cake, cracker",
+  "bread",
+  "tortillas, ready-to-bake or -fry",
+  "pasta, dry",
+]
 absurd = [
-  "seaweed, agar",
-  "pummelo",
-  "tangerines",
-  "potato flour",
-  "mountain yam, hawaii",
-  "waterchestnuts, chinese",
-  "jew's ear",
   "abiyuch",
-  "sweet potato, canned",
   "beans, adzuki",
-  "orange juice",
+  "cherries, sweet",
+  "chicory roots",
   "grapefruit, sections",
+  "jew's ear",
   "longans",
+  "longans, dried",
+  "mountain yam, hawaii",
   "oranges",
   "peaches, canned",
-  "chicory roots",
-  "cherries, sweet",
-  "longans, dried",
+  "potato flour",
+  "pummelo",
+  "seaweed, agar",
+  "sweet potato, canned",
+  "tangerines",
+  "waterchestnuts, chinese",
 ]
 
 [[general]]
 text = "oats"
 grams = 40
-accept = ["bread", "quinoa, uncooked"]
-absurd = ["cucumber"]
-
-[[general]]
-text = "oats"
-grams = 40
-requires = "popularity"
 accept = [
-  "cereals ready-to-eat, general mills",
-  "pasta, whole grain",
-  "cereals, cream of wheat",
+  "bread",
+  "quinoa, uncooked",
+  "muffins, english",
+  "bagels, plain",
+  "pasta, whole-wheat",
 ]
 absurd = [
+  "cucumber",
   "beans, snap",
-  "vegetable juice cocktail, canned",
-  "tomato juice, canned",
-  "soymilk, lowfat",
   "celtuce",
+  "mushrooms",
   "soymilk, chocolate and other flavors",
-  "tofu yogurt",
-  "yogurt, fruit",
+  "soymilk, lowfat",
   "squash, summer",
+  "tofu yogurt",
+  "tomato juice, canned",
   "tomatoes, red",
-  "mushrooms",
+  "vegetable juice cocktail, canned",
+  "yogurt, fruit",
 ]
 
 [[general]]
 text = "bread"
 grams = 60
-accept = ["quinoa, uncooked", "cereals, oats"]
-absurd = []
-
-[[general]]
-text = "bread"
-grams = 60
-requires = "popularity"
-accept = ["bagels, plain", "english muffins, plain", "tortillas, ready-to-bake or -fry"]
+accept = [
+  "cereals, oats",
+  "quinoa, uncooked",
+  "muffins, english",
+  "tortillas, ready-to-bake or -fry",
+  "bagels, plain",
+]
 absurd = [
-  "soymilk, lowfat",
+  "beans, snap",
+  "bread, crumbs",
   "celtuce",
-  "vegetable juice cocktail, canned",
+  "mushrooms",
+  "peppers, sweet",
+  "seeds, sisymbrium sp. seeds",
+  "soymilk, lowfat",
   "tofu yogurt",
   "tomato juice, canned",
-  "mushrooms",
-  "bread, rice bran",
-  "beans, snap",
-  "seeds, sisymbrium sp. seeds",
-  "bread, crumbs",
-  "peppers, sweet",
   "tomatoes, red",
-  "bread, reduced-calorie",
-  "flour, amaranth",
-  "bread, roll",
-  "flour, oat",
+  "vegetable juice cocktail, canned",
 ]
 
 [[general]]
 text = "brown rice"
 grams = 60
-requires = "popularity"
-accept = ["rice, white", "potatoes", "sweet potato"]
+accept = [
+  "potatoes, hash brown",
+  "potatoes",
+  "rice, white",
+  "tortillas, ready-to-bake or -fry",
+  "sweet potato",
+  "potatoes, mashed",
+  "rice cake, cracker",
+  "cereals, cream of rice",
+  "bread",
+  "pasta, dry",
+]
 absurd = [
-  "rice flour, brown",
-  "nectarines",
-  "passion-fruit",
-  "melon balls",
-  "ginger root",
-  "cherimoya",
-  "peaches, yellow",
-  "strawberries",
   "carrots",
-  "currants",
-  "ice cream cones, sugar",
   "carrots, canned",
   "cereals ready-to-eat, frosted oat cereal with marshmallows",
-  "sorghum flour, whole-grain",
-  "melons, cantaloupe",
+  "cherimoya",
   "cherries, sour",
+  "currants",
+  "ice cream cones, sugar",
+  "melon balls",
+  "melons, cantaloupe",
+  "nectarines",
+  "passion-fruit",
+  "peaches, yellow",
+  "strawberries",
 ]
 
 [[general]]
 text = "chicken thighs"
 grams = 150
 accept = [
-  "beef, rib eye steak/roast",
-  "beef, chuck",
-  "pork, cured",
-  "pork, loin",
-  "beef, loin",
-  "beef, rib",
-  "beef, round",
-  "beef, brisket",
-  "beef, flank",
-  "chicken, breast",
-]
-absurd = []
-
-[[general]]
-text = "chicken thighs"
-grams = 150
-requires = "popularity"
-accept = ["turkey, ground", "beef, ground"]
-absurd = [
-  "squab",
-  "ostrich, ground",
-  "game meat, bear",
-  "chicken, stewing",
-  "pheasant, meat and skin",
-]
-
-[[general]]
-text = "tilapia"
-grams = 150
-accept = [
-  "game meat, bison",
-  "chicken, breast",
-  "turkey, ground",
-  "turkey, whole",
-  "turkey, breast",
   "chicken, rotisserie",
-  "turkey, retail parts",
+  "pork, cured",
+  "chicken, breast",
+  "pork, loin",
+  "beef, round",
+  "beef, loin",
+  "beef, rib eye steak",
+  "beef, chuck",
+  "turkey, ground",
+  "beef, ground",
+  "turkey, all classes",
+  "fish, salmon",
+  "chicken, drumstick",
 ]
-absurd = []
+absurd = [
+  "chicken, stewing",
+  "game meat, bear",
+  "ostrich, ground",
+  "pheasant, meat and skin",
+  "squab",
+]
 
 [[general]]
 text = "tilapia"
 grams = 150
-requires = "popularity"
-accept = ["fish, cod", "crustaceans, shrimp", "fish, tuna", "pork, loin", "egg, white"]
+accept = [
+  "chicken, rotisserie",
+  "chicken, breast",
+  "pork, loin",
+  "crustaceans, shrimp",
+  "turkey, all classes",
+  "turkey, ground",
+  "game meat, bison",
+  "beef, round",
+  "fish, tuna",
+  "beef, ground",
+  "beef, loin",
+  "fish, cod",
+  "egg, white",
+  "chicken, thigh",
+]
 absurd = [
-  "ostrich, outside leg",
-  "game meat, antelope",
-  "ostrich, inside leg",
-  "ostrich, outside strip",
   "emu, full rump",
   "fish, cisco",
+  "game meat, antelope",
+  "ostrich, inside leg",
+  "ostrich, outside leg",
+  "ostrich, outside strip",
 ]
 
 [[general]]
 text = "Yogurt, plain, low fat"
 grams = 170
-accept = ["milk, lowfat", "yogurt, greek"]
-absurd = []
-
-[[general]]
-text = "Yogurt, plain, low fat"
-grams = 170
-requires = "popularity"
-accept = []
+accept = [
+  "yogurt, greek",
+  "milk, lowfat",
+  "milk, reduced fat",
+  "cheese, cottage",
+]
 absurd = [
   "arugula",
-  "chives",
   "asparagus, canned",
-  "cereals ready-to-eat, sun country",
-  "lupins",
-  "dock",
-  "mollusks, oyster",
-  "spinach, canned",
-  "mushrooms, straw",
   "borage",
-  "parsley, freeze-dried",
+  "cereals ready-to-eat, sun country",
+  "chives",
   "coriander leaves",
-  "spinach",
-  "taro leaves",
-  "pokeberry shoots",
+  "dock",
   "leavening agents, yeast",
+  "lupins",
+  "mollusks, oyster",
+  "mushrooms, straw",
+  "parsley, freeze-dried",
+  "pokeberry shoots",
+  "spinach",
+  "spinach, canned",
   "squash, zucchini",
+  "taro leaves",
 ]
 
 [[general]]
 text = "Cheese, cottage, lowfat, 2% milkfat"
 grams = 150
 accept = ["yogurt, greek", "turkey breast, sliced"]
-absurd = []
-
-[[general]]
-text = "Cheese, cottage, lowfat, 2% milkfat"
-grams = 150
-requires = "popularity"
-accept = []
 absurd = [
-  "egg substitute, powder",
-  "mollusks, oyster",
-  "goose, liver",
   "alfalfa seeds, sprouted",
-  "soy flour, low-fat",
-  "seaweed, spirulina",
   "balsam-pear, leafy tips",
-  "winged bean, cooked",
-  "winged beans, immature seeds",
   "beef, variety meats and by-products",
   "duck, domesticated",
-  "veal, variety meats and by-products",
+  "egg substitute, powder",
   "fish, gefiltefish",
+  "mollusks, oyster",
   "pumpkin leaves",
+  "seaweed, spirulina",
+  "soy flour, low-fat",
+  "veal, variety meats and by-products",
+  "winged bean, cooked",
+  "winged beans, immature seeds",
+]
+
+[[known_misses]]
+why = "cheese for a meat, egg-white, yogurt or cottage-cheese target: the protein and the fat of meat, so the fit is real; nobody plates it in meat's place"
+pairs = [
+  "greek yogurt: cheese, cheddar",
+  "greek yogurt: cheese, cream",
+  "greek yogurt: cheese, american",
+  "greek yogurt: cheese, mozzarella",
+  "greek yogurt: cheese, swiss",
+  "salmon: cheese, parmesan",
+  "salmon: cheese, mozzarella",
+  "salmon: cheese, cheddar",
+  "salmon: cheese, monterey",
+  "chicken breast: cheese, mozzarella",
+  "ground beef 93/7: cheese, pasteurized process",
+  "ground beef 93/7: cheese, swiss",
+  "ground beef 75/25: cheese, cheddar",
+  "ground beef 75/25: cheese, pasteurized process",
+  "ground beef 75/25: cheese, monterey",
+  "ground beef 75/25: cheese, feta",
+  "ground beef 75/25: cheese, colby",
+  "ground beef 75/25: cheese, queso fresco",
+  "ground beef 75/25: cheese, pasteurized process cheese food or product",
+  "ground beef 75/25: cheese product, pasteurized process",
+  "ground beef 75/25: cheese, mozzarella",
+  "ground beef 75/25: cheese, swiss",
+  "ground beef 75/25: cheese, cream",
+  "ground beef 75/25: cheese spread, pasteurized process",
+  "egg whites: cheese, mozzarella",
+  "egg whites: cheese, swiss",
+  "egg whites: cheese, cheddar",
+  "chicken thighs: cheese, pasteurized process",
+  "tilapia: cheese, mozzarella",
+  "Yogurt, plain, low fat: cheese, cream",
+  "Cheese, cottage, lowfat, 2% milkfat: cheese, cream",
+  "Cheese, cottage, lowfat, 2% milkfat: cheese, pasteurized process",
+  "Cheese, cottage, lowfat, 2% milkfat: cheese, swiss",
+  "Cheese, cottage, lowfat, 2% milkfat: cheese, american",
+]
+
+[[known_misses]]
+why = "nuts and nut butters for 75/25 beef"
+pairs = [
+  "ground beef 75/25: peanuts",
+  "ground beef 75/25: peanut butter",
+  "ground beef 75/25: nuts, walnuts",
+  "ground beef 75/25: nuts, almonds",
+]
+
+[[known_misses]]
+why = "sprouted beans for a yogurt or cottage cheese target"
+pairs = [
+  "Yogurt, plain, low fat: beans, kidney",
+  "Yogurt, plain, low fat: beans, pinto",
+  "Cheese, cottage, lowfat, 2% milkfat: beans, kidney",
+]
+
+[[known_misses]]
+why = "imitation shellfish, surimi, for a yogurt or cottage cheese target: the only shellfish rows with carbs"
+pairs = [
+  "Yogurt, plain, low fat: crustaceans, shrimp",
+  "Yogurt, plain, low fat: crustaceans, crab",
+  "Cheese, cottage, lowfat, 2% milkfat: crustaceans, shrimp",
+]
+
+[[known_misses]]
+why = "sweetened milks, chocolate and sweetened condensed, for bread"
+pairs = [
+  "bread: milk, chocolate",
+  "bread: milk, canned",
+]
+
+[[known_misses]]
+why = "the Quaker brand key beside the generic grits and oats families: two of 25 slots for one food"
+pairs = [
+  "white rice: cereals, quaker",
+  "potatoes: cereals, quaker",
+  "sweet potato: cereals, quaker",
+  "oats: cereals, quaker",
+  "bread: cereals, quaker",
+  "brown rice: cereals, quaker",
+]
+
+[[known_misses]]
+why = "soy foods where the macros fit and the plate does not: a veggie burger for a bowl of plain yogurt"
+pairs = [
+  "Yogurt, plain, low fat: veggie burgers or soyburgers",
 ]

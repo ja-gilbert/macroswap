@@ -41,12 +41,16 @@ EXCLUSION_CASES = {
     "flour-denied": ("sr:169761", "excluded-category"),
     "dressing-denied": ("sr:173592", "excluded-category"),
     "mayonnaise-allowed-past-dressing": ("sr:171009", None),
+    "turkey-heart-is-a-denied-part": ("sr:171484", "excluded-part"),
+    "skin-light-and-dark-is-one-whole-field": ("sr:171482", "excluded-part"),
+    "skinless-is-not-the-skin-field": ("sr:171077", None),
+    "potato-skin-is-not-a-poultry-part": ("sr:170032", None),
     "deny-word-only-inside-a-parenthetical": ("sr:174908", None),
     "gelatin-in-sweets": ("sr:169599", "excluded-category"),
     "whey-allowed": ("sr:173177", None),
     "protein-powder-allowed": ("sr:173180", None),
     "sliced-turkey-allowed": ("sr:172941", None),
-    "inverted-turkey-breast-allowed": ("sr:174612", None),
+    "inverted-turkey-breast-is-deli-and-stays-out": ("sr:174612", "excluded-category"),
     "sliced-chicken-allowed": ("sr:173874", None),
     "jerky-allowed": ("sr:167536", None),
     "water-category-outranks-zero-macro": ("sr:173647", "excluded-category"),
@@ -194,7 +198,11 @@ def test_aliases_apply_to_any_source_and_stale_config_is_refused(
     assert {i: rows[i].family for i in aliased} == aliased
     assert rows["sr:173723"].family == "fish, salmon"
     assert rows["sr:169376"].family == "mushrooms"
-    assert rows["sr:173177"].variant == rows["sr:173180"].variant
+    # The family changes; the row keeps its own name as its variant, unless it
+    # restates an SR row, when it reads as that row.
+    assert rows["foundation:2747654"].variant == "cod, pacific or alaskan, wild caught"
+    assert rows["sr:173177"].variant == "beverages, whey protein powder isolate"
+    assert rows["foundation:2644283"].variant == rows["sr:172420"].variant == "lentils"
     beef = USDA.leanness[0]
     unknown_anchor = replace(beef, anchors={**beef.anchors, "99999": "91/9"})
     for bad in (

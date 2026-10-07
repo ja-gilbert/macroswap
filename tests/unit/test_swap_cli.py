@@ -25,7 +25,7 @@ EXIT_CODES = {
         ["swap", "egg whites", "--grams", "0.5"],
         True,
         1,
-        "no swap: every candidate was left out (no-shared-pool 71; serving-bounds 79; "
+        "no swap: every candidate was left out (no-shared-pool 71; serving-bounds 88; "
         "non-starchy-vegetable 3; own-family 1)",
     ),
     "swap-target-with-all-macros-zero": (
@@ -62,7 +62,7 @@ EXIT_CODES = {
         ["swap", "atlantic cod", "--grams", "165", "--variants"],
         True,
         0,
-        "fish, cod, wild caught (same food)",
+        "cod, pacific or alaskan, wild caught (same food)",
     ),
     "swap-top-below-one": (
         ["swap", "egg whites", "--grams", "165", "--top", "0"],
@@ -198,7 +198,7 @@ def test_swap_reads_the_counts(
         "  count 296  sr-analytical"
     )
     assert (
-        "116 g  crustaceans, crab  protein +0.0  carbs +0.1  fat +0.1  kcal +1"
+        "116 g  snow crab, legs only  protein +0.0  carbs +0.1  fat +0.1  kcal +1"
         "  count 4 allowlist  foundation"
     ) in lines[: lines.index(DIVIDER)]
     assert lines[-2:] == [

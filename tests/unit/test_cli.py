@@ -264,7 +264,7 @@ def test_data_build_then_report(
     assert not Path("data/popularity").exists()
     assert main(["--db", "db.sqlite", "data", "build", "--write-popularity"]) == 0
     out = capsys.readouterr().out
-    assert "usda_foods: 211 rows" in out
+    assert "usda_foods: 224 rows" in out
     assert "popularity: NHANES 2021-2023, 5 participants, 6 families reported" in out
     with sqlite3.connect("db.sqlite") as conn:
         counts = set(conn.execute("SELECT * FROM popularity"))
@@ -296,7 +296,7 @@ def test_data_build_then_report(
         "participants": 5,
         "link_rule": LINK_RULE,
         "unattributed": 0.022222,
-        "offered_families": 90,
+        "offered_families": 88,
         "crosswalk": {"rice, white": ["Rice", 3, 4]},
         "families": families,
         "variants": variants,

@@ -151,11 +151,14 @@ dry = ['dry( mix| form| powder.*| packet mix)?', '(sun-|air-|freeze-)?dried(-fro
 cooked = ['rotisserie.*']
 
 # Whole words or phrases, per category, matched anywhere in the description
-# with parentheticals removed, that clear an excluded category or a denied word.
+# with parentheticals removed, that clear an excluded category or a denied word:
+# the foods on a plate inside a category left out as a whole: jerky and rice
+# cakes among the snacks, sliced breast and sausage among the lunch meats, the
+# floor keeping out the sausages nobody buys.
 [usda.allow_words]
 "Beverages" = ["whey protein", "protein powder"]
-"Sausages and Luncheon Meats" = ["turkey breast", "turkey, breast", "chicken breast"]
-"Snacks" = ["jerky"]
+"Sausages and Luncheon Meats" = ["turkey breast", "chicken breast", "sausage", "bratwurst"]
+"Snacks" = ["jerky", "rice cake", "rice cakes"]
 "Baked Products" = ["english muffins", "muffins, english"]
 "Fats and Oils" = ["mayonnaise"]
 
@@ -172,10 +175,19 @@ cooked = ['rotisserie.*']
 "Legumes and Legume Products" = ["soy sauce"]
 "Vegetables and Vegetable Products" = ["catsup", "garlic", "ginger"]
 
-# Family -> family, for a parallel spelling of one food, confirmed from
-# `macroswap data report`. Applied after the keys are derived and before the
-# duplicate check; `data build` refuses an entry whose source or target no
-# longer exists.
+# Whole comma fields of the description, per category, matched exactly, so
+# skin is denied and skinless is not: the parts of a bird nobody plates. A row
+# naming one is left out as excluded-part, whatever family it is folded into,
+# unless a key reason already leaves it out.
+[usda.deny_fields]
+"Poultry Products" = ["heart", "liver", "gizzard", "giblets", "neck", "back", "back meat only", "feet", "skin", "skin only", "skin from whole", "skin from whole (light and dark)", "skin (light and dark)", "skin (drumsticks and thighs)", "separable fat"]
+
+# Family -> family, for a parallel spelling of one food, or for a cut keyed on
+# its own that is sold as part of a family: the whole-bird turkey keys, dark
+# meat into thigh, tenderloin and top sirloin into loin. Confirmed from
+# `macroswap data report` and the counts. Applied after the keys are derived
+# and before the duplicate check; `data build` refuses an entry whose source or
+# target no longer exists.
 [usda.family_aliases]
 "cod, pacific or alaskan" = "fish, cod"
 "tuna, ahi or yellowfin" = "fish, tuna"
@@ -198,9 +210,24 @@ cooked = ['rotisserie.*']
 "scallops, sea" = "mollusks, scallop"
 "squid, tubes only" = "mollusks, squid"
 "pork, chop" = "pork, loin"
-"beef, tenderloin steak" = "beef, tenderloin"
-"beef, top sirloin steak" = "beef, top sirloin"
+"beef, tenderloin steak" = "beef, loin"
+"beef, tenderloin" = "beef, loin"
+"beef, top sirloin steak" = "beef, loin"
+"beef, top sirloin" = "beef, loin"
 "beef, ribeye" = "beef, rib eye steak"
+"beef, rib eye steak/roast" = "beef, rib eye steak"
+"chicken, dark meat" = "chicken, thigh"
+"turkey, whole" = "turkey, all classes"
+"turkey, breast" = "turkey, all classes"
+"turkey, retail parts" = "turkey, all classes"
+"turkey from whole, light meat" = "turkey, all classes"
+"turkey, wing" = "turkey, all classes"
+"turkey, drumstick" = "turkey, all classes"
+"turkey, light or dark meat" = "turkey, all classes"
+"turkey, dark meat" = "turkey, all classes"
+"turkey, dark meat from whole" = "turkey, all classes"
+"turkey, thigh" = "turkey, all classes"
+"english muffins, plain" = "muffins, english"
 "cheese, monterey jack" = "cheese, monterey"
 "soy milk, unsweetened" = "soymilk, unsweetened"
 "sesame butter, creamy" = "seeds, sesame butter"
