@@ -59,12 +59,14 @@ the missing `embed` extra exits 2.
 
 ## The USDA Table
 
-`macroswap data pull` fetches the two pinned USDA releases, SR Legacy and
-Foundation Foods, and refuses either if its checksum differs;
-`macroswap data build` turns them into one SQLite table of foods with
-family and variant keys, macro roles and a single exclusion reason per
-row; `macroswap data report` measures it. On the pinned releases,
-2026-09-26:
+`macroswap data pull` fetches the five pinned sources, SR Legacy, Foundation
+Foods, the FNDDS survey foods and the two NHANES recall files, and refuses
+any whose checksum differs; `macroswap data build` turns the two USDA
+releases into one SQLite table of foods with family and variant keys, macro
+roles and a single exclusion reason per row, counts from the survey files how
+many participants reported each family and each variant, and stores the
+counts beside it; `macroswap data report` measures the table.
+On the pinned sources, 2026-10-06:
 
     uv run macroswap data pull
     uv run macroswap data build
@@ -74,18 +76,19 @@ row; `macroswap data report` measures it. On the pinned releases,
 | --- | --- |
 | Foundation Rows Dropped for Sharing an SR Number | 211 |
 | Dry-Basis Rows Dropped at Load | 34 |
-| Families | 2,961 |
-| Single-Row Families | 1,828 |
+| Families | 2,927 |
+| Single-Row Families | 1,822 |
 | Rows in the Matcher Index | 8,022 |
-| Swap Candidates | 3,271 |
+| Swap Candidates | 3,104 |
 | Rows Cooked beside a Raw Sibling | 2,399 |
-| Rows in an Excluded Category | 2,269 |
+| Rows in an Excluded Category | 2,405 |
+| Rows Left Out for a Poultry Part | 34 |
 | Foundation Rows Repeating an SR Row | 60 |
-| Rows with Incomplete or All-Zero Macros | 23 |
+| Rows with Incomplete or All-Zero Macros | 20 |
 
 A candidate is a row a swap may offer; every other row stays in the
-index so a diary name can still be matched to it. The last five rows
-partition the index: 3,271 + 2,399 + 2,269 + 60 + 23 = 8,022.
+index so a diary name can still be matched to it. The last six rows
+partition the index: 3,104 + 2,399 + 2,405 + 34 + 60 + 20 = 8,022.
 
 ## The Matcher
 
@@ -111,15 +114,15 @@ from the table CI checks the eval against:
 | --- | --- | --- | --- | --- | --- | --- |
 | test | head | names | top1_ranking | 0.508 [0.437, 0.577] n=197 | 0.467 [0.399, 0.533] n=197 | 0.538 [0.468, 0.608] n=197 |
 | test | head | names | top1_end_to_end | 0.455 [0.391, 0.518] n=220 | 0.409 [0.345, 0.468] n=220 | 0.491 [0.423, 0.559] n=220 |
-| test | head | names | top5_ranking | 0.706 [0.641, 0.767] n=197 | 0.695 [0.629, 0.756] n=197 | 0.721 [0.655, 0.785] n=197 |
-| test | head | names | top5_end_to_end | 0.627 [0.564, 0.691] n=220 | 0.532 [0.464, 0.595] n=220 | 0.645 [0.582, 0.709] n=220 |
+| test | head | names | top5_ranking | 0.706 [0.641, 0.767] n=197 | 0.695 [0.629, 0.756] n=197 | 0.716 [0.649, 0.781] n=197 |
+| test | head | names | top5_end_to_end | 0.627 [0.564, 0.691] n=220 | 0.532 [0.464, 0.595] n=220 | 0.641 [0.577, 0.705] n=220 |
 | test | head | names | no_match_precision | 0.143 [0.000, 0.357] n=14 | 0.213 [0.131, 0.299] n=89 | 0.182 [0.043, 0.357] n=22 |
 | test | head | names | no_match_recall | 0.087 [0.000, 0.222] n=23 | 0.826 [0.647, 0.960] n=23 | 0.174 [0.042, 0.353] n=23 |
 | test | head | names | exact_id | 0.449 [0.379, 0.518] n=196 | 0.418 [0.352, 0.485] n=196 | 0.485 [0.417, 0.555] n=196 |
 | test | head | rows | top1_ranking | 0.563 [0.423, 0.678] n=197 | 0.498 [0.365, 0.623] n=197 | 0.559 [0.432, 0.678] n=197 |
 | test | head | rows | top1_end_to_end | 0.536 [0.403, 0.650] n=220 | 0.449 [0.321, 0.577] n=220 | 0.543 [0.416, 0.659] n=220 |
-| test | head | rows | top5_ranking | 0.734 [0.620, 0.824] n=197 | 0.703 [0.582, 0.801] n=197 | 0.733 [0.618, 0.824] n=197 |
-| test | head | rows | top5_end_to_end | 0.697 [0.587, 0.785] n=220 | 0.587 [0.456, 0.699] n=220 | 0.705 [0.593, 0.793] n=220 |
+| test | head | rows | top5_ranking | 0.734 [0.620, 0.824] n=197 | 0.703 [0.582, 0.801] n=197 | 0.730 [0.617, 0.820] n=197 |
+| test | head | rows | top5_end_to_end | 0.697 [0.587, 0.785] n=220 | 0.587 [0.456, 0.699] n=220 | 0.702 [0.591, 0.791] n=220 |
 | test | head | rows | no_match_precision | 0.067 [0.000, 0.235] n=14 | 0.156 [0.080, 0.258] n=89 | 0.213 [0.026, 0.479] n=22 |
 | test | head | rows | no_match_recall | 0.060 [0.000, 0.177] n=23 | 0.905 [0.767, 0.982] n=23 | 0.272 [0.039, 0.524] n=23 |
 | test | head | rows | exact_id | 0.525 [0.380, 0.646] n=196 | 0.468 [0.333, 0.594] n=196 | 0.526 [0.392, 0.647] n=196 |
@@ -173,11 +176,38 @@ out of the matcher, so every number in the eval block above is for the matcher
 alone. The bare name `rice` is white rice; a stranger types `wild rice` or
 `black rice` to reach those.
 
-Until the popularity table is built, every family counts as common, the header
-says so, and the rows are the closest macro matches whatever the food: chicken
-breast is answered with ostrich before turkey. `data/acceptance/swaps.toml` holds
-the swaps I would accept, and the ones I call absurd, for 17 foods, marked from
-the engine's top 25 on the USDA table alone, and CI holds the engine to them
-within those 25 rows: 76 accepted swaps are there today and 5 absurd ones are
-not; 40 more accepted and 189 absurd ones are tagged `requires = "popularity"`,
-asserted once the popularity table exists.
+Every family carries the number of NHANES participants who reported it,
+counted by `macroswap data build` from the pinned survey files;
+`docs/popularity.md` says how the count is made and what it misses. A family
+fewer than 10 participants reported is not offered unless the allowlist, the
+diary or `--include-obscure` admits it; one 50 or more reported is listed in
+the first tier; and within a family the variant most of them reported is
+shown when it fits as well as the closest. The header names the
+survey cycle and each row prints its count. A store built before the counts
+were added makes the swap exit 2 and ask for `data build` again.
+
+`data/acceptance/swaps.toml` holds the swaps I would accept, and the ones I
+call absurd, for 17 foods, marked on 2026-10-06 from the command's first 25
+with the counts on, and CI holds the engine to them within those 25 rows: 151
+accepted swaps are there and 170 absurd ones are not. The same file records
+the known misses: swaps the command offers in the first 25 today that survive
+all four rules, the shared pool, the serving ratio, the vegetable rule and
+the floor, and get no fifth. Each pair is held to the first 25 the
+way an accepted swap is, so this list is measured, not remembered:
+
+<!-- misses:begin -->
+- cheese for a meat, egg-white, yogurt or cottage-cheese target: the protein and the fat of meat, so the fit is real; nobody plates it in meat's place. Offered today for greek yogurt: `cheese, cheddar`, `cheese, cream`, `cheese, american`, `cheese, mozzarella`, `cheese, swiss`; for salmon: `cheese, parmesan`, `cheese, mozzarella`, `cheese, cheddar`, `cheese, monterey`; for chicken breast: `cheese, mozzarella`; for ground beef 93/7: `cheese, pasteurized process`, `cheese, swiss`; for ground beef 75/25: `cheese, cheddar`, `cheese, pasteurized process`, `cheese, monterey`, `cheese, feta`, `cheese, colby`, `cheese, queso fresco`, `cheese, pasteurized process cheese food or product`, `cheese product, pasteurized process`, `cheese, mozzarella`, `cheese, swiss`, `cheese, cream`, `cheese spread, pasteurized process`; for egg whites: `cheese, mozzarella`, `cheese, swiss`, `cheese, cheddar`; for chicken thighs: `cheese, pasteurized process`; for tilapia: `cheese, mozzarella`; for Yogurt, plain, low fat: `cheese, cream`; for Cheese, cottage, lowfat, 2% milkfat: `cheese, cream`, `cheese, pasteurized process`, `cheese, swiss`, `cheese, american`.
+- nuts and nut butters for 75/25 beef. Offered today for ground beef 75/25: `peanuts`, `peanut butter`, `nuts, walnuts`, `nuts, almonds`.
+- sprouted beans for a yogurt or cottage cheese target. Offered today for Yogurt, plain, low fat: `beans, kidney`, `beans, pinto`; for Cheese, cottage, lowfat, 2% milkfat: `beans, kidney`.
+- imitation shellfish, surimi, for a yogurt or cottage cheese target: the only shellfish rows with carbs. Offered today for Yogurt, plain, low fat: `crustaceans, shrimp`, `crustaceans, crab`; for Cheese, cottage, lowfat, 2% milkfat: `crustaceans, shrimp`.
+- sweetened milks, chocolate and sweetened condensed, for bread. Offered today for bread: `milk, chocolate`, `milk, canned`.
+- the Quaker brand key beside the generic grits and oats families: two of 25 slots for one food. Offered today for white rice: `cereals, quaker`; for potatoes: `cereals, quaker`; for sweet potato: `cereals, quaker`; for oats: `cereals, quaker`; for bread: `cereals, quaker`; for brown rice: `cereals, quaker`.
+- soy foods where the macros fit and the plate does not: a veggie burger for a bowl of plain yogurt. Offered today for Yogurt, plain, low fat: `veggie burgers or soyburgers`.
+<!-- misses:end -->
+
+What the counts cannot do: they are unweighted survey participants, children
+included, not an estimate of how many Americans eat a food. A food that FNDDS
+builds from its ingredients rather than from its own row never earns a count:
+every ready-to-eat cereal is built from grain, flour and sugar, so its 1,790
+reporters count toward oats, cornmeal, wheat flour, rice flour and sugar and
+no ready-to-eat family reaches the floor.

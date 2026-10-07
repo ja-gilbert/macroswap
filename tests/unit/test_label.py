@@ -56,21 +56,20 @@ def test_suggestions_merge_every_method_one_per_key_by_description(
     usda_rows: list[Row], fake_embedder: Encoder
 ) -> None:
     """One row per key, alphabetical by description, shown even when every
-    method abstains: embed reaches the whey key through another row than
-    lexical and hybrid do, and the key order differs from the description
-    order. A key's row is the one leading by the tie order: for "banana ripe"
-    lexical reaches the bananas key through an analytical duplicate, embed
-    through the SR row."""
+    method abstains, and the key order differs from the description order. A
+    key's row is the one leading by the tie order: for "banana ripe" lexical
+    reaches the bananas key through an analytical duplicate, which reads as
+    the SR row it restates, embed through the SR row itself."""
     abstaining = {"lexical": math.inf, "embed": math.inf}
     config = replace(CONFIG.match, no_match=abstaining)
     matcher = Matcher(usda_rows, config, RULES, fake_embedder)
     assert [hit.key for hit in suggestions(matcher, "protein powder")] == [
         "beverages, protein powder whey based / raw",
-        "english muffins, plain, without calcium propionate(includes sourdough) / raw",
+        "beverages, whey protein powder isolate / raw",
         "gelatins, dry powder, unsweetened / dry",
         "muffins, english, whole-wheat / raw",
-        "cereals, oats, steel cut / raw",
-        "pumpkin / raw",
+        "oats, whole grain, steel cut / raw",
+        "turkey, dark meat from whole, meat only, with added solution / raw",
     ]
     assert suggestions(matcher, "banana ripe")[0].row.id == "sr:173944"
     # Case folds: "Muffins, blueberry" leads "Muffins, English".
@@ -96,6 +95,7 @@ def test_a_session_labels_by_suggestion_and_search(
     )
     answers = _script(
         "1 1",  # Egg, white, raw, fresh: first by description, once
+        "1 2",  # a family key beside a row: asked again
         "/bee",  # inside longer words; the first by description: Beef, ground
         "1",  # a name without a level labels the family
         "/sweet potatoes raw",  # Sweet potato, raw only once plurals fold
@@ -107,7 +107,6 @@ def test_a_session_labels_by_suggestion_and_search(
         "chicken bowl",  # not a choice: asked again
         "/beverage",  # the first is "Beverages, almond milk": the sort folds case
         "1",
-        "1 5",  # a family key beside a row: asked again
         "/beef ground 93",  # a name with a level labels the row at it
         "1",
         "/flesh skin",  # the potatoes offered, then the red ones only search found
@@ -139,7 +138,8 @@ def test_a_session_labels_by_suggestion_and_search(
         "   1. Beef, ground, 70% lean meat / 30% fat, raw  (family key: beef, ground)"
         in lines
     )
-    assert "  21 match; the first 2 shown, add a word to narrow" in lines
+    assert "  23 match; the first 2 shown, add a word to narrow" in lines
+    assert "  a family key takes no other pick" in lines
 
 
 def test_each_label_is_written_as_made_and_a_restart_continues(

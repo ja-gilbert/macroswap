@@ -189,7 +189,7 @@ def test_fusion_adds_each_methods_reciprocal_rank(
         pytest.param("oats", 6.0, -math.inf, False, id="embed-alone-keeps-it"),
         pytest.param("oats", -math.inf, 1.1, False, id="lexical-alone-keeps-it"),
         pytest.param("zzzz", -math.inf, 0.9, True, id="unscored-counts-as-below"),
-        pytest.param("potato red", 6.5, 0.7, True, id="top-row-by-the-tie-order"),
+        pytest.param("potato red", 7.0, 0.7, True, id="top-row-by-the-tie-order"),
     ],
 )
 def test_hybrid_abstains_only_below_both_thresholds(
@@ -202,7 +202,7 @@ def test_hybrid_abstains_only_below_both_thresholds(
 ) -> None:
     """A fused score is a function of ranks alone, so its top row is judged on
     each method's threshold, a row a method does not score being below it. For
-    oats the plain oats row leads both methods, at 5.78 and 1.0 (the stand-in
+    oats the plain oats row leads both methods, at 5.92 and 1.0 (the stand-in
     scores a text 1 against itself), so hybrid abstains only at cuts above
     both. That the row judged is the first by fused score and tie order, not
     each method's own top, rests on "potato red": red potatoes and the sweet

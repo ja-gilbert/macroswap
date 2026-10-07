@@ -8,7 +8,7 @@ subway multigrain - wheat bred subway,269,head,test,sr:168013,search
 nature nate's - texas honey,268,head,test,sr:169640,suggestion
 fage - yogurt- greek 0%,267,head,test,sr:170894,suggestion
 chiquita banana - chiquita banana,258,head,test,sr:173944,suggestion
-ascent - protein powder,254,head,dev,sr:173180,suggestion
+ascent - protein powder,254,head,dev,sr:173180 sr:173177,suggestion
 subway - steak,242,head,dev,NO_MATCH,no_match
 heritage farms chicken - breast,172,head,dev,foundation:2646170 sr:171077,suggestion
 sweet potato,151,head,test,sr:168482,suggestion
@@ -18,7 +18,7 @@ whole milk,127,head,test,sr:171265 foundation:322892 sr:172217,search
 kirkland organic peanut butter - peanut butter,123,head,dev,sr:174294 sr:172470,suggestion
 sauder's eggs - eggs,122,head,dev,sr:171287,suggestion
 butter - butter unsalted,119,head,test,sr:173430,suggestion
-isopure - vanilla,117,head,test,sr:173180,search
+isopure - vanilla,117,head,test,sr:173180 sr:173177,search
 kroger - cottage cheese,116,head,test,sr:172179 sr:172182,suggestion
 yogurt greco 5% (fage) - fage 5%,111,head,test,sr:171304,search
 pathmark's ground beef - 80/20 ground beef,107,head,test,sr:174036,suggestion
@@ -28,10 +28,10 @@ parmesan cheese - parmesan cheese,99,head,test,sr:171247 foundation:2259795 sr:1
 nature valley - crunchy cinnamon granola,97,head,test,sr:167542,suggestion
 pumpkin,94,head,dev,sr:168448,suggestion
 peanut butter,92,head,dev,sr:174294 sr:172470 sr:172469,suggestion
-premier - chocolate protein powder,90,head,dev,sr:173180,suggestion
+premier - chocolate protein powder,90,head,dev,sr:173180 sr:173177,suggestion
 "simply potatoes - potatoes, diced",89,head,test,sr:170026,suggestion
 jasmine brand - jasmine rice,86,head,test,sr:168877 sr:169756,search
-gold standard whey - whey protein drink,85,head,test,sr:173180,suggestion
+gold standard whey - whey protein drink,85,head,test,sr:173180 sr:173177,suggestion
 mexican cheese - shredded cheese,85,head,test,sr:171288,suggestion
 kroger - natural crunchy peanut butter,81,head,dev,sr:172469,suggestion
 chocolate chips,79,head,test,sr:167976,search
@@ -41,7 +41,7 @@ thomas' - cinnamon raisin bagel,76,head,test,sr:172664,suggestion
 flik - red onion slices,75,head,dev,foundation:790577 sr:170000,suggestion
 veggie bag - green pepper slices,75,head,dev,sr:170427,suggestion
 meijer 4% cottage cheese - cottage cheese,74,head,test,sr:172179,search
-premier protein - vanilla protein powder,71,head,test,sr:173180,suggestion
+premier protein - vanilla protein powder,71,head,test,sr:173180 sr:173177,suggestion
 de cecco - linguine,67,head,test,sr:169736 sr:168927,search
 nate's - hot honey,67,head,dev,sr:169640,suggestion
 sunnyside nonfat greek yogurt - nonfat greek yogurt,67,head,test,sr:170894,suggestion
@@ -57,7 +57,7 @@ panda express - grilled teriyaki-chicken,55,head,test,NO_MATCH,no_match
 85/15 ground beef - 85/15 ground beef,52,head,test,sr:171796,suggestion
 boiled egg,51,head,test,sr:173424,suggestion
 crazy richards - 100% natural peanut butter,51,head,dev,sr:172470 sr:172469,suggestion
-gold standard - whey,51,head,test,sr:173180,search
+gold standard - whey,51,head,test,sr:173180 sr:173177,search
 "oatmeal, dry",51,head,test,sr:173904 sr:171661,suggestion
 trader joe's - milk - whole - whole milk,51,head,dev,sr:171265 foundation:322892 sr:172217,search
 wegmans - tzatziki,50,head,dev,NO_MATCH,no_match
@@ -135,8 +135,8 @@ daisy - low fat sour cream (revised),22,head,test,sr:173443,suggestion
 kroger - mozzarella,22,head,test,sr:171244 sr:170900 sr:170847,search
 nestlé chocolate chips - chocolate chips,22,head,dev,sr:167976,search
 honey - graham cracker,21,head,dev,sr:174957 sr:175083,suggestion
-meijer vanilla protein powder - protein powder,21,head,test,sr:173180,suggestion
-ryse - jet-puffed marshmallow flavor protein drink mix,21,head,test,sr:173180,search
+meijer vanilla protein powder - protein powder,21,head,test,sr:173180 sr:173177,suggestion
+ryse - jet-puffed marshmallow flavor protein drink mix,21,head,test,sr:173180 sr:173177,search
 sunny fruit dried figs - dried figs,21,head,test,sr:174665,suggestion
 baby bella mushrooms***,20,head,test,sr:168434 sr:168557,search
 chobani - nonfat plain greek yogurt,20,head,test,sr:171312 sr:170894,suggestion
@@ -155,8 +155,8 @@ natures own - honey wheat,18,head,dev,sr:172686,search
 pb fit - peanut butter powder*,18,head,test,sr:174267 sr:172435,search
 philadelphia - cream cheese spread,18,head,test,sr:169081,suggestion
 subway - provolone,18,head,test,foundation:2647440 sr:170850,suggestion
-dymatize - iso100 vanilla,17,head,test,sr:173180,search
-elevation - whey protein powder,17,head,test,sr:173180,suggestion
+dymatize - iso100 vanilla,17,head,test,sr:173180 sr:173177,search
+elevation - whey protein powder,17,head,test,sr:173180 sr:173177,suggestion
 fage - 0% greek yogurt,17,head,test,sr:170894,suggestion
 fareway - walnut halves,17,head,dev,sr:170187,suggestion
 goya - black beans - 15.5 oz can,17,head,dev,sr:175188 sr:175238,suggestion
@@ -199,7 +199,7 @@ kroger thai jasmine rice - jasmine rice (steamed),14,head,dev,sr:168878 sr:16975
 laura lawn beef 96/4 - 96/4,14,head,test,"derived:beef, ground:96/4",suggestion
 nature's own - honey wheat,14,head,test,sr:172686,search
 "russet potato, raw",14,head,dev,sr:170027 foundation:2346401,suggestion
-ryse - cinnamon protein,14,head,dev,sr:173180,search
+ryse - cinnamon protein,14,head,dev,sr:173180 sr:173177,search
 sargento - provolone,14,head,test,sr:170850 foundation:2647440,suggestion
 bel gioioso mozzarella - mozzarella,13,head,dev,sr:170845,suggestion
 cool whip - lite cool whip,13,head,test,sr:167687,suggestion
@@ -234,7 +234,7 @@ honey,11,head,test,sr:169640,suggestion
 kirkland - lean ground beef (91%/9% fat),11,head,test,"beef, ground",suggestion
 kroger - shredded cheddar,11,head,test,sr:173414 sr:170899,suggestion
 kroger - yukon gold potatoes,11,head,test,foundation:2346403,suggestion
-"meijer - whey protein powder, chocolate peanut butter",11,head,dev,sr:173180,suggestion
+"meijer - whey protein powder, chocolate peanut butter",11,head,dev,sr:173180 sr:173177,suggestion
 members mark - canned albacore tuna,11,head,test,sr:175158 sr:171988,search
 national pecan - pecans,11,head,test,sr:170182,suggestion
 oat bread - oat bread,11,head,test,sr:172678 sr:172676,suggestion
@@ -251,7 +251,7 @@ good culture - cottage cheese,10,head,dev,sr:172182,suggestion
 "great value - rice, jasmine",10,head,test,sr:168877 sr:169756,suggestion
 great value frozen - peppers & onions,10,head,test,NO_MATCH,no_match
 "hummus hummus - hummus, roasted red pepper",10,head,test,sr:174289,suggestion
-jocko - molk,10,head,test,sr:173180,search
+jocko - molk,10,head,test,sr:173180 sr:173177,search
 kirkland - stir fry veggies,10,head,test,NO_MATCH,no_match
 kirkland almond butter - natural almond butter,10,head,dev,sr:168588,suggestion
 kirkland organic chicken breast - chicken breast organic,10,head,test,foundation:2646170 sr:171077,suggestion

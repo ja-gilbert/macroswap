@@ -197,13 +197,14 @@ def test_a_participant_counts_once_per_family_and_per_variant() -> None:
     assert count(reports, attributions) == Popularity(3, counts, counts)
 
 
-# Two categories left out on purpose and no word rules, whatever the packaged
-# lists hold.
+# Two categories left out on purpose, one denied part and no word rules,
+# whatever the packaged lists hold.
 USDA = replace(
     load_config().usda,
     excluded_categories=("Snacks", "Sweets"),
     allow_words={},
     deny_words={},
+    deny_fields={"Poultry Products": ["heart"]},
 )
 LEFT_OUT = "excluded-category"
 
@@ -251,6 +252,19 @@ LEFT_OUT = "excluded-category"
             set(),
             id="a-kind-the-table-denied-inside-its-family",
         ),
+        pytest.param(
+            [
+                row(
+                    "1",
+                    "turkey, heart",
+                    reason="cooked-with-raw-sibling",
+                    category="Poultry Products",
+                )
+            ],
+            {"turkey, heart": "Poultry Products"},
+            set(),
+            id="a-denied-part-cooked-beside-its-raw-row",
+        ),
     ],
 )
 def test_a_family_no_swap_offers_is_filed_by_the_rows_given(
@@ -260,5 +274,6 @@ def test_a_family_no_swap_offers_is_filed_by_the_rows_given(
     category that leaves nothing out makes it not reachable. The category shown
     is the one with the most rows, Sweets over Snacks at two to one, and the
     first by name when they tie. A row the table denied by its own name is by
-    design though its family's name, bread, carries no denied word."""
+    design though its family's name, bread, carries no denied word, and so is
+    a cooked organ row the table filed as cooked before it read the part."""
     assert file_left_out(reported, USDA) == (by_design, not_reachable)

@@ -17,7 +17,7 @@ from pathlib import Path
 
 from macroswap.config import PopularityConfig, UsdaConfig
 from macroswap.nhanes.xpt import read_xpt
-from macroswap.usda.table import BuildError, Row, category_excluded
+from macroswap.usda.table import BuildError, Row, category_excluded, part_denied
 
 LINK_RULE = (
     "An FNDDS survey food counts toward the family of its largest ingredient by "
@@ -66,10 +66,11 @@ class Table:
     its own; not_offered says, in the table's words, why the rows of a counted
     family without a candidate are left out. Each of those families is also
     filed once, by the rows its reports came through: by_design holds the ones
-    whose every such row a category or a denied word leaves out, whatever
-    reason the row carries, with the category holding the most of those rows,
-    the first by name on a tie; not_reachable the ones with such a row left
-    out for its key alone. A row no report came through decides nothing."""
+    whose every such row a category, a denied word or a denied part leaves
+    out, whatever reason the row carries, with the category holding the most
+    of those rows, the first by name on a tie; not_reachable the ones with such
+    a row left out for its key alone. A row no report came through decides
+    nothing."""
 
     cycle: str
     participants: int
@@ -274,17 +275,19 @@ def file_left_out(
     reported: Iterable[Row], usda: UsdaConfig
 ) -> tuple[dict[str, str], set[str]]:
     """How the families of these rows are filed where no swap offers them: the
-    ones whose every row a category or a denied word leaves out, each with the
-    category holding the most of the rows, the first by name on a tie; and the
-    ones with a row left out for its key alone."""
+    ones whose every row a category, a denied word or a denied part leaves
+    out, each with the category holding the most of the rows, the first by name
+    on a tie; and the ones with a row left out for its key alone."""
     filed: dict[str, Counter[str]] = defaultdict(Counter)
     spared: set[str] = set()
     keyed: set[str] = set()
     for row in reported:
-        # The table's own verdict, or the category rule on the family a row of
-        # another reason belongs to: a duplicate of a denied food is by design.
-        if row.exclusion_reason == "excluded-category" or category_excluded(
-            row, row.family, usda
+        # The table's own verdict, or the category and part rules on a row of
+        # another reason: a duplicate of a denied food is by design.
+        if (
+            row.exclusion_reason == "excluded-category"
+            or category_excluded(row, row.family, usda)
+            or part_denied(row, usda)
         ):
             filed[row.family][row.category] += 1
         else:

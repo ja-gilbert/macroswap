@@ -20,6 +20,7 @@ from macroswap.usda.keys import (
     cooked_family,
     family_key,
     plain,
+    split_fields,
     variant_key,
 )
 from macroswap.usda.load import Food
@@ -28,6 +29,7 @@ REASONS = (
     "analytical-duplicate",
     "cooked-with-raw-sibling",
     "excluded-category",
+    "excluded-part",
     "zero-macro",
     "incomplete-macros",
 )
@@ -62,11 +64,17 @@ class Row:
 
 @dataclass(frozen=True)
 class _Keyed:
+    """A food with its keys. An alias changes the family, so the grouping and
+    the count, and not the name a swap prints: the variant keeps the row's own
+    spelling. The aliased variant serves the duplicate check, and a duplicate,
+    which restates an SR row and is never offered, reads as that row."""
+
     food: Food
     fields: Fields
     unaliased: str
     family: str
     variant: str
+    aliased_variant: str
     level: str | None
     cooked_sibling: bool
 
@@ -84,7 +92,7 @@ def build_table(foods: list[Food], usda: UsdaConfig) -> list[Row]:
     ]
     _check_aliases(keyed, usda.family_aliases)
     _check_anchors(keyed, leanness)
-    sr_variants = {k.variant for k in keyed if k.food.source == "sr"}
+    sr_variants = {k.aliased_variant for k in keyed if k.food.source == "sr"}
     rows = [
         _row(k, _reason(k, usda, sr_variants), leanness.get(k.family)) for k in keyed
     ]
@@ -112,8 +120,11 @@ def _key(
     unaliased = family_key(fields, depth)
     family = aliases.get(unaliased, unaliased)
     level = _level(food, leanness.get(family))
-    variant = variant_key(family, fields, depth, level)
-    return _Keyed(food, fields, unaliased, family, variant, level, cooked_sibling)
+    variant = variant_key(unaliased, fields, depth, level)
+    aliased_variant = variant_key(family, fields, depth, level)
+    return _Keyed(
+        food, fields, unaliased, family, variant, aliased_variant, level, cooked_sibling
+    )
 
 
 def _level(food: Food, lean: Leanness | None) -> str | None:
@@ -127,14 +138,18 @@ def _level(food: Food, lean: Leanness | None) -> str | None:
 
 
 def _reason(k: _Keyed, usda: UsdaConfig, sr_variants: set[str]) -> str | None:
-    """The first applicable reason in REASONS; the two key-based ones lead."""
+    """The first applicable reason in REASONS; the two key-based ones lead. A
+    Foundation row is a duplicate when its aliased variant is an SR row's, so
+    a parallel spelling of an SR food restates it."""
     f = k.food
-    if f.source == "foundation" and k.variant in sr_variants:
+    if f.source == "foundation" and k.aliased_variant in sr_variants:
         return "analytical-duplicate"
     if k.cooked_sibling:
         return "cooked-with-raw-sibling"
     if category_excluded(f, deny_key(k.fields, usda.family_aliases), usda):
         return "excluded-category"
+    if part_denied(f, usda):
+        return "excluded-part"
     macros = (f.protein, f.carbs, f.fat)
     if macros == (0.0, 0.0, 0.0):
         return "zero-macro"
@@ -154,6 +169,13 @@ def category_excluded(food: Food | Row, key: str, usda: UsdaConfig) -> bool:
     )
 
 
+def part_denied(food: Food | Row, usda: UsdaConfig) -> bool:
+    """Whether a field of the description, whole and exactly as written, names
+    a part its category denies: skin is such a field, skinless is not."""
+    denied = usda.deny_fields.get(food.category, [])
+    return any(field in denied for field in split_fields(food.description.lower()))
+
+
 def deny_key(fields: Fields, aliases: Mapping[str, str]) -> str:
     """The key a deny word is matched against: the row's own two fields, under
     an alias where one names them, before any depth-one cut. A deny word is
@@ -170,6 +192,7 @@ def _has(phrase: str, text: str) -> bool:
 
 def _row(k: _Keyed, reason: str | None, lean: Leanness | None) -> Row:
     f = k.food
+    variant = k.aliased_variant if reason == "analytical-duplicate" else k.variant
     if f.source == "foundation":
         provenance = "foundation"
     elif lean is not None and lean.nominal:
@@ -183,7 +206,7 @@ def _row(k: _Keyed, reason: str | None, lean: Leanness | None) -> Row:
         description=f.description,
         category=f.category,
         family=k.family,
-        variant=k.variant,
+        variant=variant,
         lean_pct=_pct(k.level),
         provenance=provenance,
         as_bought=k.fields.as_bought,

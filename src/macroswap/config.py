@@ -81,6 +81,7 @@ class UsdaConfig:
     as_bought: dict[str, list[str]]
     allow_words: dict[str, list[str]]
     deny_words: dict[str, list[str]]
+    deny_fields: dict[str, list[str]]
     family_aliases: dict[str, str]
     leanness: tuple[Leanness, ...]
 

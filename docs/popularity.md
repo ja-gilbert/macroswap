@@ -1,7 +1,7 @@
 # Popularity
 
-A swap should leave out foods almost nobody eats and list ordinary foods
-first. "Ordinary" is counted, not guessed: every food family carries the number
+A swap leaves out foods almost nobody eats and lists ordinary foods first.
+"Ordinary" is counted, not guessed: every food family carries the number
 of people in a national dietary survey who reported eating it. This page says
 what that number is, how it is made and what it misses.
 
@@ -31,7 +31,7 @@ estimate of how many Americans eat a food. That is all a floor and a tie-break
 need.
 
 <!-- counts:totals -->
-NHANES 2021-2023: 6,694 participants reported 911 families and 1,369 variants, 134,411 participant-family pairs in all.
+NHANES 2021-2023: 6,694 participants reported 905 families and 1,370 variants, 134,402 participant-family pairs in all.
 <!-- counts:end -->
 
 ## How a reported food reaches a family
@@ -161,13 +161,15 @@ up to one number that means anything. A family is filed by the rows its
 reports came through; a row no report came through decides nothing.
 
 - **Left out by design.** Every one of those rows is in a category the table
-  excludes on purpose, or carries a word its category denies in the family
-  key: drinks, sweets, snacks, cakes, cookies, pies and pastries, fast food
-  and restaurant dishes, mixed dishes, soups and sauces, sausages and lunch
-  meats, spices, baby food; fruit juices, soy sauce, catsup, garlic, ginger
-  and salad dressings, because condiments, dressings and juices are drinks
-  and seasonings, not food swaps; and flour, an ingredient and not a food on
-  a plate. These were never meant to be swaps, whatever their key says.
+  excludes on purpose, carries a word its category denies in the family key,
+  or names a part of a bird nobody plates: drinks, sweets, snacks, cakes,
+  cookies, pies and pastries, fast food and restaurant dishes, mixed dishes,
+  soups and sauces, sausages and lunch meats, spices, baby food; fruit
+  juices, soy sauce, catsup, garlic, ginger and salad dressings, because
+  condiments, dressings and juices are drinks and seasonings, not food swaps;
+  flour, an ingredient and not a food on a plate; and poultry organs, skin,
+  neck, back, feet and fat. These were never meant to be swaps, whatever
+  their key says.
 - **Not reachable.** At least one of those rows is left out for its key alone,
   a cooked key no `count_as` line names or a duplicate of another row: a food
   a swap could offer if the key were fixed. This is the second gap in the
@@ -182,31 +184,31 @@ fried chicken is a cooked key in the table and left out by design here.
 <!-- counts:not_offered -->
 | Why no swap offers the family | Families | Pairs | Share of all pairs |
 | --- | --- | --- | --- |
-| left out by design | 428 | 58,919 | 43.8% |
-| not reachable | 8 | 573 | 0.4% |
+| left out by design | 423 | 58,202 | 43.3% |
+| not reachable | 8 | 614 | 0.5% |
 | other | 0 | 0 | 0.0% |
 <!-- counts:end -->
 
 What is left out by design is mostly drinks and sweets; its meat comes as
-sausage, fast food and boxed dishes, not as a cut, and the grain it holds as a
-bag is flour, left out as an ingredient. Its ten
+fast food and boxed dishes, not as a cut, and the grain it holds as a bag is
+flour, left out as an ingredient. Its ten
 largest categories, by pairs, a family counted under the category with the
 most of the rows its reports came through and the first by name on a tie:
 
 <!-- counts:by_design -->
 | Category left out by design | Families | Pairs | Share of all pairs |
 | --- | --- | --- | --- |
-| Beverages | 65 | 20,363 | 15.1% |
+| Beverages | 65 | 20,363 | 15.2% |
 | Sweets | 72 | 10,134 | 7.5% |
-| Snacks | 42 | 5,711 | 4.2% |
+| Snacks | 41 | 5,648 | 4.2% |
 | Baked Products | 62 | 4,082 | 3.0% |
 | Fast Foods | 23 | 3,665 | 2.7% |
 | Soups, Sauces, and Gravies | 30 | 2,669 | 2.0% |
 | Fruits and Fruit Juices | 20 | 2,363 | 1.8% |
 | Fats and Oils | 17 | 1,861 | 1.4% |
-| Sausages and Luncheon Meats | 30 | 1,516 | 1.1% |
 | Meals, Entrees, and Side Dishes | 25 | 1,393 | 1.0% |
-| all others | 42 | 5,162 | 3.8% |
+| Cereal Grains and Pasta | 4 | 1,380 | 1.0% |
+| all others | 64 | 4,644 | 3.5% |
 <!-- counts:end -->
 
 Of the families not reachable, three I considered as `count_as` lines and
@@ -221,11 +223,11 @@ buttermilk`) are a different variety from plain ones, not a cooked key of them.
 | potatoes, all types | 279 |
 | waffle, buttermilk | 160 |
 | fish, fish sticks | 54 |
+| sausage, breakfast sausage | 36 |
 | sweet potatoes, frozen as packaged | 36 |
 | noodles, flat | 30 |
-| turkey, light or dark meat | 7 |
+| sausage, turkey and pork | 13 |
 | cereals ready-to-eat, wheat germ | 6 |
-| chicken, feet | 1 |
 <!-- counts:end -->
 
 ## The floor and the common tier
@@ -266,18 +268,23 @@ the counts order:
   stay; plantains sit in the Fruits group and are untouched; green peas have
   a row filed under Legumes and are outside the rule. 142 of the group's
   234 families fall below the line.
-- **Denied words.** The words named under "left out by design", matched in
-  the family key within their categories; an allow word in the description
-  still wins, as `mayonnaise` does against `dressing` in Fats and Oils.
+- **Denied words and parts.** The words named under "left out by design",
+  matched in the family key within their categories; an allow word in the
+  description still wins, as `mayonnaise` does against `dressing` in Fats and
+  Oils, and as `sausage`, `bratwurst` and `rice cakes` do against their
+  categories. A poultry row whose description names a part nobody plates,
+  heart, liver, gizzard, giblets, neck, back, feet, skin or separable fat, as
+  one whole field, is left out whatever family it is folded into, so a
+  turkey family shows its meat and not its heart.
 
 <!-- counts:tiers -->
 | Reported by at least | Families a swap can offer |
 | --- | --- |
-| any number | 1,353 |
-| 1 | 475 |
-| 10 (the floor) | 322 |
-| 20 | 261 |
-| 50 (the common tier) | 185 |
+| any number | 1,351 |
+| 1 | 474 |
+| 10 (the floor) | 328 |
+| 20 | 265 |
+| 50 (the common tier) | 189 |
 | 100 | 142 |
 <!-- counts:end -->
 
