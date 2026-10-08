@@ -144,8 +144,7 @@ class Matcher:
     def embed(self, text: str) -> list[Hit]:
         """Cosine similarity between the text and each row's index text, both
         normalized the same way; a text with no words scores nothing."""
-        words, level, cooking = self._query(text)
-        return self._hits(self._cosines(words), self._lags(words), level, cooking)
+        return self._embed(text, None)
 
     def hybrid(self, text: str) -> list[Hit]:
         """Lexical and embed fused by rank, so neither method's score scale
@@ -161,13 +160,43 @@ class Matcher:
         score is below the method's threshold. A fused score is a function of
         ranks alone, so hybrid abstains only when its top row is, for each
         method, below its threshold or not scored by it."""
+        return self._run(text, method, None)
+
+    def run_many(self, texts: Sequence[str], method: str) -> list[list[Hit] | None]:
+        """run for each text, the texts encoded in one call of the model."""
+        vectors = self._encoded(texts, method)
+        return [self._run(t, method, v) for t, v in zip(texts, vectors, strict=True)]
+
+    def rank_many(self, texts: Sequence[str], method: str) -> list[list[Hit]]:
+        """rank for each text, the texts encoded in one call of the model."""
+        vectors = self._encoded(texts, method)
+        return [self._rank(t, method, v) for t, v in zip(texts, vectors, strict=True)]
+
+    def _run(
+        self, text: str, method: str, query: NDArray[np.float32] | None
+    ) -> list[Hit] | None:
         if method == "hybrid":
-            hits, abstains = self._fused(text)
+            hits, abstains = self._fused(text, query)
             return None if abstains else hits
-        hits = self.rank(text, method)
+        hits = self._rank(text, method, query)
         if not hits or hits[0].score < self._config.no_match[method]:
             return None
         return hits
+
+    def _rank(
+        self, text: str, method: str, query: NDArray[np.float32] | None
+    ) -> list[Hit]:
+        """rank, reading the text's vector when it is already encoded."""
+        if query is None or method == "lexical":
+            return self.rank(text, method)
+        if method == "embed":
+            return self._embed(text, query)
+        return self._fused(text, query)[0]
+
+    def _embed(self, text: str, query: NDArray[np.float32] | None) -> list[Hit]:
+        words, level, cooking = self._query(text)
+        cosines = self._cosines(words, query)
+        return self._hits(cosines, self._lags(words), level, cooking)
 
     def match_key(self, row: Row, level: int | None) -> str:
         """The identity a swap shows: variant and as-bought state, or the family
@@ -204,12 +233,29 @@ class Matcher:
         query = set(words)
         return np.array([len(self._first[r.id] - query) for r in self._index])
 
-    def _cosines(self, words: list[str]) -> NDArray[np.floating]:
+    def _encoded(
+        self, texts: Sequence[str], method: str
+    ) -> list[NDArray[np.float32] | None]:
+        """Each text's vector for embed and hybrid, every text with words
+        encoded in one call of the model; nothing for a text without words,
+        which scores zero unencoded, for lexical, which reads none, or for a
+        matcher without the embedder, whose rank refuses."""
+        if method == "lexical" or "embed" not in self._rankers:
+            return [None] * len(texts)
+        words = [self._query(t)[0] for t in texts]
+        with_words = [" ".join(w) for w in words if w]
+        vectors = iter(self._embedder.encode(with_words) if with_words else ())
+        return [next(vectors) if w else None for w in words]
+
+    def _cosines(
+        self, words: list[str], query: NDArray[np.float32] | None
+    ) -> NDArray[np.floating]:
         """Each row's cosine with the words, a dot product of unit vectors; no
         words score zero everywhere rather than embed an empty string."""
         if not words:
             return np.zeros(len(self._vectors))
-        query = self._embedder.encode([" ".join(words)])[0]
+        if query is None:
+            query = self._embedder.encode([" ".join(words)])[0]
         # einsum, not @: BLAS spins its whole thread pool for one row of dot
         # products and starves the encoder, 120 ms against 12 ms per ranking on
         # 32 cores. The top five match @ on the real table except where @ breaks
@@ -217,12 +263,14 @@ class Matcher:
         cosines: NDArray[np.floating] = np.einsum("ij,j->i", self._vectors, query)
         return cosines
 
-    def _fused(self, text: str) -> tuple[list[Hit], bool]:
+    def _fused(
+        self, text: str, query: NDArray[np.float32] | None = None
+    ) -> tuple[list[Hit], bool]:
         """Hybrid's hits, and whether it abstains, as run says; its top row is
         the first by the fused score and the tie order."""
         words, level, cooking = self._query(text)
         lags = self._lags(words)
-        lexical, embed = self._bm25.get_scores(words), self._cosines(words)
+        lexical, embed = self._bm25.get_scores(words), self._cosines(words, query)
         fused = fuse([lexical, embed], lags, self._config.rrf_k)
         top = np.lexsort((lags, -fused))[0]
         no_match = self._config.no_match

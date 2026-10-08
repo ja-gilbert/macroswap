@@ -10,6 +10,7 @@ import pytest
 
 from macroswap.config import load_config
 from macroswap.diary.importer import import_directory, import_file
+from macroswap.diary.stats import name_counts
 from macroswap.match.diary import (
     Fingerprint,
     LabelError,
@@ -19,7 +20,7 @@ from macroswap.match.diary import (
     match_diary,
 )
 from macroswap.match.label import NO_MATCH, Label, write_labels
-from macroswap.match.matcher import Matcher
+from macroswap.match.matcher import Encoder, Matcher
 from macroswap.store import connect, write_usda
 from macroswap.usda.keys import FieldRules
 from macroswap.usda.table import Row
@@ -188,3 +189,28 @@ def test_a_new_table_or_diary_clears_the_matches(
     assert conn.execute("SELECT count(*) FROM diary_matches").fetchone()[0] == 0
     with pytest.raises(StaleMatches):
         check_fingerprint(conn, TUNED, labels)
+
+
+def test_diary_match_encodes_every_name_in_one_call(
+    conn: sqlite3.Connection, fake_embedder: Encoder, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Under embed the names are encoded together, not one model call each."""
+    calls = 0
+    encode = fake_embedder.encode
+
+    def counted(texts: list[str]) -> Any:
+        nonlocal calls
+        calls += 1
+        return encode(texts)
+
+    monkeypatch.setattr(fake_embedder, "encode", counted)
+    embed = replace(TUNED, no_match={"lexical": THRESHOLD, "embed": -math.inf})
+    summary = match_diary(
+        conn,
+        [],
+        lambda rows: Matcher(rows, embed, FieldRules(CONFIG.usda), fake_embedder),
+        Fingerprint("embed", "{}", "none", "r"),
+    )
+    assert summary.by_matcher == len(name_counts(conn))
+    # The index, then the names.
+    assert calls == 2

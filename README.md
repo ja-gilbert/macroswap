@@ -21,6 +21,35 @@ install command. The first run that needs the pinned model downloads it, about
 My personal data never enters the repository: the diary HTML lives under
 `data/raw/` and the built database under `data/build`, both are ignored.
 
+## Using as a library
+
+The matcher, the fit and the table import as `macroswap`, pinned by tag; the
+`embed` extra is the default method's:
+
+    macroswap[embed] @ git+https://github.com/ja-gilbert/macroswap@v0.1.0
+
+    from pathlib import Path
+    from macroswap import Matcher
+
+    store = Path.home() / "src/macroswap/data/build/macroswap.sqlite"
+    m = Matcher(store=store)
+    # None where the match command prints NO_MATCH
+    match = m.match("kirkland - chicken breast")
+    if match:
+        # grams of that row for the macros, and its macros per 100 g
+        fit = m.fit(match, protein_g=31.0, carbs_g=0.0, fat_g=3.6)
+        food = m.food(match.row_id)
+
+`match_many` resolves a list of names with one call of the model, and one
+more for the names that stand on their family's default level; the model
+loads on first use, downloads on the very first, and stays loaded. The store
+and the method default to the config's, the store path relative to the working
+directory, which is why the example gives one. A leanness family typed without
+a level, `ground beef`, resolves to its configured default level; type
+`ground beef 93/7` to pick one. A labels file given to `Matcher` applies
+labels as `diary match` does; without one the numbers are the matcher's
+alone, the ones the eval measures.
+
 ## The Diary
 
 `macroswap diary import` reads a folder of monthly MyFitnessPal printable-diary exports into SQLite, and `macroswap diary stats`
@@ -55,7 +84,9 @@ I have labeled takes my label, and the default method resolves the rest:
 The three counts add up to the names. NO_MATCH covers both the foods I
 labeled as having no USDA match and the ones the matcher abstained on. Unlike
 `match`, `diary match` never falls back to lexical: a default method that needs
-the missing `embed` extra exits 2.
+the missing `embed` extra exits 2. The names are encoded in one call of the
+model: on these 1,798 it takes 20 s where one call per name took 36 s, with
+the same table name for name (2026-10-08).
 
 ## The USDA Table
 
