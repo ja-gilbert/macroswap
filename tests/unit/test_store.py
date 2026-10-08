@@ -42,3 +42,16 @@ def test_read_usda_returns_the_rows_write_usda_stored(
     with connect(tmp_path / "db.sqlite") as conn:
         write_usda(conn, [astuple(r) for r in usda_rows])
         assert read_usda(conn) == usda_rows
+
+
+def test_a_usda_write_cut_short_keeps_the_old_table(
+    tmp_path: Path, usda_rows: list[Row]
+) -> None:
+    """The table is replaced whole or not at all, so a build that fails while
+    inserting leaves the previous build in place instead of an empty table."""
+    rows = [astuple(r) for r in usda_rows]
+    with connect(tmp_path / "db.sqlite") as conn:
+        write_usda(conn, rows)
+        with pytest.raises(sqlite3.IntegrityError):
+            write_usda(conn, rows + rows[:1])
+        assert read_usda(conn) == usda_rows

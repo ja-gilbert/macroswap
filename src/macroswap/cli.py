@@ -475,4 +475,7 @@ def _built(db: Path) -> sqlite3.Connection:
         "SELECT 1 FROM sqlite_master WHERE name = 'usda_foods'"
     ).fetchone():
         raise FileNotFoundError(f"no USDA table in {db}; run `data build` first")
+    # An older build cut short while writing the table could leave it empty.
+    if not conn.execute("SELECT 1 FROM usda_foods LIMIT 1").fetchone():
+        raise FileNotFoundError(f"no USDA rows in {db}; run `data build` again")
     return conn

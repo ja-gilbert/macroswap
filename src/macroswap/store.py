@@ -87,7 +87,6 @@ _USDA_COLUMNS = (
     "exclusion_reason",
 )
 _USDA_SCHEMA = """
-DROP TABLE IF EXISTS usda_foods;
 CREATE TABLE usda_foods (
     id               TEXT PRIMARY KEY,
     source           TEXT NOT NULL CHECK (source IN ('sr', 'foundation', 'derived')),
@@ -136,15 +135,17 @@ def connect(path: Path) -> sqlite3.Connection:
 
 
 def write_usda(conn: sqlite3.Connection, rows: list[tuple[object, ...]]) -> None:
-    """Replace the USDA table whole, schema included, so a rebuild never
-    inherits columns or rows from an older build."""
+    """Replace the USDA table whole, schema included, in one transaction: a
+    rebuild never inherits columns or rows from an older build, and a write
+    cut short leaves the previous build in place."""
     columns = ", ".join(_USDA_COLUMNS)
     marks = ", ".join("?" * len(_USDA_COLUMNS))
-    # Cleared before the schema script commits, so a failed insert never
-    # leaves old matches beside an empty table.
-    clear_diary_matches(conn)
-    conn.executescript(_USDA_SCHEMA)
     with conn:
+        # One transaction on purpose, whatever statement comes first.
+        conn.execute("BEGIN")
+        clear_diary_matches(conn)
+        conn.execute("DROP TABLE IF EXISTS usda_foods")
+        conn.execute(_USDA_SCHEMA)
         conn.executemany(f"INSERT INTO usda_foods({columns}) VALUES ({marks})", rows)
 
 
