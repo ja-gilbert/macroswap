@@ -101,6 +101,16 @@ bread, key as `bread` and are denied as kinds by their own second field, so no
 swap offers them; their reports still count toward `bread`, since counts follow
 keys.
 
+Aliases follow the same reading, measured on 2026-10-07 at commit `4c208a0`:
+an alias is a key too, so a merged family's count is the count under the
+merged key. It equals the union of the parts' counts unless the merge makes
+the family the largest or tied-largest ingredient of some food, when it can
+exceed it. Three families do: `chicken, thigh` 395 against a union of 392,
+because in two mixed-part chicken foods the thigh and the dark-meat drumstick
+folded into it together weigh as much as the breast, a tie the merge made;
+`tomatoes` 1,942 against 1,937; and `grape juice, canned or bottled` 107
+against 75, a family left out by design. Every other family equals its union.
+
 ## Weight that reaches no table row
 
 An ingredient the table has no row for carries its weight nowhere: its weight
@@ -161,8 +171,9 @@ up to one number that means anything. A family is filed by the rows its
 reports came through; a row no report came through decides nothing.
 
 - **Left out by design.** Every one of those rows is in a category the table
-  excludes on purpose, carries a word its category denies in the family key,
-  or names a part of a bird nobody plates: drinks, sweets, snacks, cakes,
+  excludes on purpose, carries a word its category denies in the row's own
+  two-field key, or names a part of a bird nobody plates: drinks, sweets,
+  snacks, cakes,
   cookies, pies and pastries, fast food and restaurant dishes, mixed dishes,
   soups and sauces, sausages and lunch meats, spices, baby food; fruit
   juices, soy sauce, catsup, garlic, ginger and salad dressings, because
@@ -258,8 +269,9 @@ the counts order:
   swap's header says so.
 - **Non-starchy vegetables are not swaps.** A family of the Vegetables group
   whose candidate rows' median calories per 100 g fall below 50 is not
-  offered for any target, whatever macro it is nearest, unless the target is
-  itself such a family. The 50 is the dietary guidelines' line between
+  offered for any target, whatever macro it is nearest, unless the target's
+  own row is in that group and under the line; a target on no row keeps the
+  rule on. The 50 is the dietary guidelines' line between
   starchy and non-starchy vegetables, measured on the table instead of
   listed. Measured on 2026-10-05 at commit `eb0943b`, medians of the family's
   candidate rows as bought: potatoes 76, sweet corn 76.5, sweet potato 91,
@@ -269,7 +281,10 @@ the counts order:
   a row filed under Legumes and are outside the rule. 142 of the group's
   234 families fall below the line.
 - **Denied words and parts.** The words named under "left out by design",
-  matched in the family key within their categories; an allow word in the
+  matched on the row's own two-field key within their categories, under the
+  alias where one names it, before the depth-one cut: `Flour, semolina`,
+  keyed as `semolina` by its alias, is kept, and pan dulce is denied inside
+  `bread`. An allow word in the
   description still wins, as `mayonnaise` does against `dressing` in Fats and
   Oils, and as `sausage`, `bratwurst` and `rice cakes` do against their
   categories. A poultry row whose description names a part nobody plates,

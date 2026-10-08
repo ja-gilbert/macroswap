@@ -181,10 +181,13 @@ counted by `macroswap data build` from the pinned survey files;
 `docs/popularity.md` says how the count is made and what it misses. A family
 fewer than 10 participants reported is not offered unless the allowlist, the
 diary or `--include-obscure` admits it; one 50 or more reported is listed in
-the first tier; and within a family the variant most of them reported is
-shown when it fits as well as the closest. The header names the
-survey cycle and each row prints its count. A store built before the counts
-were added makes the swap exit 2 and ask for `data build` again.
+the first tier; and within a family, of the variants that fit as well as the
+closest, the one most of them reported is shown when at least 10 reported
+it, otherwise the closest; a leanness family shows its closest level, with
+its default level on a second line when the two differ and that level is
+offered. The header names the survey cycle and each row prints its count. A
+store built before the counts were added makes the swap exit 2 and ask for
+`data build` again.
 
 `data/acceptance/swaps.toml` holds the swaps I would accept, and the ones I
 call absurd, for 17 foods, marked on 2026-10-06 from the command's first 25
