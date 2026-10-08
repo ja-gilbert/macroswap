@@ -1,0 +1,5 @@
+name,count,bucket,split,label,label_source
+egg whites,2,head,dev,sr:170894,search
+ground turkey,1,head,dev,NO_MATCH,no_match
+ground beef,1,head,dev,"beef, ground",search
+95% 5%,1,head,dev,"beef, ground",search

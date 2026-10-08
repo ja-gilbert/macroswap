@@ -124,6 +124,29 @@ CREATE TABLE popularity_meta (
 """
 
 
+def open_existing(db: Path, hint: str) -> sqlite3.Connection:
+    """The store, which must already exist: connect() creates the file it is
+    pointed at, so a typo in --db would otherwise report an empty database
+    instead of a missing one."""
+    if not db.exists():
+        raise FileNotFoundError(f"no database at {db}; run `{hint}` first")
+    return connect(db)
+
+
+def open_built(db: Path) -> sqlite3.Connection:
+    """The store with its USDA table: diary import creates the database
+    without it, and an older build cut short while writing it could leave it
+    empty."""
+    conn = open_existing(db, "data build")
+    if not conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE name = 'usda_foods'"
+    ).fetchone():
+        raise FileNotFoundError(f"no USDA table in {db}; run `data build` first")
+    if not conn.execute("SELECT 1 FROM usda_foods LIMIT 1").fetchone():
+        raise FileNotFoundError(f"no USDA rows in {db}; run `data build` again")
+    return conn
+
+
 def connect(path: Path) -> sqlite3.Connection:
     """Open the build database, creating directories and tables as needed."""
     path.parent.mkdir(parents=True, exist_ok=True)

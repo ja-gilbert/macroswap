@@ -415,7 +415,7 @@ def test_match_prints_the_method_then_one_line_per_hit(
     name runs alone, lexical without the extra, and by default every method
     runs. A score shows four significant digits, so fused scores stay apart."""
     if "embed" in methods:
-        monkeypatch.setattr("macroswap.cli.Embedder", lambda *args: fake_embedder)
+        monkeypatch.setattr("macroswap.api.Embedder", lambda *args: fake_embedder)
     db = _database(tmp_path, usda_rows)
     assert main(["--db", str(db), "match", "Egg", "Whites,", "5", "large", *flags]) == 0
     lines = capsys.readouterr().out.splitlines()
@@ -548,7 +548,7 @@ def test_match_eval_prints_dev_then_writes_the_test_table(
     assert main(["--db", db, "match", "eval", "--write-expected"]) == 2
     assert "embed extra not installed" in capsys.readouterr().err
     assert not expected.exists()
-    monkeypatch.setattr("macroswap.cli.Embedder", lambda *args: fake_embedder)
+    monkeypatch.setattr("macroswap.api.Embedder", lambda *args: fake_embedder)
     assert main(["--db", db, "match", "eval", "--write-expected"]) == 0
     out = capsys.readouterr().out.splitlines()
     assert not [line for line in out if line.startswith("| test")]

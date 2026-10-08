@@ -93,4 +93,5 @@ def pinned_config(monkeypatch: pytest.MonkeyPatch) -> Config:
     )
     pinned = replace(config, match=match, popularity=popularity)
     monkeypatch.setattr("macroswap.cli.load_config", lambda path=None: pinned)
+    monkeypatch.setattr("macroswap.api.load_config", lambda path=None: pinned)
     return pinned

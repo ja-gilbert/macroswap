@@ -5,20 +5,20 @@ from __future__ import annotations
 
 import argparse
 import math
-import sqlite3
 import sys
 from collections import Counter
 from collections.abc import Callable, Sequence
 from dataclasses import astuple
 from pathlib import Path
 
+from macroswap.api import load_matcher
 from macroswap.config import Config, ConfigError, load_config
 from macroswap.diary.importer import DiaryImportError, import_directory
 from macroswap.diary.normalize import name_key
 from macroswap.diary.parse import ParseError
 from macroswap.diary.stats import compute_stats, format_stats, name_counts
 from macroswap.match.diary import Fingerprint, LabelError, StaleMatches, match_diary
-from macroswap.match.embed import Embedder, EmbedUnavailable
+from macroswap.match.embed import EmbedUnavailable
 from macroswap.match.evaluate import (
     compare_methods,
     evaluate,
@@ -31,6 +31,8 @@ from macroswap.nhanes.popularity import measure, write_table
 from macroswap.pull import PullError, pull, release_dirs
 from macroswap.store import (
     connect,
+    open_built,
+    open_existing,
     read_popularity,
     read_usda,
     write_popularity,
@@ -46,7 +48,6 @@ from macroswap.swap.logged import (
 from macroswap.swap.rank import Candidate, rank
 from macroswap.swap.show import header, table
 from macroswap.swap.target import NoTarget, TargetError, typed
-from macroswap.usda.keys import FieldRules
 from macroswap.usda.load import load_release, merge
 from macroswap.usda.report import family_report
 from macroswap.usda.table import BuildError, Row, build_table
@@ -193,7 +194,7 @@ def _diary_import(config: Config, db: Path, args: argparse.Namespace) -> int:
 
 
 def _diary_stats(config: Config, db: Path, args: argparse.Namespace) -> int:
-    with _existing(db, "diary import") as conn:
+    with open_existing(db, "diary import") as conn:
         print(format_stats(compute_stats(conn, config.stats.coverage_shares)))
     return 0
 
@@ -206,12 +207,9 @@ def _diary_match(config: Config, db: Path, args: argparse.Namespace) -> int:
 
     def make_matcher(rows: list[Row]) -> Matcher:
         # No fallback to lexical: the fingerprint names the method that ran.
-        embedder: Embedder | None = None
-        if method != "lexical":
-            embedder = Embedder(config.match.model, config.match.revision, db.parent)
-        return Matcher(rows, config.match, FieldRules(config.usda), embedder)
+        return load_matcher(config, rows, db.parent, method, strict=True)[0]
 
-    with _built(db) as conn:
+    with open_built(db) as conn:
         summary = match_diary(conn, labels, make_matcher, fingerprint)
     names = summary.by_label + summary.by_matcher + summary.no_match
     print(f"method: {method}")
@@ -268,7 +266,7 @@ def _data_build(config: Config, db: Path, args: argparse.Namespace) -> int:
 
 
 def _data_report(config: Config, db: Path, args: argparse.Namespace) -> int:
-    with _built(db) as conn:
+    with open_built(db) as conn:
         print(
             family_report(
                 conn, config.swap.rank_weights, config.usda.varietal_threshold
@@ -282,13 +280,11 @@ def _match(config: Config, db: Path, args: argparse.Namespace) -> int:
         return _match_label(config, db)
     if args.text == ["eval"]:
         return _match_eval(config, db, args)
-    with _built(db) as conn:
+    with open_built(db) as conn:
         rows = read_usda(conn)
-    embedder: Embedder | None = None
-    fallback = ""
-    if args.method != "lexical":
-        embedder, fallback = _embedder(config, db, args.method)
-    matcher = Matcher(rows, config.match, FieldRules(config.usda), embedder)
+    matcher, fallback = load_matcher(
+        config, rows, db.parent, args.method, strict=args.method is not None
+    )
     text = name_key(" ".join(args.text))
     methods = [args.method] if args.method else matcher.methods
     results = {method: matcher.run(text, method) for method in methods}
@@ -304,7 +300,7 @@ def _match(config: Config, db: Path, args: argparse.Namespace) -> int:
 def _match_label(config: Config, db: Path) -> int:
     path = Path(config.paths.labels)
     if not path.exists():
-        with _existing(db, "diary import") as conn:
+        with open_existing(db, "diary import") as conn:
             counts = name_counts(conn)
         if not counts:
             raise FileNotFoundError(f"no diary names in {db}; run `diary import` first")
@@ -318,12 +314,11 @@ def _match_label(config: Config, db: Path) -> int:
             if label.bucket == "tail":
                 print(f"  {label.name}")
         return 0
-    with _built(db) as conn:
+    with open_built(db) as conn:
         rows = read_usda(conn)
     # Every method or no labels: a label picked from one method's list alone
     # would favour that method in the eval.
-    embedder = Embedder(config.match.model, config.match.revision, db.parent)
-    matcher = Matcher(rows, config.match, FieldRules(config.usda), embedder)
+    matcher, _ = load_matcher(config, rows, db.parent, None, strict=True)
     label_session(path, matcher, rows, config.labels)
     return 0
 
@@ -333,18 +328,15 @@ def _match_eval(config: Config, db: Path, args: argparse.Namespace) -> int:
     if not path.exists():
         raise FileNotFoundError(f"no labels at {path}; run `match label` first")
     labels = read_labels(path)
-    with _built(db) as conn:
+    with open_built(db) as conn:
         rows = read_usda(conn)
-    embedder: Embedder | None = None
-    try:
-        embedder = Embedder(config.match.model, config.match.revision, db.parent)
-    except EmbedUnavailable as exc:
-        # The committed table needs every method, since CI checks each; lexical
-        # alone is still worth measuring, and the header says what is missing.
-        if args.write_expected:
-            raise
-        print(f"method: lexical; {exc}")
-    matcher = Matcher(rows, config.match, FieldRules(config.usda), embedder)
+    # The committed table needs every method, since CI checks each; lexical
+    # alone is still worth measuring, and the header says what is missing.
+    matcher, note = load_matcher(
+        config, rows, db.parent, None, strict=args.write_expected
+    )
+    if note:
+        print(f"method: lexical{note}")
     # The test split is scored only when asked for, and never tunes anything.
     splits = ("dev", "test") if args.test or args.write_expected else ("dev",)
     wanted = [label for label in labels if label.split in splits]
@@ -370,7 +362,7 @@ def _swap(config: Config, db: Path, args: argparse.Namespace) -> int:
         args.top is not None and args.top < 1
     ):
         raise TargetError("--grams must be above zero and --top at least 1")
-    with _built(db) as conn:
+    with open_built(db) as conn:
         rows = read_usda(conn)
         counted = read_popularity(conn)
         if counted is None:
@@ -385,11 +377,10 @@ def _swap(config: Config, db: Path, args: argparse.Namespace) -> int:
         resolved = entry(args.entry, diary, rows, config)
     else:
         method = args.method or config.match.default_method
-        embedder: Embedder | None = None
-        if method != "lexical":
-            embedder, fallback = _embedder(config, db, args.method)
-        matcher = Matcher(rows, config.match, FieldRules(config.usda), embedder)
-        if embedder is None:
+        matcher, fallback = load_matcher(
+            config, rows, db.parent, method, strict=args.method is not None
+        )
+        if "embed" not in matcher.methods:
             method = "lexical"
         try:
             if args.like_log:
@@ -445,37 +436,3 @@ def _swap(config: Config, db: Path, args: argparse.Namespace) -> int:
         return 1
     print("\n".join(table(ranking, levels)))
     return 0
-
-
-def _embedder(
-    config: Config, db: Path, asked: str | None
-) -> tuple[Embedder | None, str]:
-    """The embedder, or none and why: a method asked for by name fails without
-    it; by default lexical runs alone and the header says why."""
-    try:
-        return Embedder(config.match.model, config.match.revision, db.parent), ""
-    except EmbedUnavailable as exc:
-        if asked is not None:
-            raise
-        return None, f"; {exc}"
-
-
-def _existing(db: Path, hint: str) -> sqlite3.Connection:
-    # connect() creates the file it is pointed at, so a typo in --db would
-    # otherwise report an empty database instead of a missing one.
-    if not db.exists():
-        raise FileNotFoundError(f"no database at {db}; run `{hint}` first")
-    return connect(db)
-
-
-def _built(db: Path) -> sqlite3.Connection:
-    conn = _existing(db, "data build")
-    # diary import creates the database without the USDA table.
-    if not conn.execute(
-        "SELECT 1 FROM sqlite_master WHERE name = 'usda_foods'"
-    ).fetchone():
-        raise FileNotFoundError(f"no USDA table in {db}; run `data build` first")
-    # An older build cut short while writing the table could leave it empty.
-    if not conn.execute("SELECT 1 FROM usda_foods LIMIT 1").fetchone():
-        raise FileNotFoundError(f"no USDA rows in {db}; run `data build` again")
-    return conn

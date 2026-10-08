@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from dataclasses import replace
 
 import numpy as np
 import pytest
+from numpy.typing import NDArray
 
 from macroswap.config import Config, load_config
 from macroswap.match.matcher import Encoder, Matcher, fuse, index_text
@@ -163,6 +165,37 @@ def test_embed_compares_the_text_normalized_like_the_index(
         assert level[0].key == "beef, ground, 93/7 / raw"
         assert matcher.rank("grilled chicken breast", method)[0].row.id == "sr:171477"
         assert matcher.run("93/7", method) is None
+
+
+def test_run_many_matches_run_text_by_text(
+    usda_rows: list[Row],
+    fake_embedder: Encoder,
+    pinned_config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The four texts with words are encoded in one call, none for lexical,
+    and every method gives the hits, abstentions and refused rankings it
+    gives text by text, a text with no words and an abstention among them."""
+    config = replace(pinned_config.match, no_match={"lexical": 5.0, "embed": 0.5})
+    matcher = Matcher(usda_rows, config, RULES, fake_embedder)
+    calls: list[int] = []
+    encode = fake_embedder.encode
+
+    def counted(texts: Sequence[str]) -> NDArray[np.float32]:
+        calls.append(len(texts))
+        return encode(texts)
+
+    monkeypatch.setattr(fake_embedder, "encode", counted)
+    texts = ["Egg Whites", "ground beef 93/7", "grilled chicken breast", "93/7", "zzzz"]
+    for method, encodes in (("lexical", 0), ("embed", 1), ("hybrid", 1)):
+        calls.clear()
+        batch = matcher.run_many(texts, method)
+        assert calls == [4] * encodes
+        assert batch == [matcher.run(t, method) for t in texts]
+        calls.clear()
+        ranked = matcher.rank_many(texts, method)
+        assert calls == [4] * encodes
+        assert ranked == [matcher.rank(t, method) for t in texts]
 
 
 def test_fusion_adds_each_methods_reciprocal_rank(
