@@ -215,6 +215,7 @@ def test_swap_reads_the_counts(
     [
         pytest.param("DROP TABLE popularity_meta", id="built-before-the-counts"),
         pytest.param("DELETE FROM popularity_meta", id="a-build-cut-short"),
+        pytest.param("DELETE FROM usda_foods", id="an-older-build-cut-short"),
         pytest.param(
             "ALTER TABLE usda_foods DROP COLUMN sugars", id="built-before-the-sugars"
         ),
@@ -224,8 +225,9 @@ def test_swap_on_a_store_from_an_older_build_asks_for_a_rebuild(
     db: Path, usda_rows: list[Row], capsys: pytest.CaptureFixture[str], lost: str
 ) -> None:
     """A store built before the build counted participants has no table for
-    their cycle; a build cut short leaves it empty; a table written before the
-    rows carried sugars lacks the column."""
+    their cycle; a build cut short leaves it empty, and an older build cut
+    short left the USDA table empty; a table written before the rows carried
+    sugars lacks the column."""
     build(db, usda_rows)
     with connect(db) as conn:
         conn.execute(lost)
