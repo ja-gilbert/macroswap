@@ -206,7 +206,8 @@ def test_index_vectors_are_reused_until_a_text_changes(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """The model, cached by the fixture, loads again without the first-use
-    notice; the vectors are read back until a text changes."""
+    notice; the vectors are read back until a text changes, and a changed
+    text's file goes beside the old one, which stays readable."""
     Embedder(CONFIG.match.model, CONFIG.match.revision, tmp_path)
     assert "downloading" not in capsys.readouterr().err
     first = embedder.index_vectors(["egg white", "banana"])
@@ -225,10 +226,10 @@ def test_index_vectors_are_reused_until_a_text_changes(
     with monkeypatch.context() as patch, pytest.raises(OSError):
         patch.setattr(np, "save", cut_short)
         embedder.index_vectors(["egg white", "plantain"])
-    assert not list(tmp_path.glob("embeddings-*.npy"))  # only the cut-short .part
+    assert list(tmp_path.glob("embeddings-*.npy")) == [cached]
     embedder.index_vectors(["egg white", "bananas"])
-    [replaced] = tmp_path.glob("embeddings-*")
-    assert replaced != cached
+    assert len(list(tmp_path.glob("embeddings-*.npy"))) == 2
+    assert cached.stat().st_mtime_ns == written
 
 
 def test_first_use_offline_says_so_and_is_unavailable(

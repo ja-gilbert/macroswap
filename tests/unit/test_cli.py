@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import shutil
 import sqlite3
 from collections.abc import Callable, Sequence
 from dataclasses import astuple, replace
@@ -9,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+from macroswap import __version__
 from macroswap.cli import main
 from macroswap.config import Config
 from macroswap.match.diary import check_fingerprint
@@ -16,13 +16,13 @@ from macroswap.match.evaluate import read_expected
 from macroswap.match.label import NO_MATCH, Label, write_labels
 from macroswap.match.matcher import Encoder
 from macroswap.nhanes.popularity import LINK_RULE
-from macroswap.pull import release_dirs
+from macroswap.pull import packaged_manifest, release_dirs
 from macroswap.store import connect, write_usda
 from macroswap.usda.table import Row
 
-# The exit-code table, one row per case from this milestone on; the pull
-# checksum row is in test_pull.py, and `diary match` and `match eval
-# --write-expected` refusing without the embed extra are in their own tests.
+# The exit-code table, one row per case; the pull checksum row is in
+# test_pull.py, and `diary match` and `match eval --write-expected` refusing
+# without the embed extra are in their own tests.
 EXIT_CODES = {
     "match-where-every-method-abstains": (["match", "zzzz"], True, 1, "NO_MATCH"),
     "match-before-data-build": (
@@ -35,19 +35,22 @@ EXIT_CODES = {
         ["match", "egg whites", "--method", "embed"],
         True,
         2,
-        "embed extra not installed (uv sync --extra embed)",
+        "embed extra not installed "
+        "(uv sync --extra embed, or install macroswap[embed])",
     ),
     "match-hybrid-by-name-without-the-extra": (
         ["match", "egg whites", "--method", "hybrid"],
         True,
         2,
-        "embed extra not installed (uv sync --extra embed)",
+        "embed extra not installed "
+        "(uv sync --extra embed, or install macroswap[embed])",
     ),
     "match-by-default-without-the-extra-runs-lexical": (
         ["match", "egg whites"],
         True,
         0,
-        "method: lexical; embed extra not installed (uv sync --extra embed)",
+        "method: lexical; embed extra not installed "
+        "(uv sync --extra embed, or install macroswap[embed])",
     ),
     "match-label-before-diary-import": (
         ["match", "label"],
@@ -100,10 +103,16 @@ def test_no_command_is_a_usage_error(capsys: pytest.CaptureFixture[str]) -> None
     assert "usage" in capsys.readouterr().err.lower()
 
 
-def test_help_exits_zero() -> None:
+@pytest.mark.parametrize("flag", ["--help", "--version"])
+def test_help_and_version_exit_zero(
+    flag: str, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """--version prints the installed package's version and nothing else."""
     with pytest.raises(SystemExit) as exc:
-        main(["--help"])
+        main([flag])
     assert exc.value.code == 0
+    if flag == "--version":
+        assert capsys.readouterr().out == f"{__version__}\n"
 
 
 def test_diary_import_reports_each_file(
@@ -112,9 +121,9 @@ def test_diary_import_reports_each_file(
     db = tmp_path / "build" / "macroswap.sqlite"
     assert main(["--db", str(db), "diary", "import", str(fixtures_dir)]) == 0
     out = capsys.readouterr().out
-    assert "08-02.html: 2 days, 8 rows, 1 untracked, 2 of 2 reconciled" in out
-    assert "08-06.html: 1 days, 3 rows, 0 untracked, 1 of 1 reconciled" in out
-    assert "1 total mismatches" in out
+    assert "08-02.html: 2 days, 8 rows, 1 untracked, 2 of 2 match TOTALS" in out
+    assert "08-06.html: 1 days, 3 rows, 0 untracked, 0 of 1 match TOTALS" in out
+    assert "0 of 1 match TOTALS, 1 mismatches" in out
     assert db.exists()
 
 
@@ -213,8 +222,7 @@ def _repo_layout(tmp_path: Path, usda_dir: Path) -> dict[str, Path]:
     USDA releases pulled; where each source of the manifest lands."""
     data = tmp_path / "data"
     (data / "raw" / "usda").mkdir(parents=True)
-    shutil.copy(Path(__file__).resolve().parents[2] / "data" / "manifest.toml", data)
-    dirs = release_dirs(data / "manifest.toml", data / "raw")
+    dirs = release_dirs(packaged_manifest(), data / "raw")
     for release in (dirs["sr_legacy"], dirs["foundation"]):
         release.symlink_to(usda_dir / release.name, target_is_directory=True)
     return dirs
@@ -468,6 +476,25 @@ def test_match_label_draws_the_sample_then_needs_every_method(
     assert labels.read_text(encoding="utf-8") == drawn
 
 
+@pytest.mark.usefixtures("pinned_config")
+def test_diary_match_without_a_labels_file_says_so(
+    tmp_path: Path,
+    usda_rows: list[Row],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The labels path is relative to the working directory, so a run from
+    another directory would silently match without them; the line names the
+    directory it looked in."""
+    monkeypatch.chdir(tmp_path)
+    db = str(_database(tmp_path, usda_rows))
+    assert main(["--db", db, "diary", "match"]) == 0
+    looked = tmp_path / "data" / "labels" / "labels.csv"
+    assert f"no labels file at {looked}; matching without labels" in (
+        capsys.readouterr().err
+    )
+
+
 def test_diary_match_refuses_an_orphan_label_then_prints_the_counts(
     tmp_path: Path,
     fixtures_dir: Path,
@@ -496,8 +523,9 @@ def test_diary_match_refuses_an_orphan_label_then_prints_the_counts(
     assert "egg whites = sr:1" in capsys.readouterr().err
     write_labels(labels, [Label("egg whites", 2, "head", "dev", "sr:172183", "search")])
     assert main(["--db", db, "diary", "match"]) == 2
-    assert "embed extra not installed (uv sync --extra embed)" in (
-        capsys.readouterr().err
+    assert (
+        "embed extra not installed (uv sync --extra embed, or install macroswap[embed])"
+        in (capsys.readouterr().err)
     )
     monkeypatch.setattr("macroswap.cli.load_config", lambda path=None: pinned_config)
     assert main(["--db", db, "diary", "match"]) == 0
@@ -531,7 +559,8 @@ def test_match_eval_prints_dev_then_writes_the_test_table(
     assert main(["--db", db, "match", "eval"]) == 0
     dev = capsys.readouterr().out.splitlines()
     assert dev[:3] == [
-        "method: lexical; embed extra not installed (uv sync --extra embed)",
+        "method: lexical; embed extra not installed "
+        "(uv sync --extra embed, or install macroswap[embed])",
         "| split | bucket | weighting | metric | lexical |",
         "| --- | --- | --- | --- | --- |",
     ]

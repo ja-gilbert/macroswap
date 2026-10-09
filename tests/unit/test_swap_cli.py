@@ -86,7 +86,8 @@ EXIT_CODES = {
         ["swap", "egg whites", "--grams", "165", "--method", "embed"],
         True,
         2,
-        "embed extra not installed (uv sync --extra embed)",
+        "embed extra not installed "
+        "(uv sync --extra embed, or install macroswap[embed])",
     ),
 }
 
@@ -269,7 +270,8 @@ def test_swap_by_default_without_the_extra_runs_lexical_and_says_why(
     build(db, usda_rows)
     assert main(["--db", str(db), "swap", "egg whites", "--grams", "165"]) == 0
     assert (
-        "method: lexical; embed extra not installed (uv sync --extra embed)"
+        "method: lexical; embed extra not installed "
+        "(uv sync --extra embed, or install macroswap[embed])"
         in capsys.readouterr().out
     )
 

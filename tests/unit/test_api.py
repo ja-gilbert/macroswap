@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import sqlite3
 import subprocess
 import sys
 from collections.abc import Sequence
@@ -153,6 +154,38 @@ def test_fit_reproduces_the_check_value_and_refuses_a_row_without_macros(
 def test_food_refuses_an_unknown_id(db: Path) -> None:
     with pytest.raises(KeyError):
         Matcher(db, "lexical").food("sr:0")
+
+
+@pytest.mark.usefixtures("pinned_config")
+def test_the_loader_closes_the_store(
+    db: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Read once and closed, whether the store is built, refused, or not a
+    database at all: a connection left to the garbage collector is a
+    ResourceWarning on 3.13, which a consumer's suite may run with warnings
+    as errors."""
+    unbuilt = tmp_path / "diary.sqlite"
+    connect(unbuilt).close()
+    text = tmp_path / "text.sqlite"
+    text.write_text("not a database")
+    opened: list[sqlite3.Connection] = []
+    real = sqlite3.connect
+
+    def tracked(path: Path) -> sqlite3.Connection:
+        conn = real(path)
+        opened.append(conn)
+        return conn
+
+    monkeypatch.setattr(sqlite3, "connect", tracked)
+    Matcher(db, "lexical").match("egg whites")
+    with pytest.raises(FileNotFoundError):
+        Matcher(unbuilt, "lexical").match("egg whites")
+    with pytest.raises(sqlite3.DatabaseError):
+        Matcher(text, "lexical").match("egg whites")
+    assert len(opened) == 3
+    for conn in opened:
+        with pytest.raises(sqlite3.ProgrammingError):
+            conn.execute("SELECT 1")
 
 
 @pytest.mark.usefixtures("pinned_config")

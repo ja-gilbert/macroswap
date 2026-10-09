@@ -15,9 +15,9 @@ coverage_shares = [0.5, 0.8, 0.95]
 [paths]
 # The built database; data/build/ is gitignored, so diary data stays out of git.
 db = "data/build/macroswap.sqlite"
-# Downloads land under raw/usda/; the manifest pins what they must hash to.
+# Downloads land under raw/usda/; the packaged manifest.toml pins what they
+# must hash to.
 raw = "data/raw"
-manifest = "data/manifest.toml"
 # The labeled sample and the eval's expected table, both committed.
 labels = "data/labels/labels.csv"
 eval_expected = "data/labels/eval_expected.csv"
@@ -31,7 +31,7 @@ popularity = "data/popularity/popularity.json"
 fit_weights = { protein = 3.0, carbs = 1.0, fat = 1.0 }
 # Which foods to show first: squared gram deltas of protein, carbs, fat,
 # weighted to kcal space with protein counted three times:
-# 3*(4P)^2 + (4C)^2 + (9F)^2. Spec 4.5.
+# 3*(4P)^2 + (4C)^2 + (9F)^2.
 rank_weights = { protein = 48.0, carbs = 16.0, fat = 81.0 }
 # A candidate whose serving falls outside these grams is not offered, so three
 # kilograms of cucumber never answer a bowl of rice.
@@ -77,7 +77,7 @@ top = 10
 
 [usda]
 # A USDA description is comma-separated fields, split outside parentheses and
-# compared lower-cased. Each list below classifies a whole field. Spec 4.2.
+# compared lower-cased. Each list below classifies a whole field.
 # A program note, not food; removed before splitting. Every other
 # parenthetical stays in the variant key.
 note_pattern = '\(includes foods for usda.s food distribution program\)'

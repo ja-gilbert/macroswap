@@ -11,6 +11,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import astuple
 from pathlib import Path
 
+from macroswap import __version__
 from macroswap.api import load_matcher
 from macroswap.config import Config, ConfigError, load_config
 from macroswap.diary.importer import DiaryImportError, import_directory
@@ -28,7 +29,7 @@ from macroswap.match.evaluate import (
 from macroswap.match.label import draw_sample, label_session, read_labels, write_labels
 from macroswap.match.matcher import Matcher
 from macroswap.nhanes.popularity import measure, write_table
-from macroswap.pull import PullError, pull, release_dirs
+from macroswap.pull import PullError, packaged_manifest, pull, release_dirs
 from macroswap.store import (
     connect,
     open_built,
@@ -61,6 +62,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--config", help="path to a macroswap.toml (default: packaged)")
     parser.add_argument("--db", help="SQLite path (default: paths.db from the config)")
+    parser.add_argument("--version", action="version", version=__version__)
     commands = parser.add_subparsers(dest="command", required=True)
     diary = commands.add_parser("diary", help="import and inspect the diary")
     diary_commands = diary.add_subparsers(dest="diary_command", required=True)
@@ -187,8 +189,8 @@ def _diary_import(config: Config, db: Path, args: argparse.Namespace) -> int:
         print(
             f"{report.file}: {report.days} days, {report.rows} rows, "
             f"{report.untracked_days} untracked, "
-            f"{report.reconciled_days} of {report.days} reconciled, "
-            f"{report.total_mismatches} total mismatches"
+            f"{report.matching_days} of {report.days} match TOTALS, "
+            f"{report.total_mismatches} mismatches"
         )
     return 0
 
@@ -201,7 +203,14 @@ def _diary_stats(config: Config, db: Path, args: argparse.Namespace) -> int:
 
 def _diary_match(config: Config, db: Path, args: argparse.Namespace) -> int:
     path = Path(config.paths.labels)
-    labels = read_labels(path) if path.exists() else []
+    if path.exists():
+        labels = read_labels(path)
+    else:
+        labels = []
+        print(
+            f"no labels file at {path.absolute()}; matching without labels",
+            file=sys.stderr,
+        )
     fingerprint = Fingerprint.current(config.match, path)
     method = config.match.default_method
 
@@ -221,13 +230,13 @@ def _diary_match(config: Config, db: Path, args: argparse.Namespace) -> int:
 
 
 def _data_pull(config: Config, db: Path, args: argparse.Namespace) -> int:
-    for line in pull(Path(config.paths.manifest), Path(config.paths.raw)):
+    for line in pull(packaged_manifest(), Path(config.paths.raw)):
         print(line)
     return 0
 
 
 def _data_build(config: Config, db: Path, args: argparse.Namespace) -> int:
-    dirs = release_dirs(Path(config.paths.manifest), Path(config.paths.raw))
+    dirs = release_dirs(packaged_manifest(), Path(config.paths.raw))
     for source in dirs.values():
         if not source.exists():
             raise PullError(f"nothing pulled at {source}; run `data pull` first")

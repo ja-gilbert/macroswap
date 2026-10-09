@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from macroswap.config import load_config
-from macroswap.pull import release_dirs
+from macroswap.pull import packaged_manifest, release_dirs
 from macroswap.usda.load import Food, load_release, merge
 from macroswap.usda.table import Row, build_table
 
@@ -48,7 +48,7 @@ def releases() -> dict[str, Path]:
     except in CI, where MACROSWAP_REQUIRE_DATA=1 turns the skip into a failure
     so a broken pull can never pass by skipping the tier."""
     config = load_config()
-    dirs = release_dirs(ROOT / config.paths.manifest, ROOT / config.paths.raw)
+    dirs = release_dirs(packaged_manifest(), ROOT / config.paths.raw)
     if missing := [str(d) for d in dirs.values() if not d.exists()]:
         message = f"sources not pulled: {missing}; run `macroswap data pull`"
         if os.environ.get("MACROSWAP_REQUIRE_DATA") == "1":

@@ -104,7 +104,7 @@ def test_depth_one_keeps_products_out_and_pools_come_from_candidates(
 def test_key_reasons_outrank_the_category(foods: list[Food]) -> None:
     """analytical-duplicate and cooked-with-raw-sibling are decided at the key
     and lead the category rule, so the published counts do not depend on which
-    excluded category a duplicate or cooked row sits in (spec 4.2)."""
+    excluded category a duplicate or cooked row sits in."""
     moved = {"foundation:321900": "Baby Foods", "sr:169753": "Fast Foods"}
     built = [replace(f, category=moved.get(f.id, f.category)) for f in foods]
     rows = {r.id: r for r in build_table(built, USDA)}
@@ -114,7 +114,7 @@ def test_key_reasons_outrank_the_category(foods: list[Food]) -> None:
 
 def test_field_two_macro_variants_split_the_family(rows: dict[str, Row]) -> None:
     """Canned and dried fruit are different products from the raw one and from
-    each other, so a field-two macro variant joins the family (spec 4.2)."""
+    each other, so a field-two macro variant joins the family."""
     assert rows["sr:169928"].family == "peaches, yellow"
     assert rows["sr:169112"].family == "peaches, canned"
     assert rows["sr:169934"].family == "peaches, dried"
@@ -124,7 +124,7 @@ def test_derived_levels_interpolate_and_beef_is_formula_linear(
     rows: dict[str, Row],
 ) -> None:
     """Derived 88/12 lies on the 85/15 to 90/10 line, and dropping any interior
-    beef anchor, its neighbours predict it within 0.1 g (spec 4.2). Every row
+    beef anchor, its neighbours predict it within 0.1 g. Every row
     carries its provenance tag, and an anchor's level comes from config."""
     derived = rows["derived:beef, ground:88/12"]
     assert derived.protein == pytest.approx(19.436, abs=0.001)

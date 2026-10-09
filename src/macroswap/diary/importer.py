@@ -34,7 +34,7 @@ class ImportReport:
     days: int
     rows: int
     untracked_days: int
-    reconciled_days: int
+    matching_days: int
     total_mismatches: int
 
 
@@ -78,7 +78,7 @@ def import_file(
     day_records = []
     row_records = []
     untracked_days = 0
-    reconciled = 0
+    matching = 0
     mismatches = 0
     for day in days:
         calories = 0.0
@@ -128,9 +128,10 @@ def import_file(
         untracked_days += int(untracked)
         reported = day.reported_total_calories
         if reported is not None:
-            reconciled += 1
             if abs(reported - calories) > _TOTAL_TOLERANCE_KCAL:
                 mismatches += 1
+            else:
+                matching += 1
         day_records.append(
             (
                 day.date.isoformat(),
@@ -169,6 +170,6 @@ def import_file(
         days=len(days),
         rows=len(row_records),
         untracked_days=untracked_days,
-        reconciled_days=reconciled,
+        matching_days=matching,
         total_mismatches=mismatches,
     )

@@ -9,3 +9,8 @@ dist/
 data/raw/
 data/build/
 docs/private/
+# A store, an embeddings cache or a diary export saved outside those folders.
+*.sqlite*
+embeddings-*.npy*
+mfp_*.html
+!tests/fixtures/mfp_*.html

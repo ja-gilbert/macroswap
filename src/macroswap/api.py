@@ -8,6 +8,7 @@ holds them behind frozen values, loads the model on first use and keeps it.
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from contextlib import closing
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, cast
@@ -196,7 +197,7 @@ class Matcher:
         if self._loaded is None:
             config = load_config()
             db = Path(self._store or config.paths.db)
-            with open_built(db) as conn:
+            with closing(open_built(db)) as conn:
                 rows = read_usda(conn)
             method = self._method or config.match.default_method
             if method not in ("lexical", "embed", "hybrid"):

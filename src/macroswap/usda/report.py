@@ -1,7 +1,7 @@
 """What `data build` produced, and what to decide next: the family report.
 
 Varietal override candidates and Foundation alias candidates are measured, not
-guessed, so the config lists they feed are chosen from data. Spec 4.2.
+guessed, so the config lists they feed are chosen from data.
 """
 
 from __future__ import annotations
@@ -60,7 +60,7 @@ def _representatives(
 def _distance(
     a: tuple[float, ...], b: tuple[float, ...], weights: tuple[float, ...]
 ) -> float:
-    """The rank score between two foods at 100 g each (spec 4.5)."""
+    """The rank score between two foods at 100 g each."""
     return math.sqrt(
         sum(w * (x - y) ** 2 for w, x, y in zip(weights, a, b, strict=True))
     )

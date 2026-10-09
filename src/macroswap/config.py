@@ -33,7 +33,6 @@ class StatsConfig:
 class PathsConfig:
     db: str
     raw: str
-    manifest: str
     labels: str
     eval_expected: str
     popularity: str

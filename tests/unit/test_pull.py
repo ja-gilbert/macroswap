@@ -65,8 +65,7 @@ def test_checksum_mismatch_is_exit_two(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     manifest, _ = _served(tmp_path, sha256="0" * 64)
-    (tmp_path / "data").mkdir()
-    manifest.rename(tmp_path / "data" / "manifest.toml")
+    monkeypatch.setattr("macroswap.cli.packaged_manifest", lambda: manifest)
     monkeypatch.chdir(tmp_path)
     assert main(["data", "pull"]) == 2
     assert "is not the pinned" in capsys.readouterr().err

@@ -11,7 +11,7 @@ import csv
 from pathlib import Path
 
 from macroswap.config import load_config
-from macroswap.pull import release_dirs
+from macroswap.pull import packaged_manifest, release_dirs
 from macroswap.usda.load import NUTRIENT_IDS
 
 FIXTURE = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "usda"
@@ -247,7 +247,7 @@ ROWS = {
 
 def main() -> None:
     config = load_config()
-    dirs = release_dirs(Path(config.paths.manifest), Path(config.paths.raw))
+    dirs = release_dirs(packaged_manifest(), Path(config.paths.raw))
     for source, wanted in ROWS.items():
         src = dirs[source]
         dst = FIXTURE / src.name

@@ -36,7 +36,8 @@ class Embedder:
             from huggingface_hub.errors import LocalEntryNotFoundError
         except ImportError as exc:
             raise EmbedUnavailable(
-                "embed extra not installed (uv sync --extra embed)"
+                "embed extra not installed "
+                "(uv sync --extra embed, or install macroswap[embed])"
             ) from exc
         pinned = f"{model}@{revision[:7]}"
         try:
@@ -71,14 +72,14 @@ class Embedder:
 
     def index_vectors(self, texts: Sequence[str]) -> NDArray[np.float32]:
         """The texts' vectors, read from the cache while the texts and the key
-        are unchanged; a new file replaces the old one."""
+        are unchanged. A new key writes its own file beside the others, which
+        are the user's to clean: two environments sharing a store never delete
+        each other's cache."""
         key = "\n".join((self._key, *texts))
         digest = hashlib.sha256(key.encode()).hexdigest()
         path = self._cache_dir / f"embeddings-{digest}.npy"
         if not path.exists():
             vectors = self.encode(texts)
-            for stale in self._cache_dir.glob("embeddings-*"):
-                stale.unlink()
             # Renamed into place, so a cut-short write never leaves a bad cache.
             partial = path.with_name(path.name + ".part")
             with partial.open("wb") as out:
