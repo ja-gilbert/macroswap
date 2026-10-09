@@ -1,7 +1,8 @@
 """The USDA food table: every row with its keys, roles and exclusion reason.
 
 The matcher indexes every row; `exclusion_reason` says which rows a swap may
-offer. The first applicable reason in REASONS wins. Spec 4.2.
+offer. The first applicable reason in REASONS wins; the README's USDA Table
+section names each.
 """
 
 from __future__ import annotations

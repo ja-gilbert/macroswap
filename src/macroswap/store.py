@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS diary_rows (
     food_text     TEXT NOT NULL,
     quantity_text TEXT,
     grams         REAL,
-    lean_pct      INTEGER,  -- read by the swap engine's default level, spec 4.2
+    lean_pct      INTEGER,  -- read by the swap's default level (README, Swaps)
     is_quick_add  INTEGER NOT NULL CHECK (is_quick_add IN (0, 1)),
     calories      REAL,
     carbs         REAL,
@@ -53,8 +53,8 @@ CREATE TABLE IF NOT EXISTS diary_matches (
     source    TEXT NOT NULL,
     score     REAL,
     -- A NULL family is NO_MATCH; a family without a row is a leanness-family
-    -- name matched or labeled at its family, whose level the next milestone
-    -- applies.
+    -- name matched or labeled at its family, whose level the swap and the
+    -- library apply.
     CHECK ((usda_id IS NULL) = (variant IS NULL))
 );
 CREATE TABLE IF NOT EXISTS diary_matches_meta (
@@ -136,24 +136,33 @@ def open_existing(db: Path, hint: str) -> sqlite3.Connection:
 def open_built(db: Path) -> sqlite3.Connection:
     """The store with its USDA table: diary import creates the database
     without it, and an older build cut short while writing it could leave it
-    empty."""
+    empty. A refused store is closed, not left to the garbage collector."""
     conn = open_existing(db, "data build")
-    if not conn.execute(
-        "SELECT 1 FROM sqlite_master WHERE name = 'usda_foods'"
-    ).fetchone():
-        raise FileNotFoundError(f"no USDA table in {db}; run `data build` first")
-    if not conn.execute("SELECT 1 FROM usda_foods LIMIT 1").fetchone():
-        raise FileNotFoundError(f"no USDA rows in {db}; run `data build` again")
+    try:
+        if not conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE name = 'usda_foods'"
+        ).fetchone():
+            raise FileNotFoundError(f"no USDA table in {db}; run `data build` first")
+        if not conn.execute("SELECT 1 FROM usda_foods LIMIT 1").fetchone():
+            raise FileNotFoundError(f"no USDA rows in {db}; run `data build` again")
+    except BaseException:
+        conn.close()
+        raise
     return conn
 
 
 def connect(path: Path) -> sqlite3.Connection:
-    """Open the build database, creating directories and tables as needed."""
+    """Open the build database, creating directories and tables as needed; a
+    file that is not a database is refused with the connection closed."""
     path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(path)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    conn.executescript(_SCHEMA)
+    try:
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys = ON")
+        conn.executescript(_SCHEMA)
+    except BaseException:
+        conn.close()
+        raise
     return conn
 
 

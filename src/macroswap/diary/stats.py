@@ -8,8 +8,9 @@ from collections import Counter
 from dataclasses import dataclass
 from datetime import date, timedelta
 
-# Counted rows, spec 4.1: tracked days, quick adds excluded. The name is the
-# brand and food text together, which is also the matcher's input.
+# Counted rows, as the README's Diary section defines them: tracked days, quick
+# adds excluded. The name is the brand and food text together, which is also
+# the matcher's input.
 _NAME = """lower(CASE WHEN r.brand IS NULL THEN r.food_text
                   ELSE r.brand || ' - ' || r.food_text END)"""
 _COUNTED = """FROM diary_rows AS r

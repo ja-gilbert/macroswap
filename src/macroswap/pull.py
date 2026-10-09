@@ -7,6 +7,8 @@ import shutil
 import tomllib
 import urllib.request
 import zipfile
+from importlib.resources import files
+from importlib.resources.abc import Traversable
 from pathlib import Path
 
 
@@ -14,8 +16,14 @@ class PullError(ValueError):
     """A download does not match the manifest, or the manifest is unusable."""
 
 
-def read_manifest(path: Path) -> dict[str, tuple[str, str]]:
-    """Source name -> (url, sha256), from data/manifest.toml."""
+def packaged_manifest() -> Traversable:
+    """The manifest shipped inside the package, beside the config, so the pull
+    and the build run from an installed wheel in any directory."""
+    return files("macroswap") / "manifest.toml"
+
+
+def read_manifest(path: Traversable) -> dict[str, tuple[str, str]]:
+    """Source name -> (url, sha256), from a manifest.toml."""
     try:
         raw = tomllib.loads(path.read_text(encoding="utf-8"))
         return {name: (entry["url"], entry["sha256"]) for name, entry in raw.items()}
@@ -25,7 +33,7 @@ def read_manifest(path: Path) -> dict[str, tuple[str, str]]:
         raise PullError(f"{path}: every source needs a url and a sha256") from exc
 
 
-def release_dirs(manifest: Path, raw: Path) -> dict[str, Path]:
+def release_dirs(manifest: Traversable, raw: Path) -> dict[str, Path]:
     """Where each source lands: a folder named after its .zip, or the file itself."""
     return {
         name: raw / "usda" / url.rsplit("/", 1)[-1].removesuffix(".zip")
@@ -33,7 +41,7 @@ def release_dirs(manifest: Path, raw: Path) -> dict[str, Path]:
     }
 
 
-def pull(manifest: Path, raw: Path) -> list[str]:
+def pull(manifest: Traversable, raw: Path) -> list[str]:
     """Fetch each source unless a verified copy is present, and unpack each .zip."""
     target = raw / "usda"
     target.mkdir(parents=True, exist_ok=True)

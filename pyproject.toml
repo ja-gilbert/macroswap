@@ -3,6 +3,9 @@ name = "macroswap"
 version = "0.1.0.dev0"
 description = "Macro-equivalent food swaps from a MyFitnessPal diary and USDA data."
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Jamie Gilbert" }]
 requires-python = ">=3.12"
 dependencies = [
     "numpy>=2.5.3",
@@ -11,6 +14,9 @@ dependencies = [
 
 [project.optional-dependencies]
 embed = ["sentence-transformers>=6.1,<7", "torch>=2.14"]
+
+[project.urls]
+Repository = "https://github.com/ja-gilbert/macroswap"
 
 [project.scripts]
 macroswap = "macroswap.cli:main"

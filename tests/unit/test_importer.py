@@ -23,7 +23,7 @@ def test_rows_are_normalized_and_days_are_flagged(
     """Rows carry brand, food text, grams, leanness and the quick-add flag;
     days carry calories, quick-add calories, the untracked flag and the total."""
     report = import_file(conn, fixtures_dir / "mfp_2026-08-01_2026-08-02.html", CONFIG)
-    assert (report.days, report.rows, report.reconciled_days) == (2, 8, 2)
+    assert (report.days, report.rows, report.matching_days) == (2, 8, 2)
     assert (report.untracked_days, report.total_mismatches) == (1, 0)
     chicken, potatoes, cheddar, rice, beef, eggs = conn.execute(
         "SELECT * FROM diary_rows WHERE date = '2026-08-01' ORDER BY position"
@@ -80,7 +80,11 @@ def test_directory_imports_in_name_order_and_reconciles_totals(
         "mfp_2026-08-02_2026-08-03.html",
         "mfp_2026-08-05_2026-08-06.html",
     ]
-    assert [r.total_mismatches for r in reports] == [0, 0, 1]
+    assert [(r.matching_days, r.total_mismatches) for r in reports] == [
+        (2, 0),
+        (2, 0),
+        (0, 1),
+    ]
     assert conn.execute("SELECT count(*) AS n FROM diary_rows").fetchone()["n"] == 13
     turkey = conn.execute(
         "SELECT lean_pct FROM diary_rows WHERE raw_name LIKE 'Jennie-O%'"

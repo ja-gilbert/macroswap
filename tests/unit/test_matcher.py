@@ -128,8 +128,8 @@ def test_length_normalization_comes_from_the_config(usda_rows: list[Row]) -> Non
 
 
 def test_a_name_without_a_level_keys_at_the_family(matcher: Matcher) -> None:
-    """Level resolution waits for the next milestone, so the family is the identity;
-    the family's other rows cannot fill the top five."""
+    """The family is the identity, and the swap applies the level, so the
+    family's other rows cannot fill the top five."""
     hits = matcher.lexical("ground beef")
     assert (hits[0].row.id, hits[0].key) == ("sr:168652", "beef, ground")
     assert len({h.key for h in hits}) == len(hits) == CONFIG.match.top_k

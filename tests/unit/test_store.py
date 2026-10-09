@@ -26,8 +26,7 @@ def test_connect_creates_schema_once_and_enforces_foreign_keys(tmp_path: Path) -
 
 def test_a_diary_match_holds_a_row_id_only_with_its_variant(tmp_path: Path) -> None:
     """A family alone is a leanness-family name with no row at its level; an
-    id without its variant would let the next milestone read a row as a
-    family."""
+    id without its variant would let the swap read a row as a family."""
     with connect(tmp_path / "db.sqlite") as conn, pytest.raises(sqlite3.IntegrityError):
         conn.execute(
             "INSERT INTO diary_matches(name, rows, usda_id, family, source) "

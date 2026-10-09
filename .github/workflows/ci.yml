@@ -8,14 +8,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
-      - run: uv sync --frozen --extra embed
+      - run: uv sync --locked --extra embed
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy
       - uses: actions/cache@v4
         with:
           path: data/raw/usda
-          key: usda-${{ hashFiles('data/manifest.toml') }}
+          key: usda-${{ hashFiles('src/macroswap/manifest.toml') }}
       - run: uv run macroswap data pull
       - id: model
         run: echo "revision=$(uv run python -c 'from macroswap.config import load_config; print(load_config().match.revision)')" >> "$GITHUB_OUTPUT"
@@ -32,18 +32,26 @@ jobs:
         run: uv run python scripts/render_popularity.py && git diff --exit-code docs/popularity.md
       - name: The README's known misses are the acceptance file
         run: uv run python scripts/render_misses.py && git diff --exit-code README.md
-      - name: Config ships inside the wheel
+      - name: The config, the manifest and the license ship inside the wheel
         run: |
           uv build --wheel --out-dir dist
-          uv run python -c "import glob, sys, zipfile; wheel = glob.glob('dist/*.whl')[0]; sys.exit(0 if 'macroswap/macroswap.toml' in zipfile.ZipFile(wheel).namelist() else f'macroswap.toml is missing from {wheel}')"
-      - name: The wheel runs without the embed extra
+          uv run python -c "import glob, sys, zipfile; wheel = glob.glob('dist/*.whl')[0]; names = zipfile.ZipFile(wheel).namelist(); missing = [n for n in ('macroswap/macroswap.toml', 'macroswap/manifest.toml') if n not in names] + [n for n in ('LICENSE',) if not any(m.endswith('/licenses/' + n) for m in names)]; sys.exit(f'{missing} missing from {wheel}' if missing else 0)"
+      - name: The wheel runs without the embed extra, from any directory
         run: |
           uv venv /tmp/bare
           uv pip install --python /tmp/bare dist/*.whl
           /tmp/bare/bin/macroswap --help
+          /tmp/bare/bin/macroswap --version
+          mkdir /tmp/empty && cd /tmp/empty
+          if /tmp/bare/bin/macroswap data build 2>err; then exit 1; fi
+          grep -q 'run `data pull` first' err
       - name: No private paths tracked
         run: |
-          if git ls-files data/raw data/build docs/private | grep -q .; then
+          if git ls-files data/raw data/build docs/private ':(glob)**/*.sqlite*' ':(glob)**/embeddings-*.npy*' | grep -q .; then
             echo "private paths are tracked" >&2
+            exit 1
+          fi
+          if git ls-files ':(glob)**/mfp_*.html' | grep -v '^tests/fixtures/' | grep -q .; then
+            echo "a diary export is tracked" >&2
             exit 1
           fi

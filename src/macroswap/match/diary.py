@@ -3,8 +3,9 @@
 A made label wins over the matcher, through its first id. A name stores the
 identity a swap shows: a row with its family, variant and as-bought state; the
 family alone for a leanness-family name matched or labeled at its family,
-whose level the next milestone applies; or NULLs for NO_MATCH. The fingerprint
-row records what made the table, so a reader can refuse a stale one.
+whose level the swap and the library apply; or NULLs for NO_MATCH. The
+fingerprint row records what made the table, so a reader can refuse a stale
+one.
 """
 
 from __future__ import annotations
