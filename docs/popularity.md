@@ -4,6 +4,7 @@ A swap leaves out foods almost nobody eats and lists ordinary foods first.
 "Ordinary" is counted, not guessed: every food family carries the number
 of people in a national dietary survey who reported eating it. This page says
 what that number is, how it is made and what it misses.
+The rest of the pipeline is in [how it works](how-it-works.md).
 
 Every number inside a marked block is rendered from the committed table,
 `data/popularity/popularity.json`, and from `macroswap.toml`, which holds the
@@ -248,49 +249,10 @@ threshold is listed in the first tier. Both are absolute counts, frozen in
 `macroswap.toml` for this cycle: `data build` refuses survey foods of another
 cycle, so the two numbers never silently come to mean something else.
 
-Four more rules decide what a swap offers, none of them a count, all of them
-in `macroswap.toml`, and this page records them because they shape the lists
-the counts order:
-
-- **Starch and sugar are two pools.** A family's carbs are sugar when its
-  candidate rows' sugars, summed over the rows that carry a sugars value, are
-  at least half those rows' carbs, summed, and starch below that, so a bowl of
-  rice is answered with potatoes and not with grapes. A family whose
-  candidate rows carry no sugars value is starch.
-  Measured on 2026-10-05 at commit `eb0943b`: 224 of the 894 carb-pool
-  families have no sugars value, six of them at or above the floor, all
-  starch in fact: chia seeds (64 participants), quinoa (50), gluten-free
-  pasta (36), dry couscous (21), large lima beans (12) and yellow beans (10);
-  the other 218 sit below the floor.
-- **A serving is at most six times the target's grams.** The largest serving
-  an accepted swap needs, measured on 2026-10-05 at commit `eb0943b` over the
-  acceptance file, is 5.1 times (potatoes for white rice). A diary food
-  matched to no USDA row has no grams, so it gets no serving cap, and the
-  swap's header says so.
-- **Non-starchy vegetables are not swaps.** A family of the Vegetables group
-  whose candidate rows' median calories per 100 g fall below 50 is not
-  offered for any target, whatever macro it is nearest, unless the target's
-  own row is in that group and under the line; a target on no row keeps the
-  rule on. The 50 is the dietary guidelines' line between
-  starchy and non-starchy vegetables, measured on the table instead of
-  listed. Measured on 2026-10-05 at commit `eb0943b`, medians of the family's
-  candidate rows as bought: potatoes 76, sweet corn 76.5, sweet potato 91,
-  yam 118, cassava 160 and taro 112 stay; carrots 36, onions 34, beets 43,
-  winter squash 40 and mixed vegetables 49 drop; canned potatoes, at 60,
-  stay; plantains sit in the Fruits group and are untouched; green peas have
-  a row filed under Legumes and are outside the rule. 142 of the group's
-  234 families fall below the line.
-- **Denied words and parts.** The words named under "left out by design",
-  matched on the row's own two-field key within their categories, under the
-  alias where one names it, before the depth-one cut: `Flour, semolina`,
-  keyed as `semolina` by its alias, is kept, and pan dulce is denied inside
-  `bread`. An allow word in the
-  description still wins, as `mayonnaise` does against `dressing` in Fats and
-  Oils, and as `sausage`, `bratwurst` and `rice cakes` do against their
-  categories. A poultry row whose description names a part nobody plates,
-  heart, liver, gizzard, giblets, neck, back, feet, skin or separable fat, as
-  one whole field, is left out whatever family it is folded into, so a
-  turkey family shows its meat and not its heart.
+Four more rules decide what a swap offers, none of them a count: the starch
+and sugar pools, the serving ratio, the vegetable rule and the denied words
+and parts. They are in [how it works](how-it-works.md#the-four-rules), with
+their measurements.
 
 <!-- counts:tiers -->
 | Reported by at least | Families a swap can offer |

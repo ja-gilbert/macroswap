@@ -4,24 +4,125 @@ Macro-equivalent food swaps from a MyFitnessPal diary and USDA data:
 "I'm tired of this food; what else, and exactly how many grams of it,
 gives me the same macros?"
 
-## Development
+macroswap resolves a food, typed or taken from a diary, to a USDA food, fits
+the grams of every candidate that best reproduce its protein, carbs and fat,
+ranks the candidates by what they still miss, and leaves out the foods almost
+nobody eats, as counted by a national dietary survey.
 
+## Example
+
+On 2026-10-09, on a store with no diary imported:
+
+    $ uv run macroswap swap "chicken breast" --grams 150 --top 8
+    target: chicken, breast / raw (150 g)
+    row: foundation:2646170 Chicken, breast, boneless, skinless, raw
+    method: embed
+    macros: protein 33.8 g, carbs 0.0 g, fat 2.9 g
+    popularity: NHANES 2021-2023, 6694 participants; count is how many reported the family
+    121 g cooked  chicken, rotisserie, original seasoning, breast, meat only  protein +0.0  carbs +0.0  fat +0.5  kcal +4  count 1037  sr-analytical
+    149 g  turkey, whole, meat only  protein +0.0  carbs +0.2  fat +0.0  kcal +1  count 147  sr-analytical
+    168 g  fish, tilapia  protein +0.0  carbs +0.0  fat +0.0  kcal +0  count 117  sr-analytical
+    143 g  turkey, ground, 99/1  protein +0.0  carbs +0.0  fat -0.1  kcal -1  count 74  sr-analytical
+        default level (config default): 171 g  turkey, ground, 93/7  protein -1.7  carbs +0.0  fat +11.4  kcal +96  count 74  sr-analytical
+    156 g  game meat, bison, separable lean only  protein +0.0  carbs +0.0  fat +0.0  kcal +0  count 4 allowlist  sr-analytical
+    181 g  pork, cured, ham -- water added, shank, separable lean only, unheated  protein +0.0  carbs +1.3  fat +0.5  kcal +9  count 932  sr-analytical
+    161 g  pork, loin, tenderloin, separable lean only  protein +0.0  carbs +0.0  fat +0.6  kcal +5  count 415  sr-analytical
+    143 g  beef, round, top round roast, separable lean only  protein +0.0  carbs +0.0  fat +0.6  kcal +5  count 362  sr-analytical
+
+Each line is one food family, shown at one of its variants: the serving that
+best gives the target's macros, weighed as the food is bought (rotisserie
+chicken is bought cooked); how much protein, carbs, fat and calories that
+serving gives above or below the target; how many of the survey's 6,694
+participants reported the family; and the USDA data behind the row. Foods
+that fit about equally well are listed by how many people eat them, which is
+why rotisserie chicken leads tilapia, the closer fit. Ground turkey shows its
+closest level, 99/1, and under it the configured default, 93/7; with a diary
+imported, the default is the level you log most. Bison sits with the ordinary
+foods by an allowlist, though only 4 participants reported it.
+
+## Quick start
+
+macroswap needs Python 3.12 and [uv](https://docs.astral.sh/uv/).
+
+    git clone https://github.com/ja-gilbert/macroswap && cd macroswap
     uv sync --extra embed
-    uv run ruff check .
-    uv run ruff format --check .
-    uv run mypy
-    uv run pytest
+    uv run macroswap data pull      # about 140 MB, verified by checksum
+    uv run macroswap data build
+    uv run macroswap swap "chicken breast" --grams 150
 
-The `embed` extra adds sentence-transformers and a CPU-only torch for
-`macroswap match --method embed` and `--method hybrid`; without it, a plain
-`macroswap match` runs lexical alone and either `--method` exits 2 naming the
-install command. The first run that needs the pinned model downloads it, about
-88 MB, into `~/.cache/huggingface`.
+`data pull` fetches five pinned public sources into `data/raw/usda/`: SR
+Legacy, Foundation Foods, the FNDDS survey foods and the two NHANES 2021-2023
+recall files, about 140 MB to download and 238 MB on disk once unpacked.
+`data build` turns them into one SQLite store, `data/build/macroswap.sqlite`.
+Run the commands from the clone's root. The first command that needs the
+embedding model downloads it, about 88 MB, into `~/.cache/huggingface` and
+says so; a Hugging Face notice about unauthenticated requests may follow and
+is harmless, since the model is public.
 
-My personal data never enters the repository: the diary HTML lives under
-`data/raw/` and the built database under `data/build`, both are ignored.
+The `embed` extra adds sentence-transformers and torch; installed by uv in a
+clone, torch is the CPU-only build. Without the extra, `match` and `swap` fall
+back to lexical and say so on their `method:` line; `--method embed` or
+`--method hybrid` exits 2 naming the install command, and `diary match`,
+`match label` and `match eval --write-expected` exit 2.
 
-## Using as a library
+## Your diary
+
+Everything above needs only the public data. With a MyFitnessPal diary,
+macroswap also swaps the foods you actually log. Save MyFitnessPal's printable
+diary as `mfp_YYYY-MM-DD_YYYY-MM-DD.html`, named for the first and last day it
+covers (I save a month per file), all in one folder, then:
+
+    uv run macroswap diary import path/to/folder
+    uv run macroswap diary stats
+    uv run macroswap diary match
+    uv run macroswap swap --entry "kirkland - chicken breast"
+
+`diary match` resolves each distinct food in the diary once, and `swap` relies
+on its table: when the table is missing, cleared by a new import or a new
+`data build`, or made under a different method, thresholds, labels file or
+model, `swap` stops and asks you to run `diary match` again. Both read the
+labels file relative to the working directory, so run them from the clone's
+root.
+
+The clone carries my labels, `data/labels/labels.csv`, and `diary match`
+applies them: a name in your diary that matches one of mine takes my label.
+Move the file aside to match your diary with the matcher alone, or to label a
+sample of your own with `match label`.
+
+What enters this repository from my own diary is that labeled sample: 462 of
+my food names, each as a lower-cased "brand - food" key without its serving
+text, with how many of my rows it covers, its bucket and split, the USDA row I
+chose for it or NO_MATCH, and where the label came from; and the counts quoted
+in these docs. Dates, amounts and macros never do. The diary HTML lives under
+`data/raw/` and the built store under `data/build/`, both ignored, as is a
+store, an embeddings cache or an export saved anywhere else in a clone outside
+the test fixtures, and CI fails if one is tracked.
+
+## Commands
+
+| Command | What it does |
+| --- | --- |
+| `data pull` | Downloads the five pinned sources into `data/raw/usda/` and refuses any whose checksum differs. |
+| `data build` | Builds the store: the USDA table with its families and exclusions, and the survey counts. |
+| `data report` | Measures the table. |
+| `match NAME` | Ranks USDA foods for a name by each method: lexical, embed and hybrid. |
+| `match label` | Labels a sample of diary foods by hand, for the eval; in a clone it resumes mine. |
+| `match eval` | Scores the three methods against the labels. |
+| `diary import FOLDER` | Reads printable-diary exports into the store. |
+| `diary stats` | Reports what the diary holds. |
+| `diary match` | Resolves each distinct diary food once. |
+| `swap FOOD --grams N` | Swaps for a food and an amount. |
+| `swap FOOD --like-log` | Swaps at the median macros you log for that food. |
+| `swap --entry NAME` | Swaps for a food in your diary, at the median macros you log for it. |
+
+In a clone each runs as `uv run macroswap …`. `match` and `swap FOOD --grams N`
+need only the built store; `diary stats`, `diary match`, `swap --entry` and
+`--like-log` need an imported diary, and `--new-only` runs without one but then
+leaves nothing out. `swap` also takes `--top N`, `--method`, `--variants`,
+`--include-obscure` and `--new-only`, and `--help` on any command explains its
+options.
+
+## Using it as a library
 
 The matcher, the fit and the table import as `macroswap`, pinned by tag; the
 `embed` extra is the default method's:
@@ -31,114 +132,71 @@ The matcher, the fit and the table import as `macroswap`, pinned by tag; the
     from pathlib import Path
     from macroswap import Matcher
 
-    store = Path.home() / "src/macroswap/data/build/macroswap.sqlite"
-    m = Matcher(store=store)
-    # None where the match command prints NO_MATCH
-    match = m.match("kirkland - chicken breast")
+    # the store `data pull` and `data build` made in ~/macroswap-data
+    m = Matcher(store=Path.home() / "macroswap-data/data/build/macroswap.sqlite")
+    match = m.match("kirkland - chicken breast")  # None when the matcher abstains
     if match:
-        # grams of that row for the macros, and its macros per 100 g
-        fit = m.fit(match, protein_g=31.0, carbs_g=0.0, fat_g=3.6)
-        food = m.food(match.row_id)
+        fit = m.fit(match, protein_g=31.0, carbs_g=0.0, fat_g=3.6)  # grams for these macros
+        food = m.food(match.row_id)  # the food's macros per 100 g
 
-`match_many` resolves a list of names with one call of the model, and one
-more for the names that stand on their family's default level; the model
-loads on first use, downloads on the very first, and stays loaded. The store
-and the method default to the config's, the store path relative to the working
-directory, which is why the example gives one. A leanness family typed without
-a level, `ground beef`, resolves to its configured default level; type
-`ground beef 93/7` to pick one. A labels file given to `Matcher` applies
-labels as `diary match` does; without one the numbers are the matcher's
-alone, the ones the eval measures.
+The store is built once by the installed command, in any directory;
+[docs/library.md](docs/library.md) has how, and the rest of the API.
 
-## The Diary
+## How it works
 
-`macroswap diary import` reads a folder of monthly MyFitnessPal printable-diary exports into SQLite, and `macroswap diary stats`
-reports what they hold. On my own diary, 2026-09-22:
+1. **The table.** SR Legacy and Foundation Foods become one table of 8,017
+   USDA foods, plus five ground-beef levels interpolated between published
+   ones. Each row is keyed into a family, `beef, ground`, and a variant,
+   `beef, ground, 93/7`, and given at most one reason it cannot be a swap:
+   3,104 can be.
+2. **The counts.** Every family carries how many of the 6,694 NHANES
+   2021-2023 participants reported eating it, traced through the FNDDS recipes
+   of what they reported. Fewer than 10 and it is left out; 50 or more and it
+   is listed with the ordinary foods.
+3. **The match.** A food name goes to a USDA food by word overlap (BM25), by a
+   sentence-embedding model, the default, or by the two fused, and each may
+   answer NO_MATCH.
+4. **The fit.** For every candidate, the grams that best reproduce the
+   target's protein, carbs and fat, protein weighted three times.
+5. **The rank.** Candidates are ranked by what they still miss, in calories,
+   after rules that keep a swap on the same kind of plate: starch for starch
+   and not sugar, no serving over six times the target's grams, no non-starchy
+   vegetables, no denied words (fruit juice, dressings, soy sauce, catsup,
+   cereal flours) and no poultry parts.
 
-    uv run macroswap diary import data/raw/diary
-    uv run macroswap diary stats
+[docs/how-it-works.md](docs/how-it-works.md) walks each step with its reasons
+and measurements, and [docs/popularity.md](docs/popularity.md) gives the counts
+in full.
 
-| Measure | Count |
-| --- | --- |
-| Monthly Exports | 44 |
-| Days with Food Logged | 1,314 |
-| Food Rows | 18,743 |
-| Days Whose Calories Match the Page's TOTALS Row, to Within 1 kcal | 1,314 of 1,314 |
-| Days No Export Covers | 0 |
-| Days an Export Covers with Nothing Logged | 14 |
-| Untracked Days, where quick adds are half the day's calories or more | 288 |
-| Distinct Foods in Counted Rows, by Brand and Food Text | 1,798 |
-| Foods Covering 50%, 80% and 95% of counted rows | 60, 314, 1,019 |
+## Results
 
-Counted rows are the rows on tracked days that are not quick adds.
+### Matching
 
-`macroswap diary match` resolves each of those foods once: to a USDA row, to a
-family for ground meat matched or labeled at its family, or to NO_MATCH. A food
-I have labeled takes my label, and the default method resolves the rest:
+I labeled 462 of my diary's food names by hand with `macroswap match label`:
+the most-logged foods covering 80% of counted rows (the head) and a seeded
+random sample of the rest (the tail), each split into dev and test. Dev tuned
+the thresholds and chose embed as the default method; test is only reported.
+Counting each name once, end to end, the right food is the top hit for a third
+to a half of the test names, depending on the method and the bucket, and among
+the first five for a half to two thirds; leaving out the foods labeled
+NO_MATCH, 45% to 54% and 69% to 81%. Diary names are hard: brands,
+abbreviations, restaurant dishes and foods the USDA has no row for; 735 of my
+1,798 end as NO_MATCH, labeled as having no USDA food or abstained on.
 
-    uv run macroswap diary match
+<details>
+<summary>The test table: every metric, with 95% intervals</summary>
 
-    method: embed
-    names: 1798; by label: 380; by matcher: 683; NO_MATCH: 735
-
-The three counts add up to the names. NO_MATCH covers both the foods I
-labeled as having no USDA match and the ones the matcher abstained on. Unlike
-`match`, `diary match` never falls back to lexical: a default method that needs
-the missing `embed` extra exits 2. The names are encoded in one call of the
-model: on these 1,798 it takes 20 s where one call per name took 36 s, with
-the same table name for name (2026-10-08).
-
-## The USDA Table
-
-`macroswap data pull` fetches the five pinned sources, SR Legacy, Foundation
-Foods, the FNDDS survey foods and the two NHANES recall files, and refuses
-any whose checksum differs; `macroswap data build` turns the two USDA
-releases into one SQLite table of foods with family and variant keys, macro
-roles and a single exclusion reason per row, counts from the survey files how
-many participants reported each family and each variant, and stores the
-counts beside it; `macroswap data report` measures the table.
-On the pinned sources, 2026-10-06:
-
-    uv run macroswap data pull
-    uv run macroswap data build
-    uv run macroswap data report
-
-| Measure | Count |
-| --- | --- |
-| Foundation Rows Dropped for Sharing an SR Number | 211 |
-| Dry-Basis Rows Dropped at Load | 34 |
-| Families | 2,927 |
-| Single-Row Families | 1,822 |
-| Rows in the Matcher Index | 8,022 |
-| Swap Candidates | 3,104 |
-| Rows Cooked beside a Raw Sibling | 2,399 |
-| Rows in an Excluded Category | 2,405 |
-| Rows Left Out for a Poultry Part | 34 |
-| Foundation Rows Repeating an SR Row | 60 |
-| Rows with Incomplete or All-Zero Macros | 20 |
-
-A candidate is a row a swap may offer; every other row stays in the
-index so a diary name can still be matched to it. The last six rows
-partition the index: 3,104 + 2,399 + 2,405 + 34 + 60 + 20 = 8,022.
-
-## The Matcher
-
-`macroswap match` ranks the USDA table for a food name three ways: lexical,
-BM25 over the words; embed, a pinned sentence-embedding model; and hybrid, the
-two rankings fused by reciprocal rank. Lexical and embed each abstain, NO_MATCH,
-below their own threshold, and hybrid only when its top food is, for each of the
-two, below its threshold or not scored by it.
-
-    uv run macroswap match "kirkland - chicken breast"
-
-To measure them I labeled a sample of my diary's foods with
-`macroswap match label`: the most-logged foods covering 80% of counted rows and
-a seeded random sample of the rest, each split into dev and test. Dev tunes the
-thresholds and picks the method `diary match` runs. Test is only reported, here,
-from the table CI checks the eval against:
-
-    uv run macroswap match eval --write-expected
-    uv run python scripts/render_eval.py
+A food is right when its top hit, or for top5 one of its first five, is the
+food I labeled, at the identity a swap shows: its variant and whether it is
+bought raw, cooked, canned or dry, or its family for ground meat logged
+without its leanness. A label may list up to three rows of one food in one
+state, and a hit counts at any of them. Each entry is the share right, its
+seeded bootstrap 95% interval and n, counting foods once (names) or by how
+often I logged them (rows). Ranking ignores the thresholds and leaves out the
+foods labeled NO_MATCH; end to end, an abstention is right only for a food
+labeled NO_MATCH. `no_match_precision` is the share of abstentions that were
+right, `no_match_recall` the share of NO_MATCH foods that abstained, and
+`exact_id` the share whose top hit is the very row I picked first.
 
 <!-- eval:begin -->
 | split | bucket | weighting | metric | lexical | embed | hybrid |
@@ -173,61 +231,21 @@ from the table CI checks the eval against:
 | test | tail | rows | exact_id | 0.433 [0.291, 0.584] n=72 | 0.485 [0.341, 0.629] n=72 | 0.503 [0.365, 0.655] n=72 |
 <!-- eval:end -->
 
-A food is right when its top hit, or for top5 one of its first five, is
-the food I labeled, at the identity a swap shows: its variant and whether
-it is bought raw, cooked, canned or dry, or its family for ground meat
-logged without its leanness. A label may list up to three rows of one
-food in one state, and a hit counts at any of them. Each
-entry is the share right, its seeded bootstrap 95% interval and n, counting
-foods once (names) or by how often I logged them (rows). Ranking ignores the
-thresholds and leaves out the foods labeled NO_MATCH; end to end, an abstention
-is right only for a food labeled NO_MATCH. `no_match_precision` is the share of
-abstentions that were right, `no_match_recall` the share of NO_MATCH foods that
-abstained, and `exact_id` the share whose top hit is the very row I picked
-first.
+</details>
 
-## Swaps
+### Swaps
 
-`macroswap swap` answers the question at the top: other foods, and the grams of
-each, that give a food's macros. The food is typed with its grams; typed with
-`--like-log`, at the median macros I log for it; or named as a diary entry with
-`--entry`. Every row prints its serving and its protein, carbs, fat and kcal
-deltas, so a reader sees which macro a swap misses and by how much; no line
-carries a single distance.
+For 17 foods, `data/acceptance/swaps.toml` records the swaps I accept and the
+ones I call absurd, marked on 2026-10-06 from the command's first 25 with the
+counts on, and the test suite holds the engine to them: 151 accepted swaps are
+in the first 25 and 170 absurd ones are not. The same file names the known
+misses: swaps offered in the first 25 today that pass the shared pool, the
+serving ratio, the vegetable rule and the floor, and that I chose not to add a
+rule for. Each is held to the first 25 the way an accepted swap is, so the
+list is measured, not remembered.
 
-    uv run macroswap swap "egg whites" --grams 165
-    uv run macroswap swap "ground beef 93/7" --grams 150 --variants
-    uv run macroswap swap --entry "kirkland - chicken breast"
-
-A typed name is looked up first in a table of five everyday names
-(`[swap.staples]` in `macroswap.toml`: white rice, rice, potatoes, greek yogurt
-and salmon), compared exactly after the matcher's own normalization of the text,
-and only then given to the matcher. The table is a curated synonym layer kept
-out of the matcher, so every number in the eval block above is for the matcher
-alone. The bare name `rice` is white rice; a stranger types `wild rice` or
-`black rice` to reach those.
-
-Every family carries the number of NHANES participants who reported it,
-counted by `macroswap data build` from the pinned survey files;
-`docs/popularity.md` says how the count is made and what it misses. A family
-fewer than 10 participants reported is not offered unless the allowlist, the
-diary or `--include-obscure` admits it; one 50 or more reported is listed in
-the first tier; and within a family, of the variants that fit as well as the
-closest, the one most of them reported is shown when at least 10 reported
-it, otherwise the closest; a leanness family shows its closest level, with
-its default level on a second line when the two differ and that level is
-offered. The header names the survey cycle and each row prints its count. A
-store built before the counts were added makes the swap exit 2 and ask for
-`data build` again.
-
-`data/acceptance/swaps.toml` holds the swaps I would accept, and the ones I
-call absurd, for 17 foods, marked on 2026-10-06 from the command's first 25
-with the counts on, and CI holds the engine to them within those 25 rows: 151
-accepted swaps are there and 170 absurd ones are not. The same file records
-the known misses: swaps the command offers in the first 25 today that survive
-all four rules, the shared pool, the serving ratio, the vegetable rule and
-the floor, and get no fifth. Each pair is held to the first 25 the
-way an accepted swap is, so this list is measured, not remembered:
+<details>
+<summary>The known misses</summary>
 
 <!-- misses:begin -->
 - cheese for a meat, egg-white, yogurt or cottage-cheese target: the protein and the fat of meat, so the fit is real; nobody plates it in meat's place. Offered today for greek yogurt: `cheese, cheddar`, `cheese, cream`, `cheese, american`, `cheese, mozzarella`, `cheese, swiss`; for salmon: `cheese, parmesan`, `cheese, mozzarella`, `cheese, cheddar`, `cheese, monterey`; for chicken breast: `cheese, mozzarella`; for ground beef 93/7: `cheese, pasteurized process`, `cheese, swiss`; for ground beef 75/25: `cheese, cheddar`, `cheese, pasteurized process`, `cheese, monterey`, `cheese, feta`, `cheese, colby`, `cheese, queso fresco`, `cheese, pasteurized process cheese food or product`, `cheese product, pasteurized process`, `cheese, mozzarella`, `cheese, swiss`, `cheese, cream`, `cheese spread, pasteurized process`; for egg whites: `cheese, mozzarella`, `cheese, swiss`, `cheese, cheddar`; for chicken thighs: `cheese, pasteurized process`; for tilapia: `cheese, mozzarella`; for Yogurt, plain, low fat: `cheese, cream`; for Cheese, cottage, lowfat, 2% milkfat: `cheese, cream`, `cheese, pasteurized process`, `cheese, swiss`, `cheese, american`.
@@ -239,9 +257,56 @@ way an accepted swap is, so this list is measured, not remembered:
 - soy foods where the macros fit and the plate does not: a veggie burger for a bowl of plain yogurt. Offered today for Yogurt, plain, low fat: `veggie burgers or soyburgers`.
 <!-- misses:end -->
 
-What the counts cannot do: they are unweighted survey participants, children
-included, not an estimate of how many Americans eat a food. A food that FNDDS
-builds from its ingredients rather than from its own row never earns a count:
-every ready-to-eat cereal is built from grain, flour and sugar, so its 1,790
-reporters count toward oats, cornmeal, wheat flour, rice flour and sugar and
-no ready-to-eat family reaches the floor.
+</details>
+
+## Limits
+
+- Matching a diary name to the right USDA food is the weakest step; the test
+  table above measures it.
+- The counts are unweighted survey participants, children included, not an
+  estimate of how many Americans eat a food. A food that FNDDS builds from its
+  ingredients rather than from its own row earns little or no count of its
+  own: ready-to-eat cereals are built from grain, flour and sugar, so their
+  1,790 reporters count toward oats, cornmeal, wheat flour, rice flour and
+  sugar, and no ready-to-eat family reaches the floor.
+- A cooked row keys at two fields where its raw sibling keys at one, so
+  toasted white bread sits under `bread, white` and a baked potato under
+  `potatoes, flesh`, and a typed cooked food is offered its raw family first.
+  A rule measured on 2026-10-07 would move 182 rows, 25 of them with
+  participants, into 21 one-field families; it is not in this version.
+- There is no prebuilt store to download: `data build` makes one from the
+  public sources on your machine.
+
+The other known gaps are at the end of
+[docs/how-it-works.md](docs/how-it-works.md#known-gaps).
+
+## Development
+
+    uv sync --extra embed
+    uv run ruff check .
+    uv run ruff format --check .
+    uv run mypy
+    uv run pytest
+
+In a fresh clone `uv run pytest` skips the data tests, the acceptance file's
+among them, until `data pull` has run, since they build their own table and
+counts from the pulled sources; with `MACROSWAP_REQUIRE_DATA=1` they are
+required. The test table and the known misses above, and the counts in
+`docs/popularity.md`, are rendered from committed data: each has its script
+under `scripts/`, and CI fails if a block differs from what its data renders.
+The eval's expected table is rewritten from the labels by
+`uv run macroswap match eval --write-expected`, and the counts table by
+`uv run macroswap data build --write-popularity`.
+
+## License
+
+MIT; see [LICENSE](LICENSE).
+
+## Authorship
+
+I built macroswap with AI tools. Claude Code wrote the code, the tests and the
+measurement scripts; Claude reviewed the design with me and wrote most of this
+documentation. The problem, the scope and the design decisions were mine, many
+of them made between options the tools laid out. I labeled the evaluation set
+by hand, set the criteria an acceptable swap has to meet and reviewed the marks
+that apply them, and I checked and merged every change myself.
