@@ -1,6 +1,6 @@
 [project]
 name = "macroswap"
-version = "0.1.0.dev0"
+version = "0.1.0"
 description = "Macro-equivalent food swaps from a MyFitnessPal diary and USDA data."
 readme = "README.md"
 license = "MIT"
